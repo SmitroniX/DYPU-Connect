@@ -2,6 +2,21 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### 1. Configure Firebase environment variables
+
+Create `.env.local` in the project root and copy values from `.env.example`.
+
+```bash
+Copy-Item .env.example .env.local
+```
+
+Then replace placeholder values with your Firebase Web App config from Firebase Console:
+`Project settings -> General -> Your apps -> SDK setup and configuration`.
+
+After updating `.env.local`, restart the Next.js dev server.
+
+### 2. Start the dev server
+
 First, run the development server:
 
 ```bash
