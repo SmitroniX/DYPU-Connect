@@ -66,7 +66,7 @@ export default function Sidebar() {
                         <li className="mt-auto">
                             <div className="group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700">
                                 <img
-                                    className="h-8 w-8 rounded-full bg-gray-50 border border-indigo-200"
+                                    className="h-8 w-8 rounded-full bg-gray-50 border border-indigo-200 object-cover object-center"
                                     src={userProfile.profileImage}
                                     alt=""
                                 />

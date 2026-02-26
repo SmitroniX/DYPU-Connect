@@ -4,8 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp } from 'firebase/firestore';
+import type { Timestamp } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
+import GiphyPicker from '@/components/GiphyPicker';
+import type { GiphyGif } from '@/lib/giphy';
+import { resolveProfileImage } from '@/lib/profileImage';
 import { Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -15,12 +19,14 @@ interface Message {
     senderId: string;
     senderName: string;
     senderProfileImage: string;
-    timestamp: any;
+    gifUrl?: string;
+    timestamp?: Timestamp | null;
 }
 
 export default function PublicChatPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
+    const [selectedGifUrl, setSelectedGifUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
     const { userProfile } = useStore();
@@ -55,18 +61,27 @@ export default function PublicChatPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim() || !userProfile || !user) return;
+        const cleanMessage = newMessage.trim();
+        if ((!cleanMessage && !selectedGifUrl) || !userProfile || !user) return;
 
         setLoading(true);
         try {
-            await addDoc(collection(db, 'public_chat'), {
-                text: newMessage.trim(),
+            const payload: Record<string, unknown> = {
+                text: cleanMessage,
                 senderId: user.uid,
                 senderName: userProfile.name,
                 senderProfileImage: userProfile.profileImage,
                 timestamp: serverTimestamp(),
+            };
+            if (selectedGifUrl) {
+                payload.gifUrl = selectedGifUrl;
+            }
+
+            await addDoc(collection(db, 'public_chat'), {
+                ...payload,
             });
             setNewMessage('');
+            setSelectedGifUrl('');
         } catch (error) {
             console.error('Failed to send message:', error);
         } finally {
@@ -91,22 +106,32 @@ export default function PublicChatPage() {
                     ) : (
                         messages.map((msg) => {
                             const isMine = msg.senderId === user?.uid;
+                            const displayName = msg.senderName || 'Student';
                             return (
                                 <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                                     <div className={`flex max-w-[75%] gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
                                         {!isMine && (
                                             <img
-                                                src={msg.senderProfileImage}
+                                                src={resolveProfileImage(msg.senderProfileImage, undefined, msg.senderName)}
                                                 alt={msg.senderName}
-                                                className="w-8 h-8 rounded-full border border-gray-200 mt-1 shrink-0"
+                                                className="w-8 h-8 rounded-full border border-gray-200 mt-1 shrink-0 object-cover object-center"
                                             />
                                         )}
                                         <div className="flex flex-col">
-                                            {!isMine && (
-                                                <span className="text-xs text-gray-500 mb-1 ml-1">{msg.senderName}</span>
-                                            )}
+                                            <span className={`text-xs text-gray-500 mb-1 ${isMine ? 'mr-1 text-right' : 'ml-1'}`}>
+                                                {isMine ? `You (${displayName})` : displayName}
+                                            </span>
                                             <div className={`px-4 py-2 rounded-2xl ${isMine ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-gray-100 text-gray-900 rounded-tl-sm'}`}>
-                                                <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
+                                                {msg.gifUrl && (
+                                                    <img
+                                                        src={msg.gifUrl}
+                                                        alt="GIF"
+                                                        className="w-full max-w-[260px] rounded-lg mb-2 object-cover object-center"
+                                                    />
+                                                )}
+                                                {msg.text && (
+                                                    <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
+                                                )}
                                             </div>
                                             <span className={`text-[10px] text-gray-400 mt-1 ${isMine ? 'text-right mr-1' : 'ml-1'}`}>
                                                 {msg.timestamp?.toDate ? formatDistanceToNow(msg.timestamp.toDate(), { addSuffix: true }) : 'Sending...'}
@@ -122,7 +147,27 @@ export default function PublicChatPage() {
 
                 {/* Input Area */}
                 <div className="bg-white p-3 rounded-b-xl shadow-sm border border-gray-200 shrink-0">
+                    {selectedGifUrl && (
+                        <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-2 flex items-start gap-3">
+                            <img src={selectedGifUrl} alt="Selected GIF" className="h-16 w-16 rounded object-cover object-center" />
+                            <div className="flex-1">
+                                <p className="text-xs text-gray-600">GIF selected</p>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedGifUrl('')}
+                                    className="mt-1 text-xs text-red-600 hover:text-red-700 font-medium"
+                                >
+                                    Remove GIF
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     <form className="flex gap-2" onSubmit={handleSubmit}>
+                        <GiphyPicker
+                            disabled={loading}
+                            onSelect={(gif: GiphyGif) => setSelectedGifUrl(gif.url)}
+                            align="left"
+                        />
                         <input
                             type="text"
                             className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow"
@@ -133,7 +178,7 @@ export default function PublicChatPage() {
                         />
                         <button
                             type="submit"
-                            disabled={loading || !newMessage.trim()}
+                            disabled={loading || (!newMessage.trim() && !selectedGifUrl)}
                             className="bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 disabled:opacity-50 transition-colors flex shrink-0 items-center justify-center w-10 h-10"
                         >
                             <Send className="w-4 h-4" />

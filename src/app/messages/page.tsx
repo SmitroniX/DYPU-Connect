@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, orderBy, getDocs, addDoc, serverTimestamp, limit } from 'firebase/firestore';
 import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
+import { resolveProfileImage } from '@/lib/profileImage';
 import Link from 'next/link';
 import { MessageSquare, Plus, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -19,9 +20,19 @@ interface PrivateChat {
     updatedAt: any;
 }
 
+interface DirectoryUser {
+    id: string;
+    name?: string;
+    email?: string;
+    profileImage?: string;
+    field?: string;
+    year?: string;
+    division?: string;
+}
+
 export default function InboxPage() {
     const [chats, setChats] = useState<PrivateChat[]>([]);
-    const [users, setUsers] = useState<any[]>([]); // For starting new chats
+    const [users, setUsers] = useState<DirectoryUser[]>([]); // For starting new chats
     const [showNewChat, setShowNewChat] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -53,9 +64,9 @@ export default function InboxPage() {
             const fetchUsers = async () => {
                 const q = query(collection(db, 'users'), limit(50));
                 const snapshot = await getDocs(q);
-                const data = snapshot.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() }))
-                    .filter(u => u.id !== user?.uid);
+                const data: DirectoryUser[] = snapshot.docs
+                    .map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as Omit<DirectoryUser, 'id'>) }))
+                    .filter((u) => u.id !== user?.uid);
                 setUsers(data);
             };
             fetchUsers();
@@ -67,7 +78,7 @@ export default function InboxPage() {
         u.field?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const startChat = async (otherUser: any) => {
+    const startChat = async (otherUser: DirectoryUser) => {
         if (!user || !userProfile) return;
 
         // Check if chat already exists
@@ -86,8 +97,8 @@ export default function InboxPage() {
                     [otherUser.id]: otherUser.name
                 },
                 participantImages: {
-                    [user.uid]: userProfile.profileImage,
-                    [otherUser.id]: otherUser.profileImage
+                    [user.uid]: resolveProfileImage(userProfile.profileImage, userProfile.email, userProfile.name),
+                    [otherUser.id]: resolveProfileImage(otherUser.profileImage || otherUser.email, otherUser.email, otherUser.name || 'User')
                 },
                 lastMessage: '',
                 updatedAt: serverTimestamp()
@@ -136,7 +147,11 @@ export default function InboxPage() {
                                     onClick={() => startChat(u)}
                                     className="w-full flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg text-left transition-colors"
                                 >
-                                    <img src={u.profileImage} alt="" className="w-8 h-8 rounded-full bg-gray-100" />
+                                    <img
+                                        src={resolveProfileImage(u.profileImage || u.email, u.email, u.name || 'User')}
+                                        alt=""
+                                        className="w-8 h-8 rounded-full bg-gray-100 object-cover object-center"
+                                    />
                                     <div>
                                         <h4 className="text-sm font-medium text-gray-900">{u.name}</h4>
                                         <p className="text-xs text-gray-500">{u.field} - {u.year} - {u.division}</p>
@@ -161,7 +176,7 @@ export default function InboxPage() {
                         chats.map((chat) => {
                             const otherUserId = chat.participants.find(id => id !== user?.uid) || '';
                             const otherName = chat.participantNames?.[otherUserId] || 'Unknown User';
-                            const otherImage = chat.participantImages?.[otherUserId] || 'https://ui-avatars.com/api/?name=U';
+                            const otherImage = resolveProfileImage(chat.participantImages?.[otherUserId], undefined, otherName);
 
                             return (
                                 <Link
@@ -169,7 +184,7 @@ export default function InboxPage() {
                                     href={`/messages/${chat.id}`}
                                     className="flex items-center gap-4 p-4 hover:bg-indigo-50 transition-colors group cursor-pointer"
                                 >
-                                    <img src={otherImage} alt={otherName} className="w-12 h-12 rounded-full border border-gray-200 shrink-0" />
+                                    <img src={otherImage} alt={otherName} className="w-12 h-12 rounded-full border border-gray-200 shrink-0 object-cover object-center" />
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-baseline mb-1">
                                             <h3 className="text-sm font-bold text-gray-900 truncate pr-4">{otherName}</h3>

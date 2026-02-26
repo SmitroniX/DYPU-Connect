@@ -2,11 +2,13 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut } from 'firebase/auth';
+import type { FirebaseError } from 'firebase/app';
 import { auth, db } from '../lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useStore } from '../store/useStore';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { normalizeUserProfile, type UserProfile } from '@/types/profile';
+import { isAutoAdminEmail } from '@/lib/admin';
 
 interface AuthContextType {
     user: User | null;
@@ -17,6 +19,40 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+
+function mapFirestoreError(error: unknown): Error {
+    const firebaseError = error as FirebaseError | undefined;
+
+    switch (firebaseError?.code) {
+        case 'permission-denied':
+            return new Error(
+                'Firestore access denied. Update Firestore Rules to allow this signed-in user to read/write their own profile document.'
+            );
+        default:
+            return error instanceof Error ? error : new Error('Failed to access Firestore.');
+    }
+}
+
+function mapAuthError(error: unknown): Error {
+    const firebaseError = error as FirebaseError | undefined;
+
+    switch (firebaseError?.code) {
+        case 'auth/operation-not-allowed':
+            return new Error(
+                'Email link sign-in is disabled. In Firebase Console, go to Authentication -> Sign-in method -> Email/Password and enable Email link (passwordless sign-in).'
+            );
+        case 'auth/unauthorized-domain':
+            return new Error(
+                'This domain is not authorized for Firebase Auth. Add it under Authentication -> Settings -> Authorized domains.'
+            );
+        case 'auth/firebase-app-check-token-is-invalid':
+            return new Error(
+                'Firebase App Check token is invalid. Configure App Check for this web app or disable Auth App Check enforcement in Firebase Console during development.'
+            );
+        default:
+            return error instanceof Error ? error : new Error('Authentication failed.');
+    }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -30,14 +66,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setCurrentUser(firebaseUser);
 
             if (firebaseUser) {
-                // Fetch user profile from Firestore
-                const docRef = doc(db, 'users', firebaseUser.uid);
-                const docSnap = await getDoc(docRef);
+                try {
+                    // Fetch user profile from Firestore
+                    const docRef = doc(db, 'users', firebaseUser.uid);
+                    const docSnap = await getDoc(docRef);
 
-                if (docSnap.exists()) {
-                    setUserProfile(docSnap.data() as any);
-                } else {
-                    // If no profile exists, they might need to be redirected to profile setup
+                    if (docSnap.exists()) {
+                        const rawProfile = docSnap.data() as UserProfile;
+                        const profile = normalizeUserProfile(rawProfile);
+
+                        const profileUpdates: Partial<UserProfile> = {};
+                        const needsNormalization =
+                            rawProfile.gender !== profile.gender
+                            || rawProfile.accountVisibility !== profile.accountVisibility
+                            || !Array.isArray(rawProfile.gallery)
+                            || !Array.isArray(rawProfile.stories)
+                            || !Array.isArray(rawProfile.highlights);
+
+                        if (isAutoAdminEmail(firebaseUser.email) && profile.role !== 'admin') {
+                            profileUpdates.role = 'admin';
+                            profile.role = 'admin';
+                        }
+
+                        if (needsNormalization) {
+                            profileUpdates.gender = profile.gender;
+                            profileUpdates.accountVisibility = profile.accountVisibility;
+                            profileUpdates.gallery = profile.gallery;
+                            profileUpdates.stories = profile.stories;
+                            profileUpdates.highlights = profile.highlights;
+                        }
+
+                        if (Object.keys(profileUpdates).length > 0) {
+                            await updateDoc(docRef, profileUpdates);
+                        }
+
+                        setUserProfile(profile);
+                    } else {
+                        // If no profile exists, they might need to be redirected to profile setup
+                        setUserProfile(null);
+                    }
+                } catch (error) {
+                    const mappedError = mapFirestoreError(error);
+                    console.error(mappedError.message);
                     setUserProfile(null);
                 }
             } else {
@@ -60,16 +130,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             handleCodeInApp: true,
         };
 
-        await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-        window.localStorage.setItem('emailForSignIn', email);
+        try {
+            await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+            window.localStorage.setItem('emailForSignIn', email);
+        } catch (error) {
+            throw mapAuthError(error);
+        }
     };
 
     const verifyLoginLink = async (email: string, link: string) => {
-        if (isSignInWithEmailLink(auth, link)) {
-            await signInWithEmailLink(auth, email, link);
-            window.localStorage.removeItem('emailForSignIn');
-        } else {
-            throw new Error('Invalid sign-in link.');
+        try {
+            if (isSignInWithEmailLink(auth, link)) {
+                await signInWithEmailLink(auth, email, link);
+                window.localStorage.removeItem('emailForSignIn');
+            } else {
+                throw new Error('Invalid sign-in link.');
+            }
+        } catch (error) {
+            throw mapAuthError(error);
         }
     };
 

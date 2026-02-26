@@ -1,19 +1,6 @@
 import { create } from 'zustand';
 import { User } from 'firebase/auth';
-
-interface UserProfile {
-    userId: string;
-    name: string;
-    email: string;
-    profileImage: string;
-    field: string;
-    year: string;
-    division: string;
-    branch?: string;
-    role: 'user' | 'admin';
-    status: 'active' | 'banned';
-    createdAt: number;
-}
+import type { UserProfile } from '@/types/profile';
 
 interface AppState {
     currentUser: User | null;
