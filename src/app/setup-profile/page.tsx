@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../components/AuthProvider';
-import { useStore } from '../../store/useStore';
+import { useAuth } from '@/components/AuthProvider';
+import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { db } from '@/lib/firebase';
 import toast from 'react-hot-toast';
 import type { FirebaseError } from 'firebase/app';
 import type { ProfileFormData, UserProfile } from '@/types/profile';
@@ -123,28 +123,28 @@ export default function SetupProfilePage() {
     if (!user || userProfile) return null;
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow">
+        <div className="min-h-screen flex items-center justify-center bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 bg-white/5 p-8 rounded-xl shadow">
                 <div>
-                    <h2 className="text-center text-3xl font-extrabold text-gray-900">Complete Your Profile</h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">Setup your DYPU Connect identity</p>
+                    <h2 className="text-center text-3xl font-extrabold text-white">Complete Your Profile</h2>
+                    <p className="mt-2 text-center text-sm text-slate-400">Setup your DYPU Connect identity</p>
                 </div>
 
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm space-y-4">
-                        <div className="flex items-center gap-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+                        <div className="flex items-center gap-3 rounded-md border border-white/10 bg-white/5 p-3">
                             <img
                                 src={resolveProfileImage(formData.profilePhotoSource, user.email, formData.name || 'DYPU User')}
                                 alt="Profile preview"
-                                className="h-12 w-12 rounded-full border border-gray-200 bg-white object-cover object-center"
+                                className="h-12 w-12 rounded-full border border-white/10 bg-white/5 object-cover object-center"
                             />
                             <div className="flex-1 min-w-0">
-                                <label htmlFor="profilePhotoSource" className="block text-sm font-medium text-gray-700">
+                                <label htmlFor="profilePhotoSource" className="block text-sm font-medium text-slate-300">
                                     Profile Photo URL or Email
                                 </label>
                                 <input
                                     id="profilePhotoSource"
-                                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="mt-1 w-full rounded-md border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-violet-500/50 focus:border-violet-500/30"
                                     placeholder="https://... or you@dypatil.edu"
                                     value={formData.profilePhotoSource}
                                     onChange={(e) => setFormData({ ...formData, profilePhotoSource: e.target.value })}
@@ -153,21 +153,21 @@ export default function SetupProfilePage() {
                         </div>
 
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
+                            <label htmlFor="name" className="block text-sm font-medium text-slate-300">Full Name</label>
                             <input
                                 id="name"
                                 required
-                                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-white/10 placeholder-slate-500 text-white focus:outline-none focus:ring-violet-500/50 focus:border-violet-500/30 sm:text-sm"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="field" className="block text-sm font-medium text-gray-700">Field of Study</label>
+                            <label htmlFor="field" className="block text-sm font-medium text-slate-300">Field of Study</label>
                             <select
                                 id="field"
-                                className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full py-2 px-3 border border-white/10 bg-white/5 rounded-md shadow-sm focus:outline-none focus:ring-violet-500/50 focus:border-violet-500/30 sm:text-sm"
                                 value={formData.field}
                                 onChange={(e) => setFormData({ ...formData, field: e.target.value })}
                             >
@@ -176,10 +176,10 @@ export default function SetupProfilePage() {
                         </div>
 
                         <div>
-                            <label htmlFor="branch" className="block text-sm font-medium text-gray-700">Branch Specialization</label>
+                            <label htmlFor="branch" className="block text-sm font-medium text-slate-300">Branch Specialization</label>
                             <select
                                 id="branch"
-                                className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full py-2 px-3 border border-white/10 bg-white/5 rounded-md shadow-sm focus:outline-none focus:ring-violet-500/50 focus:border-violet-500/30 sm:text-sm"
                                 value={formData.branch}
                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                             >
@@ -191,10 +191,10 @@ export default function SetupProfilePage() {
 
                         <div className="flex gap-4">
                             <div className="flex-1">
-                                <label htmlFor="year" className="block text-sm font-medium text-gray-700">Year</label>
+                                <label htmlFor="year" className="block text-sm font-medium text-slate-300">Year</label>
                                 <select
                                     id="year"
-                                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="mt-1 block w-full py-2 px-3 border border-white/10 bg-white/5 rounded-md shadow-sm focus:outline-none focus:ring-violet-500/50 focus:border-violet-500/30 sm:text-sm"
                                     value={formData.year}
                                     onChange={(e) => setFormData({ ...formData, year: e.target.value })}
                                 >
@@ -202,10 +202,10 @@ export default function SetupProfilePage() {
                                 </select>
                             </div>
                             <div className="w-1/3">
-                                <label htmlFor="division" className="block text-sm font-medium text-gray-700">Division</label>
+                                <label htmlFor="division" className="block text-sm font-medium text-slate-300">Division</label>
                                 <select
                                     id="division"
-                                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="mt-1 block w-full py-2 px-3 border border-white/10 bg-white/5 rounded-md shadow-sm focus:outline-none focus:ring-violet-500/50 focus:border-violet-500/30 sm:text-sm"
                                     value={formData.division}
                                     onChange={(e) => setFormData({ ...formData, division: e.target.value })}
                                 >
@@ -216,10 +216,10 @@ export default function SetupProfilePage() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="gender" className="block text-sm font-medium text-gray-700">Gender</label>
+                                <label htmlFor="gender" className="block text-sm font-medium text-slate-300">Gender</label>
                                 <select
                                     id="gender"
-                                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="mt-1 block w-full py-2 px-3 border border-white/10 bg-white/5 rounded-md shadow-sm focus:outline-none focus:ring-violet-500/50 focus:border-violet-500/30 sm:text-sm"
                                     value={formData.gender}
                                     onChange={(e) => setFormData({ ...formData, gender: e.target.value as ProfileFormData['gender'] })}
                                 >
@@ -231,10 +231,10 @@ export default function SetupProfilePage() {
                                 </select>
                             </div>
                             <div>
-                                <label htmlFor="accountVisibility" className="block text-sm font-medium text-gray-700">Account Type</label>
+                                <label htmlFor="accountVisibility" className="block text-sm font-medium text-slate-300">Account Type</label>
                                 <select
                                     id="accountVisibility"
-                                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="mt-1 block w-full py-2 px-3 border border-white/10 bg-white/5 rounded-md shadow-sm focus:outline-none focus:ring-violet-500/50 focus:border-violet-500/30 sm:text-sm"
                                     value={formData.accountVisibility}
                                     onChange={(e) => setFormData({ ...formData, accountVisibility: e.target.value as ProfileFormData['accountVisibility'] })}
                                 >
@@ -252,7 +252,7 @@ export default function SetupProfilePage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500/50 disabled:bg-indigo-400"
                         >
                             {loading ? 'Saving...' : 'Complete Profile'}
                         </button>

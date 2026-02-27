@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import type { Timestamp } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
 import { generateAnonymousName } from '@/lib/utils';
@@ -15,7 +16,7 @@ interface Confession {
     id: string;
     text: string;
     anonymousName: string;
-    createdAt: any;
+    createdAt: Timestamp | null;
     likesCount: number;
 }
 
@@ -72,50 +73,52 @@ export default function ConfessionsPage() {
 
             setNewConfession('');
             toast.success('Confession posted anonymously! 🤫');
-        } catch (error: any) {
-            toast.error('Failed to post confession');
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : 'Failed to post confession');
             console.error(error);
         } finally {
             setLoading(false);
         }
     };
 
-    const likeConfession = async (id: string, currentLikes: number) => {
-        // Basic increment, ideally use Firestore FieldValue.increment
-        // and track user likes to prevent infinite liking.
-        toast.success('Liked! ❤️');
+    const likeConfession = async (_id: string, _currentLikes: number) => {
+        // TODO: Implement with FieldValue.increment + per-user like tracking
+        //       to prevent duplicate likes (e.g. confession_likes subcollection).
+        toast('Coming soon!', { icon: '❤️' });
     };
 
     return (
         <DashboardLayout>
-            <div className="max-w-3xl mx-auto py-8 h-full flex flex-col">
+            <div className="max-w-3xl mx-auto py-4 h-full flex flex-col animate-[fade-in-up_0.5s_ease-out]">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Campus Confessions</h1>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                        💗 Campus Confessions
+                    </h1>
+                    <p className="mt-2 text-sm text-slate-400">
                         Share your secrets, thoughts or crushes completely anonymously.
-                        Remember: Be respectful. Admins strictly monitor abuse.
+                        Be respectful — admins strictly monitor abuse.
                     </p>
                 </div>
 
                 {/* Input Form */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-8">
+                <div className="glass-strong p-5 mb-8">
                     <form onSubmit={handleSubmit}>
                         <textarea
-                            className="w-full h-24 p-4 rounded-lg bg-gray-50 border-none focus:ring-2 focus:ring-pink-500 resize-none text-gray-800 placeholder-gray-400"
+                            className="w-full h-24 p-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/30 resize-none transition-all"
                             placeholder="I have a crush on someone from Computer Division B..."
                             value={newConfession}
                             onChange={(e) => setNewConfession(e.target.value)}
                             required
                         />
                         <div className="mt-3 flex justify-between items-center">
-                            <span className="text-xs text-gray-400 flex items-center">
-                                <span className="w-2 h-2 rounded-full bg-pink-500 mr-2"></span>
-                                Posting randomly as e.g "Silent Tiger 420"
+                            <span className="text-xs text-slate-500 flex items-center">
+                                <span className="w-2 h-2 rounded-full bg-pink-500 mr-2 animate-pulse"></span>
+                                Posting anonymously as e.g &ldquo;Silent Tiger 420&rdquo;
                             </span>
                             <button
                                 type="submit"
                                 disabled={loading || !newConfession.trim()}
-                                className="inline-flex items-center px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                                className="inline-flex items-center px-5 py-2.5 bg-linear-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white text-sm font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-pink-500/20 disabled:opacity-50"
                             >
                                 {loading ? 'Posting...' : (
                                     <>
@@ -128,33 +131,31 @@ export default function ConfessionsPage() {
                 </div>
 
                 {/* Confessions List */}
-                <div className="flex-1 overflow-y-auto space-y-4 pb-12 pr-2">
+                <div className="flex-1 overflow-y-auto space-y-4 pb-12 pr-1">
                     {confessions.map((confession) => (
-                        <div key={confession.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:border-pink-100 transition-colors">
+                        <div key={confession.id} className="glass hover:border-pink-500/30 hover:bg-white/[0.07] transition-all duration-300 p-5">
                             <div className="flex items-start justify-between">
-                                <div>
-                                    <div className="flex items-center space-x-2">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-400 to-purple-500 flex items-center justify-center text-white font-bold text-xs">
-                                            {confession.anonymousName.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-bold text-gray-900">{confession.anonymousName}</h3>
-                                            <p className="text-xs text-gray-400">
-                                                {confession.createdAt?.toDate ? formatDistanceToNow(confession.createdAt.toDate(), { addSuffix: true }) : 'Just now'}
-                                            </p>
-                                        </div>
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-9 h-9 rounded-full bg-linear-to-tr from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-pink-500/20">
+                                        {confession.anonymousName.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-bold text-white">{confession.anonymousName}</h3>
+                                        <p className="text-xs text-slate-500">
+                                            {confession.createdAt?.toDate ? formatDistanceToNow(confession.createdAt.toDate(), { addSuffix: true }) : 'Just now'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
-                            <p className="mt-4 text-gray-800 text-base leading-relaxed whitespace-pre-wrap">
+                            <p className="mt-4 text-slate-200 text-base leading-relaxed whitespace-pre-wrap">
                                 {confession.text}
                             </p>
                             <div className="mt-4 flex items-center">
                                 <button
                                     onClick={() => likeConfession(confession.id, confession.likesCount)}
-                                    className="inline-flex items-center text-xs text-gray-500 hover:text-pink-600 transition-colors"
+                                    className="inline-flex items-center text-xs text-slate-500 hover:text-pink-400 transition-colors group"
                                 >
-                                    <Heart className="w-4 h-4 mr-1.5" />
+                                    <Heart className="w-4 h-4 mr-1.5 group-hover:scale-110 transition-transform" />
                                     {confession.likesCount || 0}
                                 </button>
                             </div>
@@ -162,10 +163,11 @@ export default function ConfessionsPage() {
                     ))}
 
                     {confessions.length === 0 && (
-                        <div className="text-center py-12">
-                            <MessageSquare className="mx-auto h-12 w-12 text-gray-300" />
-                            <h3 className="mt-2 text-sm font-semibold text-gray-900">No confessions yet</h3>
-                            <p className="mt-1 text-sm text-gray-500">Be the first to share a secret!</p>
+                        <div className="glass border-dashed text-center py-16">
+                            <span className="text-4xl mb-4 block">🤫</span>
+                            <MessageSquare className="mx-auto h-10 w-10 text-slate-600 mb-3" />
+                            <h3 className="text-sm font-semibold text-white">No confessions yet</h3>
+                            <p className="mt-1 text-sm text-slate-500">Be the first to share a secret!</p>
                         </div>
                     )}
                 </div>

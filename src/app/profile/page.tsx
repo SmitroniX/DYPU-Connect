@@ -471,17 +471,17 @@ export default function ProfilePage() {
     return (
         <DashboardLayout>
             <div className="max-w-3xl mx-auto py-8">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Profile</h1>
-                <p className="mt-2 text-sm text-gray-600">Manage your DYPU Connect profile details.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-white">Profile</h1>
+                <p className="mt-2 text-sm text-slate-400">Manage your DYPU Connect profile details.</p>
 
-                <div className="mt-6 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+                <div className="mt-6 glass p-6">
                     <div className="flex items-center gap-4 mb-6">
-                        <img src={resolvedPreviewImage} alt={formData.name || 'Profile'} className="w-16 h-16 rounded-full border border-gray-200 bg-gray-50 object-cover object-center" />
+                        <img src={resolvedPreviewImage} alt={formData.name || 'Profile'} className="w-16 h-16 rounded-full border border-white/10 bg-white/5 object-cover object-center" />
                         <div>
-                            <p className="text-sm text-gray-500">Account email</p>
-                            <p className="text-sm font-medium text-gray-900">{userProfile.email}</p>
-                            <p className="text-xs text-gray-500 mt-1">Joined on {createdOn}</p>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-sm text-slate-500">Account email</p>
+                            <p className="text-sm font-medium text-white">{userProfile.email}</p>
+                            <p className="text-xs text-slate-500 mt-1">Joined on {createdOn}</p>
+                            <p className="text-xs text-slate-500 mt-1">
                                 Account: {visibilityLabel(userProfile.accountVisibility)}
                             </p>
                         </div>
@@ -489,7 +489,7 @@ export default function ProfilePage() {
 
                     <form className="space-y-4" onSubmit={handleSave}>
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
+                            <label htmlFor="name" className="block text-sm font-medium text-slate-300">Full Name</label>
                             <input
                                 id="name"
                                 required
@@ -500,7 +500,7 @@ export default function ProfilePage() {
                         </div>
 
                         <div>
-                            <label htmlFor="profileImage" className="block text-sm font-medium text-gray-700">Profile Photo URL or Email</label>
+                            <label htmlFor="profileImage" className="block text-sm font-medium text-slate-300">Profile Photo URL or Email</label>
                             <input
                                 id="profileImage"
                                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
@@ -513,12 +513,12 @@ export default function ProfilePage() {
                                     type="button"
                                     disabled={!canUploadToDrive || !!uploadingTarget}
                                     onClick={() => profilePhotoFileInputRef.current?.click()}
-                                    className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                    className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/5 disabled:opacity-50"
                                 >
                                     {uploadingTarget === 'profile' ? 'Uploading...' : 'Upload Image to Drive'}
                                 </button>
                                 {!driveConnected && (
-                                    <p className="text-xs text-gray-500">Connect Google Drive in Settings to upload files.</p>
+                                    <p className="text-xs text-slate-500">Connect Google Drive in Settings to upload files.</p>
                                 )}
                             </div>
                             <input
@@ -532,10 +532,10 @@ export default function ProfilePage() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="field" className="block text-sm font-medium text-gray-700">Field</label>
+                                <label htmlFor="field" className="block text-sm font-medium text-slate-300">Field</label>
                                 <select
                                     id="field"
-                                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="mt-1 w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
                                     value={formData.field}
                                     onChange={(e) => setFormData({ ...formData, field: e.target.value })}
                                 >
@@ -546,10 +546,10 @@ export default function ProfilePage() {
                             </div>
 
                             <div>
-                                <label htmlFor="branch" className="block text-sm font-medium text-gray-700">Branch</label>
+                                <label htmlFor="branch" className="block text-sm font-medium text-slate-300">Branch</label>
                                 <select
                                     id="branch"
-                                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="mt-1 w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
                                     value={formData.branch}
                                     onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                                 >
@@ -562,10 +562,10 @@ export default function ProfilePage() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="year" className="block text-sm font-medium text-gray-700">Year</label>
+                                <label htmlFor="year" className="block text-sm font-medium text-slate-300">Year</label>
                                 <select
                                     id="year"
-                                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="mt-1 w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
                                     value={formData.year}
                                     onChange={(e) => setFormData({ ...formData, year: e.target.value })}
                                 >
@@ -576,10 +576,10 @@ export default function ProfilePage() {
                             </div>
 
                             <div>
-                                <label htmlFor="division" className="block text-sm font-medium text-gray-700">Division</label>
+                                <label htmlFor="division" className="block text-sm font-medium text-slate-300">Division</label>
                                 <select
                                     id="division"
-                                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="mt-1 w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
                                     value={formData.division}
                                     onChange={(e) => setFormData({ ...formData, division: e.target.value })}
                                 >
@@ -592,10 +592,10 @@ export default function ProfilePage() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="gender" className="block text-sm font-medium text-gray-700">Gender</label>
+                                <label htmlFor="gender" className="block text-sm font-medium text-slate-300">Gender</label>
                                 <select
                                     id="gender"
-                                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="mt-1 w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
                                     value={formData.gender}
                                     onChange={(e) => setFormData({ ...formData, gender: e.target.value as ProfileFormData['gender'] })}
                                 >
@@ -607,10 +607,10 @@ export default function ProfilePage() {
                                 </select>
                             </div>
                             <div>
-                                <label htmlFor="accountVisibility" className="block text-sm font-medium text-gray-700">Account Type</label>
+                                <label htmlFor="accountVisibility" className="block text-sm font-medium text-slate-300">Account Type</label>
                                 <select
                                     id="accountVisibility"
-                                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="mt-1 w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
                                     value={formData.accountVisibility}
                                     onChange={(e) => setFormData({ ...formData, accountVisibility: e.target.value as ProfileFormData['accountVisibility'] })}
                                 >
@@ -627,7 +627,7 @@ export default function ProfilePage() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors"
+                                className="inline-flex items-center rounded-md bg-linear-to-r from-violet-600 to-indigo-600 px-4 py-2 text-sm font-medium text-white hover:from-violet-500 hover:to-indigo-500 disabled:bg-indigo-400 transition-colors"
                             >
                                 {saving ? 'Saving...' : 'Save Changes'}
                             </button>
@@ -635,9 +635,9 @@ export default function ProfilePage() {
                     </form>
                 </div>
 
-                <div className="mt-6 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-                    <h2 className="text-xl font-semibold text-gray-900">Stories</h2>
-                    <p className="text-sm text-gray-600 mt-1">Stories auto-expire in 24 hours. Add as public or private.</p>
+                <div className="mt-6 glass p-6">
+                    <h2 className="text-xl font-semibold text-white">Stories</h2>
+                    <p className="text-sm text-slate-400 mt-1">Stories auto-expire in 24 hours. Add as public or private.</p>
 
                     <form className="mt-4 grid grid-cols-1 md:grid-cols-[1fr_170px_auto_auto] gap-3" onSubmit={addStory}>
                         <input
@@ -649,7 +649,7 @@ export default function ProfilePage() {
                         <select
                             value={storyDraft.visibility}
                             onChange={(e) => setStoryDraft((prev) => ({ ...prev, visibility: e.target.value as ProfileVisibility }))}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            className="w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
                         >
                             {PROFILE_VISIBILITY_OPTIONS.map((item) => (
                                 <option key={item} value={item}>{visibilityLabel(item)}</option>
@@ -657,7 +657,7 @@ export default function ProfilePage() {
                         </select>
                         <button
                             type="submit"
-                            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+                            className="rounded-md bg-linear-to-r from-violet-600 to-indigo-600 px-4 py-2 text-sm font-medium text-white hover:from-violet-500 hover:to-indigo-500 transition-colors"
                         >
                             Upload Story
                         </button>
@@ -665,7 +665,7 @@ export default function ProfilePage() {
                             type="button"
                             disabled={!canUploadToDrive || !!uploadingTarget}
                             onClick={() => storyFileInputRef.current?.click()}
-                            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-white/5 disabled:opacity-50"
                         >
                             {uploadingTarget === 'story' ? 'Uploading...' : 'Pick File'}
                         </button>
@@ -680,19 +680,19 @@ export default function ProfilePage() {
 
                     <div className="mt-4 flex gap-4 overflow-x-auto pb-1">
                         {activeStories.length === 0 && (
-                            <p className="text-sm text-gray-500">No active stories yet.</p>
+                            <p className="text-sm text-slate-500">No active stories yet.</p>
                         )}
                         {activeStories.map((story) => (
                             <div key={story.id} className="min-w-[120px] max-w-[120px]">
                                 <img
                                     src={story.imageUrl}
                                     alt="Story"
-                                    className="h-32 w-full rounded-lg border border-gray-200 object-cover object-center bg-gray-100"
+                                    className="h-32 w-full rounded-lg border border-white/10 object-cover object-center bg-white/10"
                                 />
-                                <p className="text-xs text-gray-500 mt-2">
+                                <p className="text-xs text-slate-500 mt-2">
                                     Expires in {formatDistanceToNowStrict(new Date(story.expiresAt))}
                                 </p>
-                                <p className="text-xs text-gray-500">{visibilityLabel(story.visibility)}</p>
+                                <p className="text-xs text-slate-500">{visibilityLabel(story.visibility)}</p>
                                 <button
                                     onClick={() => removeStory(story.id)}
                                     className="mt-1 text-xs font-medium text-red-600 hover:text-red-700"
@@ -704,9 +704,9 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                <div className="mt-6 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-                    <h2 className="text-xl font-semibold text-gray-900">Highlights</h2>
-                    <p className="text-sm text-gray-600 mt-1">Save key moments permanently like Instagram highlights.</p>
+                <div className="mt-6 glass p-6">
+                    <h2 className="text-xl font-semibold text-white">Highlights</h2>
+                    <p className="text-sm text-slate-400 mt-1">Save key moments permanently like Instagram highlights.</p>
 
                     <form className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-3" onSubmit={addHighlight}>
                         <input
@@ -724,7 +724,7 @@ export default function ProfilePage() {
                         <select
                             value={highlightDraft.visibility}
                             onChange={(e) => setHighlightDraft((prev) => ({ ...prev, visibility: e.target.value as ProfileVisibility }))}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            className="w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
                         >
                             {PROFILE_VISIBILITY_OPTIONS.map((item) => (
                                 <option key={item} value={item}>{visibilityLabel(item)}</option>
@@ -732,7 +732,7 @@ export default function ProfilePage() {
                         </select>
                         <button
                             type="submit"
-                            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+                            className="rounded-md bg-linear-to-r from-violet-600 to-indigo-600 px-4 py-2 text-sm font-medium text-white hover:from-violet-500 hover:to-indigo-500 transition-colors"
                         >
                             Add Highlight
                         </button>
@@ -740,7 +740,7 @@ export default function ProfilePage() {
                             type="button"
                             disabled={!canUploadToDrive || !!uploadingTarget}
                             onClick={() => highlightFileInputRef.current?.click()}
-                            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-white/5 disabled:opacity-50"
                         >
                             {uploadingTarget === 'highlight' ? 'Uploading...' : 'Pick File'}
                         </button>
@@ -755,17 +755,17 @@ export default function ProfilePage() {
 
                     <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {userProfile.highlights.length === 0 && (
-                            <p className="text-sm text-gray-500 col-span-full">No highlights yet.</p>
+                            <p className="text-sm text-slate-500 col-span-full">No highlights yet.</p>
                         )}
                         {userProfile.highlights.map((highlight) => (
-                            <div key={highlight.id} className="rounded-lg border border-gray-200 p-2">
+                            <div key={highlight.id} className="rounded-lg border border-white/10 p-2">
                                 <img
                                     src={highlight.coverImageUrl}
                                     alt={highlight.title}
-                                    className="h-24 w-full rounded-md object-cover object-center bg-gray-100"
+                                    className="h-24 w-full rounded-md object-cover object-center bg-white/10"
                                 />
-                                <p className="text-sm font-medium text-gray-900 mt-2 truncate">{highlight.title}</p>
-                                <p className="text-xs text-gray-500">{visibilityLabel(highlight.visibility)}</p>
+                                <p className="text-sm font-medium text-white mt-2 truncate">{highlight.title}</p>
+                                <p className="text-xs text-slate-500">{visibilityLabel(highlight.visibility)}</p>
                                 <button
                                     onClick={() => removeHighlight(highlight.id)}
                                     className="mt-1 text-xs font-medium text-red-600 hover:text-red-700"
@@ -777,9 +777,9 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                <div className="mt-6 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-                    <h2 className="text-xl font-semibold text-gray-900">Photo Gallery</h2>
-                    <p className="text-sm text-gray-600 mt-1">Maintain multiple profile photos with public/private visibility.</p>
+                <div className="mt-6 glass p-6">
+                    <h2 className="text-xl font-semibold text-white">Photo Gallery</h2>
+                    <p className="text-sm text-slate-400 mt-1">Maintain multiple profile photos with public/private visibility.</p>
 
                     <form className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-3" onSubmit={addGalleryItem}>
                         <input
@@ -797,7 +797,7 @@ export default function ProfilePage() {
                         <select
                             value={galleryDraft.visibility}
                             onChange={(e) => setGalleryDraft((prev) => ({ ...prev, visibility: e.target.value as ProfileVisibility }))}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            className="w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
                         >
                             {PROFILE_VISIBILITY_OPTIONS.map((item) => (
                                 <option key={item} value={item}>{visibilityLabel(item)}</option>
@@ -805,7 +805,7 @@ export default function ProfilePage() {
                         </select>
                         <button
                             type="submit"
-                            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
+                            className="rounded-md bg-linear-to-r from-violet-600 to-indigo-600 px-4 py-2 text-sm font-medium text-white hover:from-violet-500 hover:to-indigo-500 transition-colors"
                         >
                             Add Photo
                         </button>
@@ -813,7 +813,7 @@ export default function ProfilePage() {
                             type="button"
                             disabled={!canUploadToDrive || !!uploadingTarget}
                             onClick={() => galleryFileInputRef.current?.click()}
-                            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-white/5 disabled:opacity-50"
                         >
                             {uploadingTarget === 'gallery' ? 'Uploading...' : 'Pick File'}
                         </button>
@@ -828,16 +828,16 @@ export default function ProfilePage() {
 
                     <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         {userProfile.gallery.length === 0 && (
-                            <p className="text-sm text-gray-500 col-span-full">No gallery photos yet.</p>
+                            <p className="text-sm text-slate-500 col-span-full">No gallery photos yet.</p>
                         )}
                         {userProfile.gallery.map((item) => (
-                            <div key={item.id} className="rounded-lg border border-gray-200 p-2">
+                            <div key={item.id} className="rounded-lg border border-white/10 p-2">
                                 <img
                                     src={item.imageUrl}
                                     alt={item.caption || 'Gallery photo'}
-                                    className="h-28 w-full rounded-md object-cover object-center bg-gray-100"
+                                    className="h-28 w-full rounded-md object-cover object-center bg-white/10"
                                 />
-                                <p className="text-xs text-gray-500 mt-2">{visibilityLabel(item.visibility)}</p>
+                                <p className="text-xs text-slate-500 mt-2">{visibilityLabel(item.visibility)}</p>
                                 {item.caption && <p className="text-sm text-gray-800 truncate">{item.caption}</p>}
                                 <button
                                     onClick={() => removeGalleryItem(item.id)}

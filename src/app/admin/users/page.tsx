@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, getDocs, doc, updateDoc, orderBy } from 'firebase/firestore';
-import { formatDistanceToNow } from 'date-fns';
-import { Search, Shield, Ban, CheckCircle } from 'lucide-react';
+import { Search, Ban, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserData {
@@ -35,7 +34,7 @@ export default function AdminUsersPage() {
             const snapshot = await getDocs(q);
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as UserData[];
             setUsers(data);
-        } catch (error) {
+        } catch {
             toast.error('Failed to load users');
         } finally {
             setLoading(false);
@@ -48,7 +47,7 @@ export default function AdminUsersPage() {
             await updateDoc(doc(db, 'users', userId), { status: newStatus });
             setUsers(users.map(u => u.id === userId ? { ...u, status: newStatus } : u));
             toast.success(`User has been ${newStatus}!`);
-        } catch (error) {
+        } catch {
             toast.error('Failed to update user status');
         }
     };

@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAuth } from './AuthProvider';
-import { useStore } from '../store/useStore';
+import { useAuth } from '@/components/AuthProvider';
+import { useStore } from '@/store/useStore';
 import { useRouter, usePathname } from 'next/navigation';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
-    const { userProfile, isLoading } = useStore();
+    const { userProfile } = useStore();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -28,8 +28,18 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
     if (loading || (user && !userProfile && pathname !== '/setup-profile' && pathname !== '/verify-email')) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 gap-6">
+                <div className="animate-[pulse-glow_2s_ease-in-out_infinite]">
+                    <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-violet-400 to-indigo-400 tracking-tight">
+                        ✦ DYPU Connect
+                    </h1>
+                </div>
+                <div className="flex gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+                <p className="text-sm text-slate-500">Loading your campus…</p>
             </div>
         );
     }

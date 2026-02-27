@@ -9,7 +9,7 @@ import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
 import GiphyPicker from '@/components/GiphyPicker';
 import type { GiphyGif } from '@/lib/giphy';
-import { Send, EyeOff } from 'lucide-react';
+import { Send, EyeOff, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { generateAnonymousName } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -21,7 +21,7 @@ interface Message {
     gifUrl?: string;
     timestamp?: Timestamp | null;
     sessionId?: string;
-    senderId?: string; // Backward compatibility for older messages
+    senderId?: string;
 }
 
 export default function AnonymousChatPage() {
@@ -115,36 +115,36 @@ export default function AnonymousChatPage() {
 
     return (
         <DashboardLayout>
-            <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col font-sans">
+            <div className="max-w-4xl mx-auto h-[calc(100vh-6rem)] flex flex-col font-sans animate-[fade-in-up_0.5s_ease-out]">
                 <div className="mb-4 shrink-0 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                            <EyeOff className="h-6 w-6 text-purple-600" />
-                            Shadow Realm
+                        <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                            <EyeOff className="h-7 w-7 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" />
+                            <span style={{ textShadow: '0 0 20px rgba(168,85,247,0.3)' }}>Shadow Realm</span>
                         </h1>
-                        <p className="mt-1 text-sm text-gray-600">
+                        <p className="mt-1 text-sm text-slate-400">
                             Anonymous public chat. Admins have oversight.
                         </p>
                     </div>
-                    <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium border border-purple-200">
+                    <div className="bg-purple-500/10 text-purple-300 px-3 py-1.5 rounded-full text-xs font-medium border border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.15)]">
                         You are: {sessionIdentity || 'Connecting...'}
                     </div>
                 </div>
 
                 {/* Chat Area */}
-                <div className="flex-1 bg-gray-900 rounded-t-xl shadow-sm border border-gray-800 overflow-y-auto p-4 flex flex-col gap-4">
+                <div className="flex-1 bg-slate-950/50 backdrop-blur-md border border-purple-500/10 rounded-t-2xl shadow-[inset_0_0_30px_rgba(168,85,247,0.05)] overflow-y-auto p-4 flex flex-col gap-4">
                     {messages.length === 0 ? (
-                        <div className="m-auto text-gray-500 text-sm">Silence in the shadow realm. Speak up.</div>
+                        <div className="m-auto text-slate-500 text-sm">Silence in the shadow realm. Speak up. 👁️</div>
                     ) : (
                         messages.map((msg) => {
                             const isMine = msg.sessionId === sessionId || (!!msg.senderId && msg.senderId === user?.uid);
                             return (
                                 <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`flex max-w-[75%] gap-2 flex-col`}>
+                                    <div className="flex max-w-[75%] gap-2 flex-col">
                                         {!isMine && (
-                                            <span className="text-xs text-purple-400 font-mono mb-1">{msg.anonymousName}</span>
+                                            <span className="text-xs text-purple-400/80 font-mono mb-1">{msg.anonymousName}</span>
                                         )}
-                                        <div className={`px-4 py-2 rounded-2xl ${isMine ? 'bg-purple-600 text-purple-50 rounded-tr-sm' : 'bg-gray-800 text-gray-100 rounded-tl-sm border border-gray-700'}`}>
+                                        <div className={`px-4 py-2.5 rounded-2xl ${isMine ? 'bg-purple-600 text-purple-50 rounded-tr-sm shadow-lg shadow-purple-500/20' : 'bg-white/5 text-slate-200 rounded-tl-sm border border-purple-500/10'}`}>
                                             {msg.gifUrl && (
                                                 <img
                                                     src={msg.gifUrl}
@@ -156,7 +156,7 @@ export default function AnonymousChatPage() {
                                                 <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
                                             )}
                                         </div>
-                                        <span className={`text-[10px] text-gray-500 mt-1 ${isMine ? 'text-right mr-1' : 'ml-1'}`}>
+                                        <span className={`text-[10px] text-slate-600 mt-1 ${isMine ? 'text-right mr-1' : 'ml-1'}`}>
                                             {msg.timestamp?.toDate ? formatDistanceToNow(msg.timestamp.toDate(), { addSuffix: true }) : 'Sending...'}
                                         </span>
                                     </div>
@@ -168,18 +168,18 @@ export default function AnonymousChatPage() {
                 </div>
 
                 {/* Input Area */}
-                <div className="bg-gray-800 p-3 rounded-b-xl shadow-sm shrink-0 border-t-0">
+                <div className="bg-slate-900/80 backdrop-blur-md border border-purple-500/10 rounded-b-2xl border-t-0 p-3 shrink-0">
                     {selectedGifUrl && (
-                        <div className="mb-3 rounded-lg border border-gray-600 bg-gray-700 p-2 flex items-start gap-3">
-                            <img src={selectedGifUrl} alt="Selected GIF" className="h-16 w-16 rounded object-cover object-center" />
+                        <div className="mb-3 rounded-xl border border-purple-500/20 bg-white/5 p-2.5 flex items-start gap-3">
+                            <img src={selectedGifUrl} alt="Selected GIF" className="h-16 w-16 rounded-lg object-cover object-center" />
                             <div className="flex-1">
-                                <p className="text-xs text-gray-200">GIF selected</p>
+                                <p className="text-xs text-slate-400">GIF selected</p>
                                 <button
                                     type="button"
                                     onClick={() => setSelectedGifUrl('')}
-                                    className="mt-1 text-xs text-red-300 hover:text-red-200 font-medium"
+                                    className="mt-1 text-xs text-red-400 hover:text-red-300 font-medium flex items-center gap-1"
                                 >
-                                    Remove GIF
+                                    <X className="w-3 h-3" /> Remove
                                 </button>
                             </div>
                         </div>
@@ -192,7 +192,7 @@ export default function AnonymousChatPage() {
                         />
                         <input
                             type="text"
-                            className="flex-1 bg-gray-700 text-white border-none rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-shadow placeholder-gray-400"
+                            className="flex-1 bg-white/5 border border-purple-500/20 text-white rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/30 transition-all placeholder-slate-500"
                             placeholder={`Send message as ${sessionIdentity}...`}
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
@@ -201,7 +201,7 @@ export default function AnonymousChatPage() {
                         <button
                             type="submit"
                             disabled={loading || (!newMessage.trim() && !selectedGifUrl)}
-                            className="bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 disabled:opacity-50 transition-colors flex shrink-0 items-center justify-center w-10 h-10"
+                            className="bg-purple-600 text-white p-2.5 rounded-full hover:bg-purple-500 disabled:opacity-50 transition-all duration-300 flex shrink-0 items-center justify-center w-10 h-10 shadow-lg shadow-purple-500/25"
                         >
                             <Send className="w-4 h-4" />
                         </button>

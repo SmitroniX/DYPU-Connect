@@ -3,9 +3,9 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut } from 'firebase/auth';
 import type { FirebaseError } from 'firebase/app';
-import { auth, db } from '../lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useStore } from '../store/useStore';
+import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
 import { normalizeUserProfile, type UserProfile } from '@/types/profile';
 import { isAutoAdminEmail } from '@/lib/admin';
@@ -139,13 +139,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const verifyLoginLink = async (email: string, link: string) => {
+        if (!isSignInWithEmailLink(auth, link)) {
+            throw new Error('Invalid sign-in link.');
+        }
+
         try {
-            if (isSignInWithEmailLink(auth, link)) {
-                await signInWithEmailLink(auth, email, link);
-                window.localStorage.removeItem('emailForSignIn');
-            } else {
-                throw new Error('Invalid sign-in link.');
-            }
+            await signInWithEmailLink(auth, email, link);
+            window.localStorage.removeItem('emailForSignIn');
         } catch (error) {
             throw mapAuthError(error);
         }

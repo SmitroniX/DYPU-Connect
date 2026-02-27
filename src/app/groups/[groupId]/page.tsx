@@ -11,7 +11,7 @@ import { useStore } from '@/store/useStore';
 import { resolveProfileImage } from '@/lib/profileImage';
 import GiphyPicker from '@/components/GiphyPicker';
 import type { GiphyGif } from '@/lib/giphy';
-import { Send, ArrowLeft, Users } from 'lucide-react';
+import { Send, ArrowLeft, Users, X, ShieldAlert } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -144,8 +144,12 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
     if (!userProfile) {
         return (
             <DashboardLayout>
-                <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">
+                    <div className="flex gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
                 </div>
             </DashboardLayout>
         );
@@ -155,11 +159,11 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
         return (
             <DashboardLayout>
                 <div className="max-w-4xl mx-auto py-12 text-center">
-                    <Users className="mx-auto h-12 w-12 text-red-400 mb-4" />
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-                    <p className="text-gray-600">You are not a member of this group.</p>
-                    <Link href="/groups" className="mt-6 inline-block text-indigo-600 hover:text-indigo-500 font-medium">
-                        Back to My Groups
+                    <ShieldAlert className="mx-auto h-12 w-12 text-red-400 mb-4" />
+                    <h2 className="text-2xl font-bold text-white mb-2">Access Denied</h2>
+                    <p className="text-slate-400">You are not a member of this group.</p>
+                    <Link href="/groups" className="mt-6 inline-block text-violet-400 hover:text-violet-300 font-medium transition-colors">
+                        ← Back to My Groups
                     </Link>
                 </div>
             </DashboardLayout>
@@ -168,24 +172,26 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
 
     return (
         <DashboardLayout>
-            <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col font-sans">
-                <div className="bg-white rounded-t-xl shadow-sm border border-gray-200 p-4 shrink-0 flex items-center gap-4">
-                    <Link href="/groups" className="text-gray-400 hover:text-gray-700 transition-colors">
+            <div className="max-w-4xl mx-auto h-[calc(100vh-6rem)] flex flex-col font-sans animate-[fade-in-up_0.5s_ease-out]">
+                {/* Header */}
+                <div className="glass-strong rounded-b-none p-4 shrink-0 flex items-center gap-4">
+                    <Link href="/groups" className="text-slate-400 hover:text-white transition-colors">
                         <ArrowLeft className="w-6 h-6" />
                     </Link>
-                    <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 shrink-0">
                         <Users className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                        <h2 className="text-lg font-bold text-gray-900 leading-tight truncate">{humanReadableName}</h2>
-                        <p className="text-xs text-gray-500 truncate">Group Chat</p>
+                        <h2 className="text-lg font-bold text-white leading-tight truncate">{humanReadableName}</h2>
+                        <p className="text-xs text-slate-500 truncate">Group Chat</p>
                     </div>
                 </div>
 
-                <div className="flex-1 bg-gray-50 border-l border-r border-gray-200 overflow-y-auto p-4 flex flex-col gap-4">
+                {/* Messages */}
+                <div className="flex-1 bg-white/[0.02] border-l border-r border-white/10 overflow-y-auto p-4 flex flex-col gap-4">
                     {messages.length === 0 ? (
-                        <div className="m-auto text-gray-400 text-sm text-center">
-                            Start the conversation in {humanReadableName}
+                        <div className="m-auto text-slate-500 text-sm text-center">
+                            Start the conversation in {humanReadableName} 💬
                         </div>
                     ) : (
                         messages.map((msg) => {
@@ -197,26 +203,22 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                             <img
                                                 src={resolveProfileImage(msg.senderProfileImage, undefined, msg.senderName)}
                                                 alt={msg.senderName}
-                                                className="w-8 h-8 rounded-full border border-gray-200 mt-1 shrink-0 bg-white object-cover object-center"
+                                                className="w-8 h-8 rounded-full border border-white/20 mt-1 shrink-0 object-cover object-center"
                                             />
                                         )}
                                         <div className="flex flex-col">
                                             {!isMine && (
-                                                <span className="text-xs text-gray-500 mb-1 ml-1 font-medium">{msg.senderName}</span>
+                                                <span className="text-xs text-slate-500 mb-1 ml-1 font-medium">{msg.senderName}</span>
                                             )}
-                                            <div className={`px-4 py-2 rounded-2xl ${isMine ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white text-gray-900 rounded-tl-sm border border-gray-100 shadow-sm'}`}>
+                                            <div className={`px-4 py-2.5 rounded-2xl ${isMine ? 'bg-linear-to-r from-violet-600 to-indigo-600 text-white rounded-tr-sm' : 'bg-white/10 text-slate-200 rounded-tl-sm border border-white/5'}`}>
                                                 {msg.gifUrl && (
-                                                    <img
-                                                        src={msg.gifUrl}
-                                                        alt="GIF"
-                                                        className="w-full max-w-[260px] rounded-lg mb-2 object-cover object-center"
-                                                    />
+                                                    <img src={msg.gifUrl} alt="GIF" className="w-full max-w-[260px] rounded-lg mb-2 object-cover object-center" />
                                                 )}
                                                 {msg.text && (
                                                     <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
                                                 )}
                                             </div>
-                                            <span className={`text-[10px] text-gray-400 mt-1 ${isMine ? 'text-right mr-1' : 'ml-1'}`}>
+                                            <span className={`text-[10px] text-slate-600 mt-1 ${isMine ? 'text-right mr-1' : 'ml-1'}`}>
                                                 {msg.timestamp?.toDate ? formatDistanceToNow(msg.timestamp.toDate(), { addSuffix: true }) : 'Sending...'}
                                             </span>
                                         </div>
@@ -228,31 +230,24 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                     <div ref={messagesEndRef} />
                 </div>
 
-                <div className="bg-white p-3 rounded-b-xl shadow-sm border border-gray-200 shrink-0">
+                {/* Input */}
+                <div className="glass-strong rounded-t-none border-t-0 p-3 shrink-0">
                     {selectedGifUrl && (
-                        <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-2 flex items-start gap-3">
-                            <img src={selectedGifUrl} alt="Selected GIF" className="h-16 w-16 rounded object-cover object-center" />
+                        <div className="mb-3 rounded-xl border border-white/10 bg-white/5 p-2.5 flex items-start gap-3">
+                            <img src={selectedGifUrl} alt="Selected GIF" className="h-16 w-16 rounded-lg object-cover object-center" />
                             <div className="flex-1">
-                                <p className="text-xs text-gray-600">GIF selected</p>
-                                <button
-                                    type="button"
-                                    onClick={() => setSelectedGifUrl('')}
-                                    className="mt-1 text-xs text-red-600 hover:text-red-700 font-medium"
-                                >
-                                    Remove GIF
+                                <p className="text-xs text-slate-400">GIF selected</p>
+                                <button type="button" onClick={() => setSelectedGifUrl('')} className="mt-1 text-xs text-red-400 hover:text-red-300 font-medium flex items-center gap-1">
+                                    <X className="w-3 h-3" /> Remove
                                 </button>
                             </div>
                         </div>
                     )}
                     <form className="flex gap-2" onSubmit={handleSubmit}>
-                        <GiphyPicker
-                            disabled={loading}
-                            onSelect={(gif: GiphyGif) => setSelectedGifUrl(gif.url)}
-                            align="left"
-                        />
+                        <GiphyPicker disabled={loading} onSelect={(gif: GiphyGif) => setSelectedGifUrl(gif.url)} align="left" />
                         <input
                             type="text"
-                            className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow text-sm"
+                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
                             placeholder={`Message ${humanReadableName}...`}
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
@@ -262,7 +257,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                         <button
                             type="submit"
                             disabled={loading || (!newMessage.trim() && !selectedGifUrl)}
-                            className="bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 disabled:opacity-50 transition-colors flex shrink-0 items-center justify-center w-10 h-10 text-white"
+                            className="bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-2.5 rounded-full disabled:opacity-50 transition-all duration-300 flex shrink-0 items-center justify-center w-10 h-10 shadow-lg shadow-violet-500/20"
                         >
                             <Send className="w-4 h-4" />
                         </button>

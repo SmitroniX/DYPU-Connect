@@ -212,66 +212,66 @@ export default function SettingsPage() {
     return (
         <DashboardLayout>
             <div className="max-w-3xl mx-auto py-8">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Settings</h1>
-                <p className="mt-2 text-sm text-gray-600">Manage your app preferences and account actions.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-white">Settings</h1>
+                <p className="mt-2 text-sm text-slate-400">Manage your app preferences and account actions.</p>
 
                 <div className="mt-6 space-y-6">
-                    <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                        <h2 className="text-lg font-semibold text-gray-900">Preferences</h2>
+                    <section className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-sm">
+                        <h2 className="text-lg font-semibold text-white">Preferences</h2>
                         <div className="mt-4 space-y-3">
-                            <label className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                                <span className="text-sm text-gray-700">Email notifications</span>
+                            <label className="flex items-center justify-between rounded-lg border border-white/10 p-3">
+                                <span className="text-sm text-slate-300">Email notifications</span>
                                 <input
                                     type="checkbox"
                                     checked={settings.emailNotifications}
                                     onChange={() => toggle('emailNotifications')}
-                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    className="h-4 w-4 rounded border-white/10 text-violet-400 focus:ring-violet-500/50"
                                 />
                             </label>
-                            <label className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                                <span className="text-sm text-gray-700">Sound effects</span>
+                            <label className="flex items-center justify-between rounded-lg border border-white/10 p-3">
+                                <span className="text-sm text-slate-300">Sound effects</span>
                                 <input
                                     type="checkbox"
                                     checked={settings.soundEffects}
                                     onChange={() => toggle('soundEffects')}
-                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    className="h-4 w-4 rounded border-white/10 text-violet-400 focus:ring-violet-500/50"
                                 />
                             </label>
-                            <label className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                                <span className="text-sm text-gray-700">Compact mode</span>
+                            <label className="flex items-center justify-between rounded-lg border border-white/10 p-3">
+                                <span className="text-sm text-slate-300">Compact mode</span>
                                 <input
                                     type="checkbox"
                                     checked={settings.compactMode}
                                     onChange={() => toggle('compactMode')}
-                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    className="h-4 w-4 rounded border-white/10 text-violet-400 focus:ring-violet-500/50"
                                 />
                             </label>
                         </div>
                         <button
                             onClick={resetSettings}
-                            className="mt-4 text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                            className="mt-4 text-sm font-medium text-violet-400 hover:text-violet-300"
                         >
                             Reset to default
                         </button>
                     </section>
 
-                    <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                        <h2 className="text-lg font-semibold text-gray-900">Google Drive</h2>
-                        <p className="mt-1 text-sm text-gray-600">
+                    <section className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-sm">
+                        <h2 className="text-lg font-semibold text-white">Google Drive</h2>
+                        <p className="mt-1 text-sm text-slate-400">
                             Connect your Google account to upload profile media to your own Drive storage.
                         </p>
 
-                        <div className="mt-4 rounded-lg border border-gray-200 p-4">
+                        <div className="mt-4 rounded-lg border border-white/10 p-4">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div>
-                                    <p className="text-sm text-gray-700">
+                                    <p className="text-sm text-slate-300">
                                         Status:{' '}
-                                        <span className={`font-semibold ${userProfile.googleDrive ? 'text-green-700' : 'text-gray-600'}`}>
+                                        <span className={`font-semibold ${userProfile.googleDrive ? 'text-green-700' : 'text-slate-400'}`}>
                                             {userProfile.googleDrive ? 'Connected' : 'Not connected'}
                                         </span>
                                     </p>
                                     {userProfile.googleDrive?.email && (
-                                        <p className="text-xs text-gray-500 mt-1">{userProfile.googleDrive.email}</p>
+                                        <p className="text-xs text-slate-500 mt-1">{userProfile.googleDrive.email}</p>
                                     )}
                                 </div>
                                 <div className="flex gap-2">
@@ -287,7 +287,7 @@ export default function SettingsPage() {
                                         <button
                                             onClick={connectGoogleDrive}
                                             disabled={driveBusy}
-                                            className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                                            className="rounded-md bg-linear-to-r from-violet-600 to-indigo-600 px-3 py-2 text-sm font-medium text-white hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50"
                                         >
                                             Connect Google Drive
                                         </button>
@@ -296,7 +296,7 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="mt-4 space-y-2">
-                                <label htmlFor="driveFolder" className="block text-sm font-medium text-gray-700">
+                                <label htmlFor="driveFolder" className="block text-sm font-medium text-slate-300">
                                     Drive Folder Link (optional)
                                 </label>
                                 <input
@@ -304,12 +304,12 @@ export default function SettingsPage() {
                                     value={driveFolderLink}
                                     onChange={(e) => setDriveFolderLink(e.target.value)}
                                     placeholder="https://drive.google.com/drive/folders/..."
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="w-full rounded-md border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30"
                                 />
                                 <button
                                     onClick={saveDriveFolder}
                                     disabled={driveBusy || !userProfile.googleDrive}
-                                    className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                    className="rounded-md border border-white/10 px-3 py-2 text-sm font-medium text-slate-300 hover:bg-white/5 disabled:opacity-50"
                                 >
                                     Save Folder
                                 </button>
@@ -317,28 +317,28 @@ export default function SettingsPage() {
                         </div>
                     </section>
 
-                    <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                        <h2 className="text-lg font-semibold text-gray-900">Account</h2>
+                    <section className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-sm">
+                        <h2 className="text-lg font-semibold text-white">Account</h2>
                         <dl className="mt-4 space-y-2 text-sm">
                             <div className="flex justify-between">
-                                <dt className="text-gray-500">Name</dt>
-                                <dd className="text-gray-900 font-medium">{userProfile.name}</dd>
+                                <dt className="text-slate-500">Name</dt>
+                                <dd className="text-white font-medium">{userProfile.name}</dd>
                             </div>
                             <div className="flex justify-between">
-                                <dt className="text-gray-500">Email</dt>
-                                <dd className="text-gray-900 font-medium">{userProfile.email}</dd>
+                                <dt className="text-slate-500">Email</dt>
+                                <dd className="text-white font-medium">{userProfile.email}</dd>
                             </div>
                             <div className="flex justify-between">
-                                <dt className="text-gray-500">Role</dt>
-                                <dd className="text-gray-900 font-medium capitalize">{userProfile.role}</dd>
+                                <dt className="text-slate-500">Role</dt>
+                                <dd className="text-white font-medium capitalize">{userProfile.role}</dd>
                             </div>
                             <div className="flex justify-between">
-                                <dt className="text-gray-500">Gender</dt>
-                                <dd className="text-gray-900 font-medium capitalize">{userProfile.gender}</dd>
+                                <dt className="text-slate-500">Gender</dt>
+                                <dd className="text-white font-medium capitalize">{userProfile.gender}</dd>
                             </div>
                             <div className="flex justify-between">
-                                <dt className="text-gray-500">Account Type</dt>
-                                <dd className="text-gray-900 font-medium capitalize">{userProfile.accountVisibility}</dd>
+                                <dt className="text-slate-500">Account Type</dt>
+                                <dd className="text-white font-medium capitalize">{userProfile.accountVisibility}</dd>
                             </div>
                         </dl>
                         <div className="mt-5">

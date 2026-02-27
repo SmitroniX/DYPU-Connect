@@ -1,13 +1,17 @@
 'use client';
 
-import { useAuth } from './AuthProvider';
-import { useStore } from '../store/useStore';
+import { useAuth } from '@/components/AuthProvider';
+import { useStore } from '@/store/useStore';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Settings, LogOut, ShieldAlert } from 'lucide-react';
+import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert } from 'lucide-react';
 import clsx from 'clsx';
 
-export default function Sidebar() {
+interface SidebarProps {
+    onNavigate?: () => void;
+}
+
+export default function Sidebar({ onNavigate }: SidebarProps) {
     const { logout } = useAuth();
     const { userProfile } = useStore();
     const pathname = usePathname();
@@ -18,17 +22,17 @@ export default function Sidebar() {
         { name: 'Public Chat', href: '/public-chat', icon: MessagesSquare },
         { name: 'Anonymous Chat', href: '/anonymous-chat', icon: MessageCircle },
         { name: 'Groups', href: '/groups', icon: Users },
-        { name: 'Private Chat', href: '/messages', icon: User },
+        { name: 'Private Chat', href: '/messages', icon: Mail },
         { name: 'Profile', href: '/profile', icon: User },
         ...(userProfile?.role === 'admin' ? [{ name: 'Admin Dashboard', href: '/admin', icon: ShieldAlert }] : []),
         { name: 'Settings', href: '/settings', icon: Settings },
     ];
 
     return (
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
-            <div className="flex h-16 shrink-0 items-center">
-                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                    DYPU Connect
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-slate-950/80 backdrop-blur-xl border-r border-white/10 px-5 pb-4">
+            <div className="flex h-16 shrink-0 items-center px-1">
+                <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-violet-400 to-indigo-400 tracking-tight">
+                    ✦ DYPU Connect
                 </h1>
             </div>
             <nav className="flex flex-1 flex-col">
@@ -41,17 +45,21 @@ export default function Sidebar() {
                                     <li key={item.name}>
                                         <Link
                                             href={item.href}
+                                            onClick={onNavigate}
                                             className={clsx(
                                                 isActive
-                                                    ? 'bg-indigo-50 text-indigo-600'
-                                                    : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
-                                                'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold transition-colors duration-200'
+                                                    ? 'bg-linear-to-r from-violet-500/20 to-indigo-500/20 text-white border border-violet-500/20'
+                                                    : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent',
+                                                'group relative flex gap-x-3 rounded-xl p-2.5 text-sm leading-6 font-semibold transition-all duration-200'
                                             )}
                                         >
+                                            {isActive && (
+                                                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(167,139,250,0.5)]" />
+                                            )}
                                             <item.icon
                                                 className={clsx(
-                                                    isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600',
-                                                    'h-6 w-6 shrink-0 transition-colors duration-200'
+                                                    isActive ? 'text-violet-400' : 'text-slate-500 group-hover:text-white',
+                                                    'h-5 w-5 shrink-0 transition-colors duration-200 ml-1'
                                                 )}
                                                 aria-hidden="true"
                                             />
@@ -64,19 +72,22 @@ export default function Sidebar() {
                     </li>
                     {userProfile && (
                         <li className="mt-auto">
-                            <div className="group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700">
-                                <img
-                                    className="h-8 w-8 rounded-full bg-gray-50 border border-indigo-200 object-cover object-center"
-                                    src={userProfile.profileImage}
-                                    alt=""
-                                />
+                            <div className="glass flex gap-x-3 p-3 text-sm font-semibold leading-6 text-slate-300">
+                                <div className="relative inline-block shrink-0">
+                                    <img
+                                        className="h-9 w-9 rounded-full border border-violet-500/50 ring-2 ring-violet-500/20 object-cover object-center"
+                                        src={userProfile.profileImage}
+                                        alt=""
+                                    />
+                                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-slate-950" />
+                                </div>
                                 <span className="sr-only">Your profile</span>
-                                <span className="truncate flex-1 self-center" aria-hidden="true">
+                                <span className="truncate flex-1 self-center text-white/90" aria-hidden="true">
                                     {userProfile.name}
                                 </span>
                                 <button
                                     onClick={logout}
-                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                    className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                     title="Logout"
                                 >
                                     <LogOut className="h-5 w-5" />

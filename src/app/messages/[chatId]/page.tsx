@@ -141,8 +141,12 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
     if (!chatInfo || !user) {
         return (
             <DashboardLayout>
-                <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">
+                    <div className="flex gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
                 </div>
             </DashboardLayout>
         );
@@ -154,21 +158,21 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 
     return (
         <DashboardLayout>
-            <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col font-sans">
-                <div className="bg-white rounded-t-xl shadow-sm border border-gray-200 p-4 shrink-0 flex items-center gap-4">
-                    <Link href="/messages" className="text-gray-400 hover:text-gray-700 transition-colors">
+            <div className="max-w-4xl mx-auto h-[calc(100vh-6rem)] flex flex-col font-sans animate-[fade-in-up_0.5s_ease-out]">
+                <div className="glass-strong rounded-b-none p-4 shrink-0 flex items-center gap-4">
+                    <Link href="/messages" className="text-slate-400 hover:text-white transition-colors">
                         <ArrowLeft className="w-6 h-6" />
                     </Link>
-                    <img src={otherImage} alt={otherName} className="w-10 h-10 rounded-full border border-gray-100 object-cover object-center" />
+                    <img src={otherImage} alt={otherName} className="w-10 h-10 rounded-full border border-white/20 object-cover object-center" />
                     <div>
-                        <h2 className="text-lg font-bold text-gray-900 leading-tight">{otherName}</h2>
+                        <h2 className="text-lg font-bold text-white leading-tight">{otherName}</h2>
                     </div>
                 </div>
 
-                <div className="flex-1 bg-gray-50 border-l border-r border-gray-200 overflow-y-auto p-4 flex flex-col gap-4">
+                <div className="flex-1 bg-white/[0.02] border-l border-r border-white/10 overflow-y-auto p-4 flex flex-col gap-4">
                     {messages.length === 0 ? (
-                        <div className="m-auto text-gray-400 text-sm text-center">
-                            Start the conversation with {otherName}
+                        <div className="m-auto text-slate-500 text-sm text-center">
+                            Start the conversation with {otherName} 💬
                         </div>
                     ) : (
                         messages.map((msg) => {
@@ -176,7 +180,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                             return (
                                 <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                                     <div className="flex max-w-[75%] gap-2 flex-col">
-                                        <div className={`px-4 py-2 rounded-2xl ${isMine ? 'bg-indigo-600 text-white rounded-br-sm' : 'bg-white text-gray-900 rounded-bl-sm border border-gray-100 shadow-sm'}`}>
+                                        <div className={`px-4 py-2.5 rounded-2xl ${isMine ? 'bg-linear-to-r from-violet-600 to-indigo-600 text-white rounded-br-sm' : 'bg-white/10 text-slate-200 rounded-bl-sm border border-white/5'}`}>
                                             {msg.gifUrl && (
                                                 <img
                                                     src={msg.gifUrl}
@@ -188,7 +192,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                                 <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
                                             )}
                                         </div>
-                                        <span className={`text-[10px] text-gray-400 mt-1 ${isMine ? 'text-right mr-1' : 'ml-1'}`}>
+                                        <span className={`text-[10px] text-slate-600 mt-1 ${isMine ? 'text-right mr-1' : 'ml-1'}`}>
                                             {msg.timestamp?.toDate ? formatDistanceToNow(msg.timestamp.toDate(), { addSuffix: true }) : 'Sending...'}
                                         </span>
                                     </div>
@@ -199,16 +203,16 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                     <div ref={messagesEndRef} />
                 </div>
 
-                <div className="bg-white p-3 rounded-b-xl shadow-sm border border-gray-200 shrink-0">
+                <div className="glass-strong rounded-t-none border-t-0 p-3 shrink-0">
                     {selectedGifUrl && (
-                        <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-2 flex items-start gap-3">
-                            <img src={selectedGifUrl} alt="Selected GIF" className="h-16 w-16 rounded object-cover object-center" />
+                        <div className="mb-3 rounded-xl border border-white/10 bg-white/5 p-2.5 flex items-start gap-3">
+                            <img src={selectedGifUrl} alt="Selected GIF" className="h-16 w-16 rounded-lg object-cover object-center" />
                             <div className="flex-1">
-                                <p className="text-xs text-gray-600">GIF selected</p>
+                                <p className="text-xs text-slate-400">GIF selected</p>
                                 <button
                                     type="button"
                                     onClick={() => setSelectedGifUrl('')}
-                                    className="mt-1 text-xs text-red-600 hover:text-red-700 font-medium"
+                                    className="mt-1 text-xs text-red-400 hover:text-red-300 font-medium"
                                 >
                                     Remove GIF
                                 </button>
@@ -223,7 +227,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                         />
                         <input
                             type="text"
-                            className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow text-sm"
+                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
                             placeholder="Type a message..."
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
@@ -233,9 +237,9 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                         <button
                             type="submit"
                             disabled={loading || (!newMessage.trim() && !selectedGifUrl)}
-                            className="bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 disabled:opacity-50 transition-colors flex shrink-0 items-center justify-center w-10 h-10"
+                            className="bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-2.5 rounded-full disabled:opacity-50 transition-all duration-300 flex shrink-0 items-center justify-center w-10 h-10 shadow-lg shadow-violet-500/20"
                         >
-                            <Send className="w-4 h-4 text-white" />
+                            <Send className="w-4 h-4" />
                         </button>
                     </form>
                 </div>
