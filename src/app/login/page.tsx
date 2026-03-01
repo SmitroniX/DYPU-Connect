@@ -49,10 +49,10 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#0a0e1a] relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-[var(--dc-bg-tertiary)] relative overflow-hidden">
             {/* Moonstone gradient backdrop */}
             <div
-                className="absolute inset-0 bg-linear-to-br from-sky-300/10 via-[#0a0e1a] to-slate-400/10 animate-[gradient-shift_6s_ease_infinite]"
+                className="absolute inset-0 bg-linear-to-br from-sky-300/10 via-[var(--dc-bg-tertiary)] to-slate-400/10 animate-[gradient-shift_6s_ease_infinite]"
                 style={{ backgroundSize: '200% 200%' }}
             />
 
@@ -127,7 +127,7 @@ export default function LoginPage() {
                                 <div className="w-full border-t border-white/10" />
                             </div>
                             <div className="relative flex justify-center text-xs">
-                                <span className="bg-[#0a0e1a] px-3 text-slate-500">or use email link</span>
+                                <span className="bg-[var(--dc-bg-tertiary)] px-3 text-slate-500">or use email link</span>
                             </div>
                         </div>
 

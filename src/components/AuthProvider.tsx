@@ -229,7 +229,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (!firebaseReady) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0e1a] px-6 text-center gap-5">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--dc-bg-tertiary)] px-6 text-center gap-5">
                 <h1 className="text-2xl font-bold text-red-400">⚠ Firebase Not Configured</h1>
                 <p className="text-slate-400 max-w-lg">
                     The <code className="text-sky-300">NEXT_PUBLIC_FIREBASE_*</code> environment

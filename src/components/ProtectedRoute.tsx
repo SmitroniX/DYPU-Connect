@@ -28,7 +28,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
     if (loading || (user && !userProfile && pathname !== '/setup-profile' && pathname !== '/verify-email')) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0e1a] gap-6">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--dc-bg-tertiary)] gap-6">
                 <div className="animate-[pulse-glow_2s_ease-in-out_infinite]">
                     <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-sky-200 to-slate-300 tracking-tight">
                         ✦ DYPU Connect

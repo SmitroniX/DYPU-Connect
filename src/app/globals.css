@@ -1,16 +1,72 @@
 @import "tailwindcss";
 
+/* ── Discord-inspired Design Tokens ─────────────── */
+
 :root {
-  --background: #0a0e1a;
-  --foreground: #f8fafc;
+  /* Surfaces */
+  --dc-bg-primary:   #313338;
+  --dc-bg-secondary: #2b2d31;
+  --dc-bg-tertiary:  #1e1f22;
+  --dc-bg-input:     #383a40;
+  --dc-bg-hover:     rgba(79, 84, 92, 0.4);
+  --dc-bg-active:    rgba(79, 84, 92, 0.6);
+  --dc-bg-overlay:   rgba(0, 0, 0, 0.7);
+
+  /* Text */
+  --dc-text-primary:   #f2f3f5;
+  --dc-text-secondary: #b5bac1;
+  --dc-text-muted:     #949ba4;
+  --dc-text-link:      #00a8fc;
+
+  /* Moonstone accent (replaces Discord blurple) */
+  --dc-accent:       #7dd3fc;
+  --dc-accent-hover: #bae6fd;
+  --dc-accent-dim:   rgba(125, 211, 252, 0.15);
+
+  /* Borders & Dividers */
+  --dc-divider: rgba(255, 255, 255, 0.06);
+  --dc-border:  rgba(255, 255, 255, 0.08);
+
+  /* Status */
+  --dc-online:  #23a55a;
+  --dc-idle:    #f0b232;
+  --dc-dnd:     #f23f43;
+  --dc-offline: #80848e;
+
+  /* Legacy compat */
+  --background: var(--dc-bg-primary);
+  --foreground: var(--dc-text-primary);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-glass: rgba(255, 255, 255, 0.05);
-  --color-glass-border: rgba(255, 255, 255, 0.1);
-  --color-accent: #7dd3fc;
+  --color-background: var(--dc-bg-primary);
+  --color-foreground: var(--dc-text-primary);
+  --color-dc-primary: var(--dc-bg-primary);
+  --color-dc-secondary: var(--dc-bg-secondary);
+  --color-dc-tertiary: var(--dc-bg-tertiary);
+  --color-dc-input: var(--dc-bg-input);
+  --color-dc-hover: var(--dc-bg-hover);
+  --color-dc-active: var(--dc-bg-active);
+  --color-dc-divider: var(--dc-divider);
+  --color-dc-border: var(--dc-border);
+  --color-dc-accent: var(--dc-accent);
+  --color-dc-accent-dim: var(--dc-accent-dim);
+  --color-dc-text: var(--dc-text-primary);
+  --color-dc-text-secondary: var(--dc-text-secondary);
+  --color-dc-text-muted: var(--dc-text-muted);
+  --color-dc-online: var(--dc-online);
+  --color-dc-idle: var(--dc-idle);
+  --color-dc-dnd: var(--dc-dnd);
+}
+
+/* ── Typography ─────────────────────────────────── */
+
+body {
+  background: var(--dc-bg-primary);
+  color: var(--dc-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ── Keyframes ──────────────────────────────────── */
@@ -40,58 +96,145 @@
   100% { background-position: 200% 0; }
 }
 
-/* ── Scrollbar ──────────────────────────────────── */
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
+
+/* ── Scrollbar (Discord-style) ──────────────────── */
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--dc-bg-secondary);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 9999px;
+  background: var(--dc-bg-tertiary);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #232428;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #334155 transparent;
+  scrollbar-color: var(--dc-bg-tertiary) var(--dc-bg-secondary);
 }
 
 /* ── Selection ──────────────────────────────────── */
 
 ::selection {
-  background: rgba(125, 211, 252, 0.3);
+  background: rgba(125, 211, 252, 0.25);
   color: #fff;
 }
 
-/* ── Body ───────────────────────────────────────── */
+/* ── Discord Card Utilities ─────────────────────── */
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.dc-card {
+  background: var(--dc-bg-secondary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--dc-border);
 }
 
-/* ── Glass Utilities ────────────────────────────── */
+.dc-card-interactive {
+  background: var(--dc-bg-secondary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--dc-border);
+  transition: background 0.15s ease;
+}
+.dc-card-interactive:hover {
+  background: var(--dc-bg-hover);
+}
 
+/* Discord-style embed (left accent bar) */
+.dc-embed {
+  background: var(--dc-bg-secondary);
+  border-left: 4px solid var(--dc-accent);
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 1rem;
+}
+
+/* Discord-style message hover */
+.dc-message {
+  padding: 2px 1rem;
+  position: relative;
+  transition: background 0.1s ease;
+}
+.dc-message:hover {
+  background: var(--dc-bg-hover);
+}
+
+/* Discord-style input */
+.dc-input {
+  background: var(--dc-bg-input);
+  border: none;
+  border-radius: 0.5rem;
+  color: var(--dc-text-primary);
+  font-size: 0.9375rem;
+  padding: 0.6875rem 1rem;
+  outline: none;
+  width: 100%;
+}
+.dc-input::placeholder {
+  color: var(--dc-text-muted);
+}
+.dc-input:focus {
+  outline: none;
+}
+
+/* Typing indicator dots */
+.dc-typing-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dc-text-muted);
+  display: inline-block;
+  animation: typing-dot 1.4s infinite;
+}
+.dc-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.dc-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* Discord-style pill (reaction, badge) */
+.dc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--dc-bg-tertiary);
+  border-radius: 9999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--dc-text-secondary);
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+.dc-pill:hover {
+  border-color: var(--dc-border);
+  background: var(--dc-bg-input);
+}
+
+/* Discord-style channel header */
+.dc-channel-header {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--dc-divider);
+  background: var(--dc-bg-primary);
+  flex-shrink: 0;
+}
+
+/* Legacy glass compat (for gradual migration) */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1rem;
+  background: var(--dc-bg-secondary);
+  border: 1px solid var(--dc-border);
+  border-radius: 0.5rem;
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1rem;
+  background: var(--dc-bg-secondary);
+  border: 1px solid var(--dc-border);
+  border-radius: 0.5rem;
 }

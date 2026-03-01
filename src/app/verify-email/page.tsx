@@ -45,10 +45,10 @@ export default function VerifyEmailPage() {
     }, [verifyLoginLink, router]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#0a0e1a] relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-[var(--dc-bg-tertiary)] relative overflow-hidden">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-linear-to-br from-sky-300/10 via-[#0a0e1a] to-slate-400/10 animate-[gradient-shift_6s_ease_infinite]"
+                className="absolute inset-0 bg-linear-to-br from-sky-300/10 via-[var(--dc-bg-tertiary)] to-slate-400/10 animate-[gradient-shift_6s_ease_infinite]"
                 style={{ backgroundSize: '200% 200%' }}
             />
             <div className="absolute top-1/4 -left-20 w-72 h-72 rounded-full bg-sky-200/8 blur-3xl animate-[float_6s_ease-in-out_infinite]" />

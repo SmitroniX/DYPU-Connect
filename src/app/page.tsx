@@ -1,85 +1,96 @@
 'use client';
 
 import DashboardLayout from '@/components/DashboardLayout';
+import ChannelHeader from '@/components/ChannelHeader';
 import { useStore } from '@/store/useStore';
-import { MessageSquare, Users, MessageCircle, Mail, User, Settings, Sparkles } from 'lucide-react';
+import { MessageSquare, Users, MessageCircle, Mail, User, Settings, ArrowRight, Hash } from 'lucide-react';
 import Link from 'next/link';
 
-function getTimeEmoji() {
+function getTimeGreeting() {
   const h = new Date().getHours();
-  if (h >= 6 && h < 12) return '☀️';
-  if (h >= 12 && h < 17) return '🌤️';
-  if (h >= 17 && h < 21) return '🌙';
-  return '🌜';
+  if (h >= 6 && h < 12) return 'Good morning';
+  if (h >= 12 && h < 17) return 'Good afternoon';
+  if (h >= 17 && h < 21) return 'Good evening';
+  return 'Good night';
 }
 
 export default function DashboardPage() {
   const { userProfile } = useStore();
 
-  const stats = [
-    { name: 'Confessions', stat: 'Share secrets', icon: MessageSquare, href: '/confessions', gradient: 'from-sky-400/20 to-slate-400/20', iconColor: 'text-sky-300', borderHover: 'hover:border-sky-300/30' },
-    { name: 'Public Chat', stat: 'Join the buzz', icon: Users, href: '/public-chat', gradient: 'from-sky-300/20 to-blue-400/20', iconColor: 'text-sky-200', borderHover: 'hover:border-sky-200/30' },
-    { name: 'Anonymous Chat', stat: 'Speak freely', icon: MessageCircle, href: '/anonymous-chat', gradient: 'from-slate-400/20 to-sky-500/20', iconColor: 'text-slate-300', borderHover: 'hover:border-slate-400/30' },
+  const channels = [
+    { name: 'confessions', description: 'Share secrets anonymously', icon: MessageSquare, href: '/confessions', members: '50+' },
+    { name: 'public-chat', description: 'Campus-wide real-time chat', icon: Users, href: '/public-chat', members: 'Live' },
+    { name: 'anonymous-chat', description: 'Speak freely in the shadows', icon: MessageCircle, href: '/anonymous-chat', members: 'Anonymous' },
   ];
 
-  const quickActions = [
-    { name: 'Groups', icon: Users, href: '/groups', color: 'text-sky-300' },
-    { name: 'Messages', icon: Mail, href: '/messages', color: 'text-sky-200' },
-    { name: 'Profile', icon: User, href: '/profile', color: 'text-slate-300' },
-    { name: 'Settings', icon: Settings, href: '/settings', color: 'text-slate-400' },
+  const quickLinks = [
+    { name: 'Groups', icon: Users, href: '/groups' },
+    { name: 'Messages', icon: Mail, href: '/messages' },
+    { name: 'Profile', icon: User, href: '/profile' },
+    { name: 'Settings', icon: Settings, href: '/settings' },
   ];
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto py-4 animate-[fade-in-up_0.5s_ease-out]">
-        {/* Hero Greeting */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white">
-            Welcome back, {userProfile?.name?.split(' ')[0]} {getTimeEmoji()}
-          </h1>
-          <p className="mt-3 text-base text-slate-400">
-            {userProfile?.field} • {userProfile?.year} • {userProfile?.division} ({userProfile?.branch})
+      <ChannelHeader name="home" description="Your dashboard" />
+
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto animate-[fade-in-up_0.3s_ease-out]">
+        {/* Welcome */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-[var(--dc-text-primary)]">
+            {getTimeGreeting()}, {userProfile?.name?.split(' ')[0]}!
+          </h2>
+          <p className="mt-1 text-sm text-[var(--dc-text-muted)]">
+            {userProfile?.field} · {userProfile?.year} · {userProfile?.division} ({userProfile?.branch})
           </p>
         </div>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
-          {stats.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 ${item.borderHover} hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 p-6`}
-            >
-              <div className={`absolute inset-0 bg-linear-to-br ${item.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-              <div className="relative z-10">
-                <div className={`w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}>
-                  <item.icon className={`h-6 w-6 ${item.iconColor}`} aria-hidden="true" />
+        {/* Channel Cards */}
+        <div className="mb-6">
+          <h3 className="text-[11px] font-bold uppercase tracking-wide text-[var(--dc-text-muted)] mb-2 px-1">
+            Text Channels
+          </h3>
+          <div className="space-y-1">
+            {channels.map((ch) => (
+              <Link
+                key={ch.name}
+                href={ch.href}
+                className="dc-card-interactive flex items-center gap-3 px-3 py-2.5 group"
+              >
+                <Hash className="h-5 w-5 text-[var(--dc-text-muted)] group-hover:text-[var(--dc-text-primary)] shrink-0 transition-colors" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[15px] font-medium text-[var(--dc-text-secondary)] group-hover:text-[var(--dc-text-primary)] truncate transition-colors">
+                    {ch.name}
+                  </p>
+                  <p className="text-xs text-[var(--dc-text-muted)] truncate">{ch.description}</p>
                 </div>
-                <h3 className="text-lg font-bold text-white mb-1">{item.name}</h3>
-                <p className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">{item.stat}</p>
-              </div>
-              <div className="relative z-10 mt-6 pt-4 border-t border-white/10">
-                <span className="text-sm font-medium text-sky-300 group-hover:text-sky-200 flex items-center gap-1.5 transition-colors">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Explore
-                </span>
-              </div>
-            </Link>
-          ))}
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[10px] font-medium text-[var(--dc-text-muted)] bg-[var(--dc-bg-tertiary)] px-2 py-0.5 rounded-full">
+                    {ch.members}
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-[var(--dc-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Links */}
         <div>
-          <h2 className="text-lg font-bold text-white mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {quickActions.map((action) => (
+          <h3 className="text-[11px] font-bold uppercase tracking-wide text-[var(--dc-text-muted)] mb-2 px-1">
+            Quick Links
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {quickLinks.map((action) => (
               <Link
                 key={action.name}
                 href={action.href}
-                className="glass group flex flex-col items-center justify-center py-6 px-4 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                className="dc-card-interactive flex flex-col items-center justify-center py-4 px-3 group"
               >
-                <action.icon className={`h-7 w-7 ${action.color} mb-3 group-hover:scale-110 transition-transform duration-200`} />
-                <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">{action.name}</span>
+                <action.icon className="h-6 w-6 text-[var(--dc-text-muted)] group-hover:text-[var(--dc-accent)] mb-2 transition-colors" />
+                <span className="text-sm font-medium text-[var(--dc-text-secondary)] group-hover:text-[var(--dc-text-primary)] transition-colors">
+                  {action.name}
+                </span>
               </Link>
             ))}
           </div>

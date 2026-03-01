@@ -140,7 +140,7 @@ export default function SetupProfilePage() {
     const totalSteps = 3;
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#0a0e1a] py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-[var(--dc-bg-tertiary)] py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
             {/* Background decoration */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-sky-300/8 blur-3xl" />
