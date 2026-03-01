@@ -1,51 +1,144 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ✦ DYPU Connect
 
-## Getting Started
+Exclusive social platform for DY Patil University — built with **Next.js 16**, **Firebase**, and **Tailwind CSS 4**.
 
-### 1. Configure Firebase environment variables
+---
 
-Create `.env.local` in the project root and copy values from `.env.example`.
+## Prerequisites
+
+| Tool | Version |
+|------|---------|
+| Node.js | ≥ 18.18 |
+| npm / pnpm / yarn | latest |
+| Firebase CLI (optional) | latest — for deploying Firestore rules & indexes |
+
+---
+
+## Getting Started (Local Development)
+
+### 1. Install dependencies
 
 ```bash
-Copy-Item .env.example .env.local
+npm install
 ```
 
-Then replace placeholder values with your Firebase Web App config from Firebase Console:
-`Project settings -> General -> Your apps -> SDK setup and configuration`.
+### 2. Configure environment variables
 
-After updating `.env.local`, restart the Next.js dev server.
+```bash
+# Windows PowerShell
+Copy-Item .env.example .env.local
 
-### 2. Start the dev server
+# macOS / Linux
+cp .env.example .env.local
+```
 
-First, run the development server:
+Open `.env.local` and replace the placeholder values with your real Firebase Web App config from:
+**Firebase Console → Project Settings → General → Your apps → SDK setup and configuration**
+
+### 3. Deploy Firestore indexes (one-time)
+
+The app uses composite indexes. Deploy them to avoid the `failed-precondition` error:
+
+```bash
+npm run deploy:firestore
+# or: npx firebase deploy --only firestore
+```
+
+### 4. Start the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push this repo to GitHub / GitLab / Bitbucket.
+2. Import the project at [vercel.com/new](https://vercel.com/new).
+3. In **Settings → Environment Variables**, add every variable from `.env.example` with real values.
+4. Vercel auto-detects Next.js — just click **Deploy**.
+5. After deploy, add your Vercel domain (`*.vercel.app`) to:
+   - **Firebase Console → Authentication → Settings → Authorized domains**
+   - **Google Cloud Console → OAuth 2.0 → Authorized redirect URIs** (if using Google Drive upload)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> The `vercel.json` in this repo already sets security headers and caching rules.
+
+---
+
+## Deploy on Netlify
+
+1. Push this repo to GitHub / GitLab / Bitbucket.
+2. Import the project at [app.netlify.com/start](https://app.netlify.com/start).
+3. Netlify auto-detects the build settings from `netlify.toml`.
+4. In **Site Settings → Environment Variables**, add every variable from `.env.example` with real values.
+5. Click **Deploy site**.
+6. After deploy, add your Netlify domain (`*.netlify.app`) to:
+   - **Firebase Console → Authentication → Settings → Authorized domains**
+   - **Google Cloud Console → OAuth 2.0 → Authorized redirect URIs** (if using Google Drive upload)
+
+> The `netlify.toml` and `@netlify/plugin-nextjs` handle SSR, ISR, image optimization, and routing automatically.
+
+---
+
+## Environment Variables Reference
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | ✅ | Firebase Web API key |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | ✅ | Firebase Auth domain |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | ✅ | Firebase project ID |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | ✅ | Firebase Storage bucket |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | ✅ | Firebase Cloud Messaging sender ID |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | ✅ | Firebase app ID |
+| `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` | ❌ | Google Analytics measurement ID |
+| `NEXT_PUBLIC_GIPHY_API_KEY` | ❌ | Giphy API key (GIF picker hidden if blank) |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | ❌ | Google OAuth client ID for Drive upload |
+
+> **Important:** All `NEXT_PUBLIC_*` variables are embedded at **build time**, not runtime. If you change them, you must rebuild.
+
+---
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server (Turbopack) |
+| `npm run build` | Production build |
+| `npm start` | Start production server |
+| `npm run lint` | ESLint check |
+| `npm run lint:fix` | ESLint auto-fix |
+| `npm run deploy:firestore` | Deploy Firestore rules & indexes |
+
+---
+
+## Project Structure
+
+```
+src/
+├── app/                  # Next.js App Router pages
+│   ├── admin/            # Admin dashboard (role-gated)
+│   ├── anonymous-chat/   # Anonymous public chat
+│   ├── confessions/      # Confession wall
+│   ├── groups/           # Group chats
+│   ├── messages/         # Private DMs
+│   ├── profile/          # User profile
+│   └── ...
+├── components/           # Shared React components
+├── lib/                  # Firebase, utils, third-party helpers
+├── store/                # Zustand global state
+└── types/                # TypeScript type definitions
+```
+
+---
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router, Turbopack)
+- **Auth & DB:** Firebase Auth (passwordless email link) + Cloud Firestore
+- **Styling:** Tailwind CSS 4
+- **State:** Zustand
+- **Icons:** Lucide React
+- **Deploy:** Vercel or Netlify
