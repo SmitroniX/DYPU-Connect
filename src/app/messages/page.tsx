@@ -11,6 +11,7 @@ import { resolveProfileImage } from '@/lib/profileImage';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MessageSquare, Plus, Search, X } from 'lucide-react';
+import { cacheGet } from '@/lib/cache';
 import toast from 'react-hot-toast';
 
 interface PrivateChat {
