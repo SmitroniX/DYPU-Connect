@@ -28,18 +28,18 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
     if (loading || (user && !userProfile && pathname !== '/setup-profile' && pathname !== '/verify-email')) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--dc-bg-tertiary)] gap-6">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--ui-bg-base)] gap-6">
                 <div className="animate-[pulse-glow_2s_ease-in-out_infinite]">
-                    <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-sky-200 to-slate-300 tracking-tight">
-                        ✦ DYPU Connect
+                    <h1 className="text-3xl font-bold text-[var(--ui-text)] tracking-tight">
+                        <span className="text-[var(--ui-accent)]">✦</span> DYPU Connect
                     </h1>
                 </div>
                 <div className="flex gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-sky-300 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2.5 h-2.5 rounded-full bg-sky-200 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2.5 h-2.5 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-[var(--ui-accent)] animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-[var(--ui-accent)] opacity-70 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-[var(--ui-accent)] opacity-40 animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
-                <p className="text-sm text-slate-500">Loading your campus…</p>
+                <p className="text-sm text-[var(--ui-text-muted)]">Loading your campus…</p>
             </div>
         );
     }
