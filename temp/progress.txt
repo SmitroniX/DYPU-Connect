@@ -1,0 +1,20 @@
+﻿ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ΓÇï
+Γ¥» Version
+  @netlify/build 35.8.3
+ΓÇï
+Γ¥» Flags
+  accountId: 680572e494fa97c1aedaa91b
+  deployId: 69a4271cbccfaa8602e0f969
+ΓÇï
+Γ¥» Current directory
+  G:\webstorm project\DYPU-Connect
+ΓÇï
+Γ¥» Config file
+  G:\webstorm project\DYPU-Connect\netlify.toml
+ΓÇï
+Γ¥» Context
+  production
+ΓÇï
+Γ¥» Installing plugins
+   - @netlify/plugin-lighthouse@6.0.1
