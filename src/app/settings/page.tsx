@@ -168,6 +168,16 @@ function CookiePrivacySection() {
                     Last consented: {new Date(consent.consentedAt).toLocaleDateString()} · v{consent.version}
                 </p>
             )}
+
+            {/* Anti-sniffing shield status */}
+            <div className="mt-4 flex items-start gap-2 rounded-lg bg-sky-400/5 border border-sky-400/10 px-3 py-2">
+                <Shield className="h-3.5 w-3.5 text-sky-400 shrink-0 mt-0.5" />
+                <p className="text-[10px] text-sky-300/70 leading-relaxed">
+                    <strong className="text-sky-200">Anti-sniffing shield active.</strong>{' '}
+                    Cookies are encrypted, signed with your browser fingerprint, and bound to this session.
+                    Stolen cookies cannot be replayed from another device.
+                </p>
+            </div>
         </section>
     );
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from 'react-hot-toast';
 import CookieConsentBanner from "@/components/CookieConsentBanner";
+import SessionGuard from "@/components/SessionGuard";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,6 +22,7 @@ export default function RootLayout({
         <html lang="en" suppressHydrationWarning>
             <body className={inter.className} suppressHydrationWarning>
                 <AuthProvider>
+                    <SessionGuard />
                     {children}
                     <Toaster position="top-right" />
                     <CookieConsentBanner />

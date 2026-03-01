@@ -38,6 +38,7 @@ const SECURE_COOKIE_OPTS = {
     maxAge: CONSENT_MAX_AGE,
     path: '/',
     sameSite: 'strict' as const,
+    // Secure flag ensures cookies only sent over HTTPS (prevents sniffing on HTTP)
     secure: typeof window !== 'undefined' && window.location.protocol === 'https:',
 };
 
