@@ -167,13 +167,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (!firebaseReady) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 px-6 text-center gap-4">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 px-6 text-center gap-5">
                 <h1 className="text-2xl font-bold text-red-400">⚠ Firebase Not Configured</h1>
-                <p className="text-slate-400 max-w-md">
+                <p className="text-slate-400 max-w-lg">
                     The <code className="text-amber-400">NEXT_PUBLIC_FIREBASE_*</code> environment
-                    variables are missing. Set them in your hosting dashboard
-                    (Netlify&nbsp;/&nbsp;Vercel) or in <code className="text-amber-400">.env.local</code>,
-                    then redeploy.
+                    variables were not found at build time. Since these are inlined during the build,
+                    you must set them <strong className="text-slate-300">before</strong> deploying.
+                </p>
+                <div className="text-left bg-white/5 border border-white/10 rounded-xl p-5 max-w-lg w-full">
+                    <p className="text-sm font-semibold text-slate-300 mb-3">Required in your hosting dashboard:</p>
+                    <ul className="text-xs text-slate-500 space-y-1 font-mono">
+                        <li>NEXT_PUBLIC_FIREBASE_API_KEY</li>
+                        <li>NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN</li>
+                        <li>NEXT_PUBLIC_FIREBASE_PROJECT_ID</li>
+                        <li>NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET</li>
+                        <li>NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID</li>
+                        <li>NEXT_PUBLIC_FIREBASE_APP_ID</li>
+                    </ul>
+                </div>
+                <p className="text-xs text-slate-600 max-w-lg">
+                    Netlify → Site configuration → Environment variables &nbsp;|&nbsp;
+                    Vercel → Settings → Environment Variables.
+                    After adding them, <strong>trigger a new deploy</strong>.
                 </p>
             </div>
         );
