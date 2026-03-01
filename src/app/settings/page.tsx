@@ -21,7 +21,12 @@ import {
     revokeConsent,
     acceptAllCookies,
 } from '@/lib/cookies';
-import { Shield, Cookie, Lock } from 'lucide-react';
+import {
+    validateSessionIntegrity,
+    panicWipeCookies,
+} from '@/lib/cookieShield';
+import { generateSessionFingerprint } from '@/lib/security';
+import { Shield, Cookie, Lock, Fingerprint, ShieldCheck, ShieldAlert, Trash2, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserSettings {
@@ -46,14 +51,31 @@ function CookiePrivacySection() {
     const [functional, setFunctional] = useState(true);
     const [loaded, setLoaded] = useState(false);
 
+    // Anti-sniffing shield state
+    const [sessionValid, setSessionValid] = useState<boolean | null>(null);
+    const [sessionReason, setSessionReason] = useState<string>('');
+    const [fingerprint, setFingerprint] = useState('');
+    const [cookieCount, setCookieCount] = useState(0);
+
     useEffect(() => {
         const current = getConsent();
-        setConsentState(current);
-        if (current) {
-            setAnalytics(current.analytics);
-            setFunctional(current.functional);
-        }
-        setLoaded(true);
+        // Batch all initial state in a single tick via queueMicrotask
+        queueMicrotask(() => {
+            setConsentState(current);
+            if (current) {
+                setAnalytics(current.analytics);
+                setFunctional(current.functional);
+            }
+
+            // Run shield checks
+            const result = validateSessionIntegrity();
+            setSessionValid(result.valid);
+            setSessionReason(result.reason || '');
+            setFingerprint(generateSessionFingerprint());
+            setCookieCount(document.cookie.split(';').filter(c => c.trim()).length);
+
+            setLoaded(true);
+        });
     }, []);
 
     const handleSave = () => {
@@ -78,6 +100,24 @@ function CookiePrivacySection() {
         toast.success('Cookie consent revoked. Banner will reappear on next page load.');
     };
 
+    const handlePanicWipe = () => {
+        panicWipeCookies();
+        setConsentState(null);
+        setCookieCount(0);
+        toast.success('All cookies wiped. You may be signed out.', { icon: '🛡️', duration: 4000 });
+    };
+
+    const handleRevalidate = () => {
+        const result = validateSessionIntegrity();
+        setSessionValid(result.valid);
+        setSessionReason(result.reason || '');
+        setFingerprint(generateSessionFingerprint());
+        setCookieCount(document.cookie.split(';').filter(c => c.trim()).length);
+        toast.success(result.valid ? 'Session verified — no threats detected.' : 'Session integrity issue detected!', {
+            icon: result.valid ? '✅' : '⚠️',
+        });
+    };
+
     if (!loaded) return null;
 
     return (
@@ -86,10 +126,102 @@ function CookiePrivacySection() {
                 <Shield className="h-5 w-5 text-sky-300" />
                 <h2 className="text-lg font-semibold text-white">Cookie &amp; Privacy</h2>
             </div>
-            <p className="text-sm text-slate-400 mb-4">
-                Manage cookie preferences. All cookies use Secure + SameSite=Strict attributes.
+            <p className="text-sm text-slate-400 mb-5">
+                Manage cookie preferences and anti-sniffing protection.
             </p>
 
+            {/* ── Anti-Sniffing Shield Panel ──────────────── */}
+            <div className="mb-5 rounded-xl border border-sky-400/15 bg-sky-400/5 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        {sessionValid ? (
+                            <ShieldCheck className="h-5 w-5 text-sky-300" />
+                        ) : (
+                            <ShieldAlert className="h-5 w-5 text-red-400" />
+                        )}
+                        <h3 className="text-sm font-bold text-white">Anti-Sniffing Shield</h3>
+                    </div>
+                    <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+                        sessionValid
+                            ? 'bg-sky-300/10 text-sky-300'
+                            : 'bg-red-500/15 text-red-400'
+                    }`}>
+                        {sessionValid ? 'Protected' : 'Threat Detected'}
+                    </span>
+                </div>
+
+                {/* Shield details grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {/* Session integrity */}
+                    <div className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/5 px-3 py-2">
+                        <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${sessionValid ? 'text-sky-300' : 'text-red-400'}`} />
+                        <div>
+                            <p className="text-[10px] font-semibold text-slate-300">Session Integrity</p>
+                            <p className={`text-[9px] ${sessionValid ? 'text-sky-400/70' : 'text-red-400/70'}`}>
+                                {sessionValid ? 'Verified — no hijack detected' : sessionReason}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Browser fingerprint */}
+                    <div className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/5 px-3 py-2">
+                        <Fingerprint className="h-3.5 w-3.5 text-sky-300 shrink-0" />
+                        <div>
+                            <p className="text-[10px] font-semibold text-slate-300">Browser Fingerprint</p>
+                            <p className="text-[9px] text-sky-400/70 font-mono">{fingerprint || '—'}</p>
+                        </div>
+                    </div>
+
+                    {/* Cookie encryption */}
+                    <div className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/5 px-3 py-2">
+                        <Lock className="h-3.5 w-3.5 text-sky-300 shrink-0" />
+                        <div>
+                            <p className="text-[10px] font-semibold text-slate-300">Encryption</p>
+                            <p className="text-[9px] text-sky-400/70">XOR cipher + HMAC signed</p>
+                        </div>
+                    </div>
+
+                    {/* Active cookies */}
+                    <div className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/5 px-3 py-2">
+                        <Cookie className="h-3.5 w-3.5 text-sky-300 shrink-0" />
+                        <div>
+                            <p className="text-[10px] font-semibold text-slate-300">Active Cookies</p>
+                            <p className="text-[9px] text-sky-400/70">{cookieCount} cookie{cookieCount !== 1 ? 's' : ''} · Secure + SameSite=Strict</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Shield actions */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                    <button
+                        onClick={handleRevalidate}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/10 px-2.5 py-1.5 text-[11px] font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-all"
+                    >
+                        <RefreshCw className="h-3 w-3" />
+                        Re-validate Session
+                    </button>
+                    <button
+                        onClick={handlePanicWipe}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/10 border border-red-500/20 px-2.5 py-1.5 text-[11px] font-medium text-red-400 hover:bg-red-500/20 transition-all"
+                    >
+                        <Trash2 className="h-3 w-3" />
+                        Panic Wipe All Cookies
+                    </button>
+                </div>
+
+                {/* Protection list */}
+                <div className="text-[9px] text-sky-300/50 leading-relaxed space-y-0.5 pt-1 border-t border-white/5">
+                    <p>✓ Cookies encrypted with browser-bound key</p>
+                    <p>✓ HMAC signature prevents tampering</p>
+                    <p>✓ Fingerprint binding blocks replay from other devices</p>
+                    <p>✓ Session nonce rotates on every write</p>
+                    <p>✓ HSTS preload forces HTTPS (no downgrade sniffing)</p>
+                    <p>✓ CSP blocks XSS-based document.cookie theft</p>
+                </div>
+            </div>
+
+            {/* ── Cookie Preferences ──────────────────────── */}
+            <h3 className="text-sm font-semibold text-white mb-3">Cookie Preferences</h3>
             <div className="space-y-3">
                 {/* Essential */}
                 <div className="flex items-center justify-between rounded-lg border border-white/10 p-3">
@@ -138,7 +270,7 @@ function CookiePrivacySection() {
                 </label>
             </div>
 
-            {/* Status + Actions */}
+            {/* Actions */}
             <div className="mt-4 flex flex-wrap items-center gap-3">
                 <button
                     onClick={handleSave}
@@ -168,16 +300,6 @@ function CookiePrivacySection() {
                     Last consented: {new Date(consent.consentedAt).toLocaleDateString()} · v{consent.version}
                 </p>
             )}
-
-            {/* Anti-sniffing shield status */}
-            <div className="mt-4 flex items-start gap-2 rounded-lg bg-sky-400/5 border border-sky-400/10 px-3 py-2">
-                <Shield className="h-3.5 w-3.5 text-sky-400 shrink-0 mt-0.5" />
-                <p className="text-[10px] text-sky-300/70 leading-relaxed">
-                    <strong className="text-sky-200">Anti-sniffing shield active.</strong>{' '}
-                    Cookies are encrypted, signed with your browser fingerprint, and bound to this session.
-                    Stolen cookies cannot be replayed from another device.
-                </p>
-            </div>
         </section>
     );
 }
