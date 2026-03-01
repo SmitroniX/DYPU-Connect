@@ -107,8 +107,8 @@ function Badge({ children, variant = 'default' }: { children: React.ReactNode; v
     const styles: Record<string, string> = {
         default: 'bg-white/10 text-slate-300',
         accent: 'bg-sky-300/15 text-sky-200 ring-1 ring-sky-300/30',
-        success: 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30',
-        warning: 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/30',
+        success: 'bg-sky-400/20 text-sky-200 ring-1 ring-sky-400/30',
+        warning: 'bg-slate-400/20 text-slate-300 ring-1 ring-slate-400/30',
     };
     return <span className={`${base} ${styles[variant]}`}>{children}</span>;
 }

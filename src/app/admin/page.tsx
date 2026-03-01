@@ -108,14 +108,14 @@ export default function AdminDashboard() {
 
     const statCards = [
         { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'from-sky-500/20 to-cyan-500/20', iconColor: 'text-sky-400', ringColor: 'ring-sky-500/20' },
-        { label: 'Banned Users', value: stats.bannedUsers, icon: UserX, color: 'from-red-500/20 to-orange-500/20', iconColor: 'text-red-400', ringColor: 'ring-red-500/20' },
-        { label: 'Confessions', value: stats.totalConfessions, icon: MessageSquare, color: 'from-pink-500/20 to-rose-500/20', iconColor: 'text-pink-400', ringColor: 'ring-pink-500/20' },
-        { label: 'Anon Messages', value: stats.totalAnonMessages, icon: EyeOff, color: 'from-slate-400/20 to-sky-400/20', iconColor: 'text-sky-300', ringColor: 'ring-sky-300/20' },
+        { label: 'Banned Users', value: stats.bannedUsers, icon: UserX, color: 'from-red-500/20 to-slate-500/20', iconColor: 'text-red-400', ringColor: 'ring-red-500/20' },
+        { label: 'Confessions', value: stats.totalConfessions, icon: MessageSquare, color: 'from-sky-300/20 to-slate-400/20', iconColor: 'text-sky-300', ringColor: 'ring-sky-300/20' },
+        { label: 'Anon Messages', value: stats.totalAnonMessages, icon: EyeOff, color: 'from-slate-400/20 to-sky-400/20', iconColor: 'text-sky-200', ringColor: 'ring-sky-200/20' },
     ];
 
     const adminModules = [
         { name: 'User Management', description: 'View users, manage roles, and issue bans.', href: '/admin/users', icon: Users, accent: 'sky', color: 'text-sky-400 bg-sky-500/15', borderHover: 'hover:border-sky-500/30', shadowHover: 'hover:shadow-sky-500/5' },
-        { name: 'Confession Tracker', description: 'Real identities behind anonymous confessions.', href: '/admin/confessions', icon: MessageSquare, accent: 'pink', color: 'text-pink-400 bg-pink-500/15', borderHover: 'hover:border-pink-500/30', shadowHover: 'hover:shadow-sky-300/5' },
+        { name: 'Confession Tracker', description: 'Real identities behind anonymous confessions.', href: '/admin/confessions', icon: MessageSquare, accent: 'sky', color: 'text-sky-300 bg-sky-300/15', borderHover: 'hover:border-sky-300/30', shadowHover: 'hover:shadow-sky-300/5' },
         { name: 'Shadow Realm Oversight', description: 'Monitor anonymous chat with real email addresses.', href: '/admin/anonymous-chat', icon: EyeOff, accent: 'sky', color: 'text-sky-300 bg-sky-400/15', borderHover: 'hover:border-sky-300/30', shadowHover: 'hover:shadow-sky-300/5' },
         { name: 'Moderation Reports', description: 'Review and act on user-submitted reports.', href: '/admin/reports', icon: ShieldAlert, accent: 'red', color: 'text-red-400 bg-red-500/15', borderHover: 'hover:border-red-500/30', shadowHover: 'hover:shadow-red-500/5' },
     ];
@@ -226,11 +226,11 @@ export default function AdminDashboard() {
                             <div key={activity.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/5 transition-colors">
                                 <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
                                     activity.type === 'confession'
-                                        ? 'bg-pink-500/15 ring-1 ring-pink-500/20'
+                                        ? 'bg-sky-300/15 ring-1 ring-sky-300/20'
                                         : 'bg-sky-400/15 ring-1 ring-sky-300/20'
                                 }`}>
                                     {activity.type === 'confession'
-                                        ? <MessageSquare className="h-4 w-4 text-pink-400" />
+                                        ? <MessageSquare className="h-4 w-4 text-sky-300" />
                                         : <EyeOff className="h-4 w-4 text-sky-300" />
                                     }
                                 </div>

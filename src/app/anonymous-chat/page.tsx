@@ -12,6 +12,7 @@ import type { GiphyGif } from '@/lib/giphy';
 import { Send, EyeOff, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { generateAnonymousName } from '@/lib/utils';
+import { sanitiseInput } from '@/lib/security';
 import toast from 'react-hot-toast';
 
 interface Message {
@@ -78,7 +79,7 @@ export default function AnonymousChatPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const cleanMessage = newMessage.trim();
+        const cleanMessage = sanitiseInput(newMessage);
         if ((!cleanMessage && !selectedGifUrl) || !userProfile || !user) return;
 
         setLoading(true);

@@ -207,7 +207,7 @@ export default function AdminUsersPage() {
                                         <td className="px-5 py-3.5 whitespace-nowrap">
                                             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide ${
                                                 user.status === 'active'
-                                                    ? 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/20'
+                                                    ? 'bg-sky-300/15 text-sky-300 ring-1 ring-sky-300/20'
                                                     : 'bg-red-500/15 text-red-400 ring-1 ring-red-500/20'
                                             }`}>
                                                 {user.status === 'active' ? <UserCheck className="h-3 w-3" /> : <Ban className="h-3 w-3" />}
@@ -234,7 +234,7 @@ export default function AdminUsersPage() {
                                                     className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                                                         user.status === 'active'
                                                             ? 'bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20'
-                                                            : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
+                                                            : 'bg-sky-300/10 border border-sky-300/20 text-sky-300 hover:bg-sky-300/20'
                                                     }`}
                                                 >
                                                     {user.status === 'active' ? <Ban className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}

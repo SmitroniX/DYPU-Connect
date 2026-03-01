@@ -109,7 +109,7 @@ export default function InboxPage() {
                     </div>
                     <button
                         onClick={() => setShowNewChat(!showNewChat)}
-pache                        className="flex items-center gap-2 bg-linear-to-r from-sky-300 to-slate-300 hover:from-sky-200 hover:to-slate-200 text-slate-900 px-4 py-2.5 rounded-xl transition-all duration-300 font-semibold text-sm shadow-lg shadow-sky-300/15"
+                        className="flex items-center gap-2 bg-linear-to-r from-sky-300 to-slate-300 hover:from-sky-200 hover:to-slate-200 text-slate-900 px-4 py-2.5 rounded-xl transition-all duration-300 font-semibold text-sm shadow-lg shadow-sky-300/15"
                     >
                         {showNewChat ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                         {showNewChat ? 'Cancel' : 'New Chat'}

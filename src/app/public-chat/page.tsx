@@ -10,6 +10,7 @@ import { useAuth } from '@/components/AuthProvider';
 import GiphyPicker from '@/components/GiphyPicker';
 import type { GiphyGif } from '@/lib/giphy';
 import { resolveProfileImage } from '@/lib/profileImage';
+import { sanitiseInput } from '@/lib/security';
 import { Send, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -61,7 +62,7 @@ export default function PublicChatPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const cleanMessage = newMessage.trim();
+        const cleanMessage = sanitiseInput(newMessage);
         if ((!cleanMessage && !selectedGifUrl) || !userProfile || !user) return;
 
         setLoading(true);
@@ -179,7 +180,7 @@ export default function PublicChatPage() {
                         <button
                             type="submit"
                             disabled={loading || (!newMessage.trim() && !selectedGifUrl)}
-                            className="bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white p-2.5 rounded-full disabled:opacity-50 transition-all duration-300 flex shrink-0 items-center justify-center w-10 h-10 shadow-lg shadow-amber-500/20"
+                            className="bg-sky-500 hover:bg-sky-400 text-white p-2.5 rounded-full disabled:opacity-50 transition-all duration-300 flex shrink-0 items-center justify-center w-10 h-10 shadow-lg shadow-sky-300/20"
                         >
                             <Send className="w-4 h-4" />
                         </button>

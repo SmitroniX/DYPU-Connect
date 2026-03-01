@@ -12,6 +12,7 @@ import GiphyPicker from '@/components/GiphyPicker';
 import type { GiphyGif } from '@/lib/giphy';
 import { Send, ArrowLeft } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { sanitiseInput } from '@/lib/security';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
@@ -104,7 +105,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const cleanMessage = newMessage.trim();
+        const cleanMessage = sanitiseInput(newMessage);
         if ((!cleanMessage && !selectedGifUrl) || !user) return;
 
         setLoading(true);

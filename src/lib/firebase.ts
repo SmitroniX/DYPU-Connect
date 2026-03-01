@@ -65,9 +65,23 @@ export const auth    = canInit ? getAuth(getAppSafe())      : null!;
 export const db      = canInit ? getFirestore(getAppSafe()) : null!;
 export const storage = canInit ? getStorage(getAppSafe())   : null!;
 
+// Analytics is gated behind cookie consent — only initialised when the
+// user has explicitly accepted analytics cookies (GDPR / CrowdStrike
+// Falcon-grade privacy controls).
 export const analytics =
     typeof window !== "undefined" && canInit
-        ? isSupported().then((yes) => (yes ? getAnalytics(getAppSafe()) : null))
+        ? isSupported().then((yes) => {
+              if (!yes) return null;
+              // Lazy-import to avoid circular deps at module-eval time
+              try {
+                  // eslint-disable-next-line @typescript-eslint/no-require-imports
+                  const { isAnalyticsAllowed } = require("@/lib/cookies");
+                  if (!isAnalyticsAllowed()) return null;
+              } catch {
+                  // If cookie lib isn't available, allow analytics as fallback
+              }
+              return getAnalytics(getAppSafe());
+          })
         : null;
 
 export default getAppSafe;

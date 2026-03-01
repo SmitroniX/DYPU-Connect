@@ -14,6 +14,14 @@ import {
     requestGoogleDriveAccessToken,
 } from '@/lib/googleDrive';
 import type { GoogleDriveConnection } from '@/types/profile';
+import {
+    type CookieConsent as CookieConsentType,
+    getConsent,
+    saveConsent,
+    revokeConsent,
+    acceptAllCookies,
+} from '@/lib/cookies';
+import { Shield, Cookie, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface UserSettings {
@@ -29,6 +37,140 @@ const DEFAULT_SETTINGS: UserSettings = {
 };
 
 const SETTINGS_STORAGE_KEY = 'dypu_settings_v1';
+
+/* ── Cookie & Privacy Management Section ─────────── */
+
+function CookiePrivacySection() {
+    const [consent, setConsentState] = useState<CookieConsentType | null>(null);
+    const [analytics, setAnalytics] = useState(true);
+    const [functional, setFunctional] = useState(true);
+    const [loaded, setLoaded] = useState(false);
+
+    useEffect(() => {
+        const current = getConsent();
+        setConsentState(current);
+        if (current) {
+            setAnalytics(current.analytics);
+            setFunctional(current.functional);
+        }
+        setLoaded(true);
+    }, []);
+
+    const handleSave = () => {
+        const updated = saveConsent({ analytics, functional });
+        setConsentState(updated);
+        toast.success('Cookie preferences updated.');
+    };
+
+    const handleAcceptAll = () => {
+        const updated = acceptAllCookies();
+        setConsentState(updated);
+        setAnalytics(true);
+        setFunctional(true);
+        toast.success('All cookies accepted.');
+    };
+
+    const handleRevoke = () => {
+        revokeConsent();
+        setConsentState(null);
+        setAnalytics(true);
+        setFunctional(true);
+        toast.success('Cookie consent revoked. Banner will reappear on next page load.');
+    };
+
+    if (!loaded) return null;
+
+    return (
+        <section className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-1">
+                <Shield className="h-5 w-5 text-sky-300" />
+                <h2 className="text-lg font-semibold text-white">Cookie &amp; Privacy</h2>
+            </div>
+            <p className="text-sm text-slate-400 mb-4">
+                Manage cookie preferences. All cookies use Secure + SameSite=Strict attributes.
+            </p>
+
+            <div className="space-y-3">
+                {/* Essential */}
+                <div className="flex items-center justify-between rounded-lg border border-white/10 p-3">
+                    <div className="flex items-center gap-2.5">
+                        <Lock className="h-4 w-4 text-sky-300" />
+                        <div>
+                            <span className="text-sm text-white font-medium">Essential cookies</span>
+                            <p className="text-[10px] text-slate-500">Auth, sessions, security. Always required.</p>
+                        </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-sky-300 uppercase bg-sky-300/10 px-2 py-0.5 rounded-full">Required</span>
+                </div>
+
+                {/* Analytics */}
+                <label className="flex items-center justify-between rounded-lg border border-white/10 p-3 cursor-pointer hover:bg-white/[0.03] transition-colors">
+                    <div className="flex items-center gap-2.5">
+                        <span className="text-sm">📊</span>
+                        <div>
+                            <span className="text-sm text-slate-300">Analytics cookies</span>
+                            <p className="text-[10px] text-slate-500">Firebase Analytics &amp; performance monitoring.</p>
+                        </div>
+                    </div>
+                    <input
+                        type="checkbox"
+                        checked={analytics}
+                        onChange={(e) => setAnalytics(e.target.checked)}
+                        className="h-4 w-4 rounded border-white/10 text-sky-300 focus:ring-sky-300/50"
+                    />
+                </label>
+
+                {/* Functional */}
+                <label className="flex items-center justify-between rounded-lg border border-white/10 p-3 cursor-pointer hover:bg-white/[0.03] transition-colors">
+                    <div className="flex items-center gap-2.5">
+                        <span className="text-sm">⚙️</span>
+                        <div>
+                            <span className="text-sm text-slate-300">Functional cookies</span>
+                            <p className="text-[10px] text-slate-500">Preferences, themes, compact mode.</p>
+                        </div>
+                    </div>
+                    <input
+                        type="checkbox"
+                        checked={functional}
+                        onChange={(e) => setFunctional(e.target.checked)}
+                        className="h-4 w-4 rounded border-white/10 text-sky-300 focus:ring-sky-300/50"
+                    />
+                </label>
+            </div>
+
+            {/* Status + Actions */}
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+                <button
+                    onClick={handleSave}
+                    className="rounded-md bg-linear-to-r from-sky-300 to-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:from-sky-200 hover:to-slate-200"
+                >
+                    Save Preferences
+                </button>
+                <button
+                    onClick={handleAcceptAll}
+                    className="rounded-md border border-white/10 px-3 py-2 text-sm font-medium text-slate-300 hover:bg-white/5"
+                >
+                    Accept All
+                </button>
+                {consent && (
+                    <button
+                        onClick={handleRevoke}
+                        className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20"
+                    >
+                        Revoke Consent
+                    </button>
+                )}
+            </div>
+
+            {consent && (
+                <p className="mt-3 text-[10px] text-slate-600">
+                    <Cookie className="inline h-3 w-3 mr-1" />
+                    Last consented: {new Date(consent.consentedAt).toLocaleDateString()} · v{consent.version}
+                </p>
+            )}
+        </section>
+    );
+}
 
 export default function SettingsPage() {
     const { user, loading, logout } = useAuth();
@@ -266,7 +408,7 @@ export default function SettingsPage() {
                                 <div>
                                     <p className="text-sm text-slate-300">
                                         Status:{' '}
-                                        <span className={`font-semibold ${userProfile.googleDrive ? 'text-green-700' : 'text-slate-400'}`}>
+                                        <span className={`font-semibold ${userProfile.googleDrive ? 'text-sky-300' : 'text-slate-400'}`}>
                                             {userProfile.googleDrive ? 'Connected' : 'Not connected'}
                                         </span>
                                     </p>
@@ -279,7 +421,7 @@ export default function SettingsPage() {
                                         <button
                                             onClick={disconnectGoogleDrive}
                                             disabled={driveBusy}
-                                            className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                                            className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20 disabled:opacity-50"
                                         >
                                             Disconnect
                                         </button>
@@ -304,7 +446,7 @@ export default function SettingsPage() {
                                     value={driveFolderLink}
                                     onChange={(e) => setDriveFolderLink(e.target.value)}
                                     placeholder="https://drive.google.com/drive/folders/..."
-                                    className="w-full rounded-md border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300/50 focus:border-sky-300/30"
+                                    className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/50 focus:border-sky-300/30"
                                 />
                                 <button
                                     onClick={saveDriveFolder}
@@ -316,6 +458,8 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </section>
+
+                    <CookiePrivacySection />
 
                     <section className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-sm">
                         <h2 className="text-lg font-semibold text-white">Account</h2>

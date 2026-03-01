@@ -65,12 +65,12 @@ export default function LoginPage() {
                         </p>
 
                         {/* Spam folder warning */}
-                        <div className="mt-4 flex items-start gap-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 px-4 py-3 text-left">
+                        <div className="mt-4 flex items-start gap-2.5 rounded-lg bg-sky-400/10 border border-sky-400/20 px-4 py-3 text-left">
                             <span className="text-lg leading-none mt-0.5">📂</span>
-                            <p className="text-xs text-amber-300/90">
-                                <strong className="text-amber-300">Can&apos;t find the email?</strong>{' '}
-                                Please check your <span className="font-semibold text-amber-200">Spam</span> or{' '}
-                                <span className="font-semibold text-amber-200">Junk</span> folder — sign-in
+                            <p className="text-xs text-sky-200/90">
+                                <strong className="text-sky-200">Can&apos;t find the email?</strong>{' '}
+                                Please check your <span className="font-semibold text-sky-100">Spam</span> or{' '}
+                                <span className="font-semibold text-sky-100">Junk</span> folder — sign-in
                                 emails sometimes land there.
                             </p>
                         </div>

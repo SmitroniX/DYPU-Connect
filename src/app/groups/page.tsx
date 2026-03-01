@@ -29,8 +29,8 @@ export default function GroupsPage() {
             type: 'Field Level',
             description: `Discussions for all ${userProfile.field} students`,
             icon: BookOpen,
-            color: 'bg-blue-500/15 text-blue-400',
-            borderHover: 'hover:border-blue-500/30',
+            color: 'bg-sky-300/15 text-sky-300',
+            borderHover: 'hover:border-sky-300/30',
         },
         {
             id: `year_${userProfile.field.replace(/\s+/g, '_')}_${userProfile.year.replace(/\s+/g, '_')}`,
@@ -38,8 +38,8 @@ export default function GroupsPage() {
             type: 'Year Level',
             description: `Discussions for ${userProfile.year} ${userProfile.field} students`,
             icon: GraduationCap,
-            color: 'bg-emerald-500/15 text-emerald-400',
-            borderHover: 'hover:border-emerald-500/30',
+            color: 'bg-sky-200/15 text-sky-200',
+            borderHover: 'hover:border-sky-200/30',
         },
         {
             id: `division_${userProfile.field.replace(/\s+/g, '_')}_${userProfile.year.replace(/\s+/g, '_')}_${userProfile.division}`,
@@ -47,8 +47,8 @@ export default function GroupsPage() {
             type: 'Division Level',
             description: `Your primary class group (Division ${userProfile.division})`,
             icon: Building,
-            color: 'bg-sky-300/15 text-sky-300',
-            borderHover: 'hover:border-sky-300/30',
+            color: 'bg-slate-300/15 text-slate-300',
+            borderHover: 'hover:border-slate-300/30',
         }
     ];
 
@@ -83,7 +83,7 @@ export default function GroupsPage() {
                                     {group.description}
                                 </p>
                             </div>
-                            <div className="bg-white/5 p-4 border-t border-white/10 text-sm font-medium text-emerald-400 group-hover:text-emerald-300 flex items-center justify-between transition-colors">
+                            <div className="bg-white/5 p-4 border-t border-white/10 text-sm font-medium text-sky-300 group-hover:text-sky-200 flex items-center justify-between transition-colors">
                                 <span>Enter Chat</span>
                                 <Users className="w-4 h-4" />
                             </div>

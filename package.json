@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "cookies-next": "^6.1.1",
     "date-fns": "^4.1.0",
     "firebase": "^12.9.0",
     "lucide-react": "^0.575.0",

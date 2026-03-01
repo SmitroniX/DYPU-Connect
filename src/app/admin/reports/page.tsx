@@ -35,7 +35,7 @@ export default function AdminReportsPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg w-full">
                         <div className="glass p-4 text-center">
-                            <Flag className="h-5 w-5 text-amber-400 mx-auto mb-2" />
+                            <Flag className="h-5 w-5 text-sky-300 mx-auto mb-2" />
                             <p className="text-xs font-medium text-white">Content Flags</p>
                             <p className="text-[10px] text-slate-500 mt-0.5">Flagged messages & confessions</p>
                         </div>

@@ -79,7 +79,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                                         src={userProfile.profileImage}
                                         alt=""
                                     />
-                                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-slate-950" />
+                                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-sky-300 rounded-full ring-2 ring-slate-950" />
                                 </div>
                                 <span className="sr-only">Your profile</span>
                                 <span className="truncate flex-1 self-center text-white/90" aria-hidden="true">

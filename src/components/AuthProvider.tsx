@@ -174,7 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0e1a] px-6 text-center gap-5">
                 <h1 className="text-2xl font-bold text-red-400">⚠ Firebase Not Configured</h1>
                 <p className="text-slate-400 max-w-lg">
-                    The <code className="text-amber-400">NEXT_PUBLIC_FIREBASE_*</code> environment
+                    The <code className="text-sky-300">NEXT_PUBLIC_FIREBASE_*</code> environment
                     variables were not found at build time. Since these are inlined during the build,
                     you must set them <strong className="text-slate-300">before</strong> deploying.
                 </p>

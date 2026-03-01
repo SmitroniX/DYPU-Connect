@@ -4,7 +4,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { ShieldAlert, Zap } from 'lucide-react';
+import { ShieldAlert, ShieldX, Zap } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { userProfile, isLoading } = useStore();
@@ -16,16 +16,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
     }, [userProfile, isLoading, router]);
 
-    if (isLoading || !userProfile || userProfile.role !== 'admin') {
+    /* Still loading user data */
+    if (isLoading) {
         return (
             <DashboardLayout>
                 <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">
                     <div className="relative">
-                        <div className="absolute inset-0 rounded-full bg-red-500/20 blur-xl animate-pulse" />
-                        <ShieldAlert className="relative w-14 h-14 text-red-400 animate-pulse" />
+                        <div className="absolute inset-0 rounded-full bg-sky-300/20 blur-xl animate-pulse" />
+                        <ShieldAlert className="relative w-14 h-14 text-sky-300 animate-pulse" />
                     </div>
                     <h2 className="text-xl font-bold text-white">Verifying Admin Access...</h2>
                     <p className="text-sm text-slate-500">Checking authorization credentials</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
+
+    /* Profile loaded but not an admin — redirecting */
+    if (!userProfile || userProfile.role !== 'admin') {
+        return (
+            <DashboardLayout>
+                <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">
+                    <div className="relative">
+                        <div className="absolute inset-0 rounded-full bg-red-500/20 blur-xl" />
+                        <ShieldX className="relative w-14 h-14 text-red-400" />
+                    </div>
+                    <h2 className="text-xl font-bold text-white">Access Denied</h2>
+                    <p className="text-sm text-slate-500">Redirecting to dashboard...</p>
                 </div>
             </DashboardLayout>
         );
@@ -57,7 +74,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Zap className="h-3.5 w-3.5 text-amber-400" />
+                        <Zap className="h-3.5 w-3.5 text-sky-300" />
                         <span className="text-xs font-medium text-slate-400">
                             {userProfile.name}
                         </span>

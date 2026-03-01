@@ -8,6 +8,7 @@ import type { Timestamp } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
 import { generateAnonymousName } from '@/lib/utils';
+import { sanitiseInput, hasDangerousContent } from '@/lib/security';
 import { Send, Heart, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
@@ -49,13 +50,20 @@ export default function ConfessionsPage() {
         e.preventDefault();
         if (!newConfession.trim() || !userProfile || !user) return;
 
+        // CrowdStrike Falcon-grade input sanitisation
+        if (hasDangerousContent(newConfession)) {
+            toast.error('Your message contains blocked content. Please remove any scripts or HTML tags.');
+            return;
+        }
+        const safeText = sanitiseInput(newConfession);
+
         setLoading(true);
         try {
             const anonName = generateAnonymousName();
 
             // 1. Save Public Confession
             const docRef = await addDoc(collection(db, 'confessions_public'), {
-                text: newConfession.trim(),
+                text: safeText,
                 anonymousName: anonName,
                 createdAt: serverTimestamp(),
                 likesCount: 0
@@ -104,7 +112,7 @@ export default function ConfessionsPage() {
                 <div className="glass-strong p-5 mb-8">
                     <form onSubmit={handleSubmit}>
                         <textarea
-                            className="w-full h-24 p-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/30 resize-none transition-all"
+                            className="w-full h-24 p-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/50 focus:border-sky-300/30 resize-none transition-all"
                             placeholder="I have a crush on someone from Computer Division B..."
                             value={newConfession}
                             onChange={(e) => setNewConfession(e.target.value)}
@@ -112,13 +120,13 @@ export default function ConfessionsPage() {
                         />
                         <div className="mt-3 flex justify-between items-center">
                             <span className="text-xs text-slate-500 flex items-center">
-                                <span className="w-2 h-2 rounded-full bg-pink-500 mr-2 animate-pulse"></span>
+                                <span className="w-2 h-2 rounded-full bg-sky-400 mr-2 animate-pulse"></span>
                                 Posting anonymously as e.g &ldquo;Silent Tiger 420&rdquo;
                             </span>
                             <button
                                 type="submit"
                                 disabled={loading || !newConfession.trim()}
-                                className="inline-flex items-center px-5 py-2.5 bg-linear-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white text-sm font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-sky-300/20 disabled:opacity-50"
+                                className="inline-flex items-center px-5 py-2.5 bg-linear-to-r from-sky-300 to-slate-300 hover:from-sky-200 hover:to-slate-200 text-slate-900 text-sm font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-sky-300/20 disabled:opacity-50"
                             >
                                 {loading ? 'Posting...' : (
                                     <>
@@ -133,10 +141,10 @@ export default function ConfessionsPage() {
                 {/* Confessions List */}
                 <div className="flex-1 overflow-y-auto space-y-4 pb-12 pr-1">
                     {confessions.map((confession) => (
-                        <div key={confession.id} className="glass hover:border-pink-500/30 hover:bg-white/[0.07] transition-all duration-300 p-5">
+                        <div key={confession.id} className="glass hover:border-sky-300/30 hover:bg-white/[0.07] transition-all duration-300 p-5">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center space-x-3">
-                                    <div className="w-9 h-9 rounded-full bg-linear-to-tr from-sky-400 to-slate-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-sky-300/20">
+                                    <div className="w-9 h-9 rounded-full bg-linear-to-tr from-sky-300 to-slate-400 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-sky-300/20">
                                         {confession.anonymousName.charAt(0)}
                                     </div>
                                     <div>
@@ -153,7 +161,7 @@ export default function ConfessionsPage() {
                             <div className="mt-4 flex items-center">
                                 <button
                                     onClick={() => likeConfession(confession.id, confession.likesCount)}
-                                    className="inline-flex items-center text-xs text-slate-500 hover:text-pink-400 transition-colors group"
+                                    className="inline-flex items-center text-xs text-slate-500 hover:text-sky-300 transition-colors group"
                                 >
                                     <Heart className="w-4 h-4 mr-1.5 group-hover:scale-110 transition-transform" />
                                     {confession.likesCount || 0}

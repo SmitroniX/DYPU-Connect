@@ -341,8 +341,8 @@ export default function SetupProfilePage() {
                         {step === 3 && (
                             <div className="space-y-5 animate-[fade-in-up_0.3s_ease-out]">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 ring-1 ring-emerald-500/20">
-                                        <Globe className="h-4.5 w-4.5 text-emerald-400" />
+                                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-300/15 ring-1 ring-sky-300/20">
+                                        <Globe className="h-4.5 w-4.5 text-sky-300" />
                                     </div>
                                     <div>
                                         <h2 className="text-lg font-semibold text-white">Privacy & Review</h2>
@@ -366,8 +366,8 @@ export default function SetupProfilePage() {
                                                 }`}
                                             >
                                                 {visibility === 'public'
-                                                    ? <Globe className="h-5 w-5 text-emerald-400" />
-                                                    : <Lock className="h-5 w-5 text-amber-400" />
+                                                    ? <Globe className="h-5 w-5 text-sky-300" />
+                                                    : <Lock className="h-5 w-5 text-slate-400" />
                                                 }
                                                 <div className="text-left">
                                                     <p className="text-sm font-medium text-white">{visibility === 'public' ? 'Public' : 'Private'}</p>
@@ -434,7 +434,7 @@ export default function SetupProfilePage() {
 
                 {/* Footer text */}
                 <p className="text-center text-[11px] text-slate-600">
-                    DYPU Connect Â· Your campus, connected
+                    DYPU Connect · Your campus, connected
                 </p>
             </div>
         </div>

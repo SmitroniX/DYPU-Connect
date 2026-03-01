@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from 'react-hot-toast';
+import CookieConsentBanner from "@/components/CookieConsentBanner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
                 <AuthProvider>
                     {children}
                     <Toaster position="top-right" />
+                    <CookieConsentBanner />
                 </AuthProvider>
             </body>
         </html>

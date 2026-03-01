@@ -13,6 +13,7 @@ import GiphyPicker from '@/components/GiphyPicker';
 import type { GiphyGif } from '@/lib/giphy';
 import { Send, ArrowLeft, Users, X, ShieldAlert } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { sanitiseInput } from '@/lib/security';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
@@ -110,7 +111,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const cleanMessage = newMessage.trim();
+        const cleanMessage = sanitiseInput(newMessage);
         if ((!cleanMessage && !selectedGifUrl) || !userProfile || !user || !isAuth) return;
 
         setLoading(true);
@@ -178,7 +179,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                     <Link href="/groups" className="text-slate-400 hover:text-white transition-colors">
                         <ArrowLeft className="w-6 h-6" />
                     </Link>
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-sky-300/15 flex items-center justify-center text-sky-300 shrink-0">
                         <Users className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">

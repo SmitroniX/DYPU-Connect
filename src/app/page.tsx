@@ -17,15 +17,15 @@ export default function DashboardPage() {
   const { userProfile } = useStore();
 
   const stats = [
-    { name: 'Confessions', stat: 'Share secrets', icon: MessageSquare, href: '/confessions', gradient: 'from-pink-500/20 to-rose-500/20', iconColor: 'text-pink-400', borderHover: 'hover:border-pink-500/30' },
-    { name: 'Public Chat', stat: 'Join the buzz', icon: Users, href: '/public-chat', gradient: 'from-amber-500/20 to-orange-500/20', iconColor: 'text-amber-400', borderHover: 'hover:border-amber-500/30' },
-    { name: 'Anonymous Chat', stat: 'Speak freely', icon: MessageCircle, href: '/anonymous-chat', gradient: 'from-sky-500/20 to-slate-500/20', iconColor: 'text-sky-300', borderHover: 'hover:border-sky-400/30' },
+    { name: 'Confessions', stat: 'Share secrets', icon: MessageSquare, href: '/confessions', gradient: 'from-sky-400/20 to-slate-400/20', iconColor: 'text-sky-300', borderHover: 'hover:border-sky-300/30' },
+    { name: 'Public Chat', stat: 'Join the buzz', icon: Users, href: '/public-chat', gradient: 'from-sky-300/20 to-blue-400/20', iconColor: 'text-sky-200', borderHover: 'hover:border-sky-200/30' },
+    { name: 'Anonymous Chat', stat: 'Speak freely', icon: MessageCircle, href: '/anonymous-chat', gradient: 'from-slate-400/20 to-sky-500/20', iconColor: 'text-slate-300', borderHover: 'hover:border-slate-400/30' },
   ];
 
   const quickActions = [
-    { name: 'Groups', icon: Users, href: '/groups', color: 'text-emerald-400' },
-    { name: 'Messages', icon: Mail, href: '/messages', color: 'text-sky-400' },
-    { name: 'Profile', icon: User, href: '/profile', color: 'text-sky-300' },
+    { name: 'Groups', icon: Users, href: '/groups', color: 'text-sky-300' },
+    { name: 'Messages', icon: Mail, href: '/messages', color: 'text-sky-200' },
+    { name: 'Profile', icon: User, href: '/profile', color: 'text-slate-300' },
     { name: 'Settings', icon: Settings, href: '/settings', color: 'text-slate-400' },
   ];
 
