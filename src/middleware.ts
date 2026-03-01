@@ -24,7 +24,7 @@ export function middleware(request: NextRequest) {
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseio.com https://*.googleapis.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-        "img-src 'self' data: blob: https://*.giphy.com https://api.dicebear.com https://drive.google.com https://*.googleusercontent.com https://ui-avatars.com https://*.googleapis.com",
+        "img-src 'self' data: blob: https:",
         "font-src 'self' https://fonts.gstatic.com data:",
         "connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.google.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.giphy.com wss://*.firebaseio.com https://www.google-analytics.com",
         "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com",
@@ -59,8 +59,9 @@ export function middleware(request: NextRequest) {
 
     // ── Cross-Origin Policies ─────────────────────────────────────────
     headers.set('Cross-Origin-Opener-Policy', 'same-origin');
-    headers.set('Cross-Origin-Resource-Policy', 'same-origin');
-    headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
+    // CORP must be cross-origin to allow external images (profile photos,
+    // DiceBear avatars, Giphy GIFs, Google profile pictures).
+    headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
 
     // ── Cache Control for HTML pages ──────────────────────────────────
     // Static assets are cached by Netlify/Vercel CDN headers.
