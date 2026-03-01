@@ -105,10 +105,10 @@ function getValidHttpUrl(value: string): string | null {
 function Badge({ children, variant = 'default' }: { children: React.ReactNode; variant?: 'default' | 'accent' | 'success' | 'warning' }) {
     const base = 'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase';
     const styles: Record<string, string> = {
-        default: 'bg-white/10 text-slate-300',
-        accent: 'bg-sky-300/15 text-sky-200 ring-1 ring-sky-300/30',
-        success: 'bg-sky-400/20 text-sky-200 ring-1 ring-sky-400/30',
-        warning: 'bg-slate-400/20 text-slate-300 ring-1 ring-slate-400/30',
+        default: 'bg-[var(--dc-bg-tertiary)] text-[var(--dc-text-secondary)]',
+        accent: 'bg-[var(--dc-accent-dim)] text-[var(--dc-accent)] ring-1 ring-[var(--dc-accent)]/30',
+        success: 'bg-[var(--dc-accent-dim)] text-[var(--dc-accent)] ring-1 ring-[var(--dc-accent)]/30',
+        warning: 'bg-[var(--dc-bg-tertiary)] text-[var(--dc-text-muted)] ring-1 ring-[var(--dc-border)]',
     };
     return <span className={`${base} ${styles[variant]}`}>{children}</span>;
 }
@@ -117,12 +117,12 @@ function SectionHeader({ icon: Icon, title, subtitle, action }: { icon: React.El
     return (
         <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-sky-300/15 to-slate-300/10 ring-1 ring-sky-300/20">
-                    <Icon className="h-5 w-5 text-sky-300" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--dc-accent-dim)] ring-1 ring-[var(--dc-accent)]/20">
+                    <Icon className="h-5 w-5 text-[var(--dc-accent)]" />
                 </div>
                 <div>
-                    <h2 className="text-lg font-semibold text-white">{title}</h2>
-                    <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
+                    <h2 className="text-lg font-semibold text-[var(--dc-text-primary)]">{title}</h2>
+                    <p className="text-xs text-[var(--dc-text-muted)] mt-0.5">{subtitle}</p>
                 </div>
             </div>
             {action}
@@ -132,7 +132,7 @@ function SectionHeader({ icon: Icon, title, subtitle, action }: { icon: React.El
 
 function GlassCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
     return (
-        <div className={`glass p-5 sm:p-6 transition-all duration-300 hover:border-white/15 ${className}`}>
+        <div className={`dc-card p-5 sm:p-6 transition-all duration-300 ${className}`}>
             {children}
         </div>
     );
@@ -141,10 +141,10 @@ function GlassCard({ children, className = '' }: { children: React.ReactNode; cl
 function InputField({ label, id, ...props }: { label: string; id: string } & React.InputHTMLAttributes<HTMLInputElement>) {
     return (
         <div>
-            <label htmlFor={id} className="block text-xs font-medium text-slate-400 mb-1.5">{label}</label>
+            <label htmlFor={id} className="block text-xs font-medium text-[var(--dc-text-muted)] mb-1.5">{label}</label>
             <input
                 id={id}
-                className="w-full rounded-lg bg-white/5 border border-white/10 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 focus:border-sky-300/30 transition-all"
+                className="dc-input"
                 {...props}
             />
         </div>
@@ -154,10 +154,10 @@ function InputField({ label, id, ...props }: { label: string; id: string } & Rea
 function SelectField({ label, id, children, ...props }: { label: string; id: string; children: React.ReactNode } & React.SelectHTMLAttributes<HTMLSelectElement>) {
     return (
         <div>
-            <label htmlFor={id} className="block text-xs font-medium text-slate-400 mb-1.5">{label}</label>
+            <label htmlFor={id} className="block text-xs font-medium text-[var(--dc-text-muted)] mb-1.5">{label}</label>
             <select
                 id={id}
-                className="w-full rounded-lg bg-white/5 border border-white/10 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-300/40 focus:border-sky-300/30 transition-all appearance-none"
+                className="w-full rounded-lg bg-[var(--dc-bg-input)] border-none px-3.5 py-2.5 text-sm text-[var(--dc-text-primary)] focus:outline-none transition-all appearance-none"
                 {...props}
             >
                 {children}
@@ -169,7 +169,7 @@ function SelectField({ label, id, children, ...props }: { label: string; id: str
 function PrimaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
     return (
         <button
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-sky-200 to-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-lg shadow-sky-300/15 hover:from-sky-100 hover:to-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--dc-accent)] hover:bg-[var(--dc-accent-hover)] px-5 py-2.5 text-sm font-semibold text-[var(--dc-bg-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             {...props}
         >
             {children}
@@ -180,7 +180,7 @@ function PrimaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLBu
 function SecondaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
     return (
         <button
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--dc-border)] bg-[var(--dc-bg-tertiary)] px-4 py-2.5 text-sm font-medium text-[var(--dc-text-secondary)] hover:bg-[var(--dc-bg-hover)] hover:text-[var(--dc-text-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200"
             {...props}
         >
             {children}
@@ -207,22 +207,22 @@ function TabBar({ activeTab, setActiveTab, storiesCount, highlightsCount, galler
     ];
 
     return (
-        <div className="flex gap-1 p-1 rounded-2xl bg-white/5 border border-white/5">
+        <div className="flex gap-1 p-1 rounded-lg bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)]">
             {tabs.map(({ key, label, icon: TabIcon, count }) => (
                 <button
                     key={key}
                     onClick={() => setActiveTab(key)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-medium transition-all duration-200 ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2.5 text-xs sm:text-sm font-medium transition-colors duration-200 ${
                         activeTab === key
-                            ? 'bg-linear-to-r from-sky-300/80 to-slate-300/80 text-slate-900 shadow-lg shadow-sky-300/15'
-                            : 'text-slate-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-[var(--dc-accent)] text-[var(--dc-bg-tertiary)]'
+                            : 'text-[var(--dc-text-muted)] hover:text-[var(--dc-text-primary)] hover:bg-[var(--dc-bg-hover)]'
                     }`}
                 >
                     <TabIcon className="h-4 w-4" />
                     <span className="hidden sm:inline">{label}</span>
                     {count !== undefined && count > 0 && (
                         <span className={`ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                            activeTab === key ? 'bg-white/20' : 'bg-white/10'
+                            activeTab === key ? 'bg-[var(--dc-bg-tertiary)]/20' : 'bg-[var(--dc-bg-tertiary)]'
                         }`}>
                             {count}
                         </span>
@@ -510,9 +510,9 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
                     <div className="flex flex-col items-center gap-4">
                         <div className="relative">
-                            <div className="h-12 w-12 rounded-full border-2 border-sky-300/30 border-t-sky-300 animate-spin" />
+                            <div className="h-12 w-12 rounded-full border-2 border-[var(--dc-accent)]/30 border-t-[var(--dc-accent)] animate-spin" />
                         </div>
-                        <p className="text-sm text-slate-400 animate-pulse">Loading profile...</p>
+                        <p className="text-sm text-[var(--dc-text-muted)] animate-pulse">Loading profile...</p>
                     </div>
                 </div>
             </DashboardLayout>
@@ -533,9 +533,9 @@ export default function ProfilePage() {
                 {/* ═══════════ HERO PROFILE HEADER ═══════════ */}
                 <div className="relative overflow-hidden rounded-2xl">
                     {/* Gradient Banner */}
-                    <div className="h-36 sm:h-44 bg-linear-to-br from-sky-400 via-sky-600 to-slate-700 relative">
+                    <div className="h-36 sm:h-44 bg-linear-to-br from-[var(--dc-accent)]/40 via-[var(--dc-bg-secondary)] to-[var(--dc-bg-tertiary)] relative">
                         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE4YzEuNjU3IDAgMyAxLjM0MyAzIDNzLTEuMzQzIDMtMyAzLTMtMS4zNDMtMy0zIDEuMzQzLTMgMy0zek0yNCAzNmMxLjY1NyAwIDMgMS4zNDMgMyAzcy0xLjM0MyAzLTMgMy0zLTEuMzQzLTMtMyAxLjM0My0zIDMtM3oiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-50" />
-                        <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-slate-950/80 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-[var(--dc-bg-primary)] to-transparent" />
                     </div>
 
                     {/* Profile Info Overlay */}
@@ -543,7 +543,7 @@ export default function ProfilePage() {
                         <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6">
                             {/* Avatar */}
                             <div className="relative group">
-                                <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-2xl ring-4 ring-slate-950 overflow-hidden bg-white/10 shadow-2xl">
+                                <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-2xl ring-4 ring-[var(--dc-bg-primary)] overflow-hidden bg-[var(--dc-bg-tertiary)] shadow-2xl">
                                     <img
                                         src={resolvedPreviewImage}
                                         alt={formData.name || 'Profile'}
@@ -553,17 +553,17 @@ export default function ProfilePage() {
                                 </div>
                                 <button
                                     onClick={() => setActiveTab('edit')}
-                                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-xl bg-sky-400 flex items-center justify-center shadow-lg hover:bg-sky-300 transition-colors"
+                                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-xl bg-[var(--dc-accent)] flex items-center justify-center shadow-lg hover:bg-[var(--dc-accent-hover)] transition-colors"
                                     title="Edit profile photo"
                                 >
-                                    <Camera className="h-4 w-4 text-white" />
+                                    <Camera className="h-4 w-4 text-[var(--dc-bg-tertiary)]" />
                                 </button>
                             </div>
 
                             {/* Name & Details */}
                             <div className="flex-1 text-center sm:text-left space-y-2 pb-1">
                                 <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-2">
-                                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-[var(--dc-text-primary)] tracking-tight">
                                         {userProfile.name}
                                     </h1>
                                     <Badge variant={userProfile.accountVisibility === 'public' ? 'success' : 'warning'}>
@@ -577,7 +577,7 @@ export default function ProfilePage() {
                                     )}
                                 </div>
 
-                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-sm text-slate-400">
+                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-sm text-[var(--dc-text-muted)]">
                                     <span className="flex items-center gap-1">
                                         <Mail className="h-3.5 w-3.5" /> {userProfile.email}
                                     </span>
@@ -597,21 +597,21 @@ export default function ProfilePage() {
                             {/* Stats */}
                             <div className="flex gap-6 sm:gap-8 text-center">
                                 <div>
-                                    <p className="text-xl font-bold text-white">{activeStories.length}</p>
-                                    <p className="text-[11px] text-slate-400 uppercase tracking-wide">Stories</p>
+                                    <p className="text-xl font-bold text-[var(--dc-text-primary)]">{activeStories.length}</p>
+                                    <p className="text-[11px] text-[var(--dc-text-muted)] uppercase tracking-wide">Stories</p>
                                 </div>
                                 <div>
-                                    <p className="text-xl font-bold text-white">{userProfile.highlights.length}</p>
-                                    <p className="text-[11px] text-slate-400 uppercase tracking-wide">Highlights</p>
+                                    <p className="text-xl font-bold text-[var(--dc-text-primary)]">{userProfile.highlights.length}</p>
+                                    <p className="text-[11px] text-[var(--dc-text-muted)] uppercase tracking-wide">Highlights</p>
                                 </div>
                                 <div>
-                                    <p className="text-xl font-bold text-white">{userProfile.gallery.length}</p>
-                                    <p className="text-[11px] text-slate-400 uppercase tracking-wide">Gallery</p>
+                                    <p className="text-xl font-bold text-[var(--dc-text-primary)]">{userProfile.gallery.length}</p>
+                                    <p className="text-[11px] text-[var(--dc-text-muted)] uppercase tracking-wide">Gallery</p>
                                 </div>
                             </div>
                         </div>
 
-                        <p className="text-xs text-slate-500 mt-4 text-center sm:text-left">
+                        <p className="text-xs text-[var(--dc-text-muted)] mt-4 text-center sm:text-left">
                             Member since {createdOn}
                         </p>
                     </div>
@@ -637,12 +637,12 @@ export default function ProfilePage() {
 
                         <form className="mt-6 space-y-5" onSubmit={handleSave}>
                             {/* Profile Photo Section */}
-                            <div className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
+                            <div className="flex items-center gap-4 p-4 rounded-xl bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)]">
                                 <img
                                     src={resolvedPreviewImage}
                                     alt="Preview"
                                     onError={handleImgError}
-                                    className="h-16 w-16 rounded-xl object-cover object-center ring-2 ring-white/10"
+                                    className="h-16 w-16 rounded-xl object-cover object-center ring-2 ring-[var(--dc-border)]"
                                 />
                                 <div className="flex-1 min-w-0 space-y-2">
                                     <InputField
@@ -662,7 +662,7 @@ export default function ProfilePage() {
                                             {uploadingTarget === 'profile' ? 'Uploading...' : 'Upload to Drive'}
                                         </SecondaryButton>
                                         {!driveConnected && (
-                                            <p className="text-[11px] text-slate-500">Connect Google Drive in Settings</p>
+                                            <p className="text-[11px] text-[var(--dc-text-muted)]">Connect Google Drive in Settings</p>
                                         )}
                                     </div>
                                 </div>
@@ -730,7 +730,7 @@ export default function ProfilePage() {
 
                         {/* Add Story Form */}
                         {showAddStory && (
-                            <form className="mt-5 p-4 rounded-xl bg-white/5 border border-white/5 space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addStory}>
+                            <form className="mt-5 p-4 rounded-xl bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)] space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addStory}>
                                 <InputField
                                     label="Story Image URL"
                                     id="storyUrl"
@@ -759,22 +759,22 @@ export default function ProfilePage() {
                         <div className="mt-5">
                             {activeStories.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-                                        <Clock className="h-8 w-8 text-slate-600" />
+                                    <div className="h-16 w-16 rounded-2xl bg-[var(--dc-bg-tertiary)] flex items-center justify-center mb-4">
+                                        <Clock className="h-8 w-8 text-[var(--dc-text-muted)]" />
                                     </div>
-                                    <p className="text-sm text-slate-400">No active stories</p>
-                                    <p className="text-xs text-slate-500 mt-1">Stories disappear after 24 hours</p>
+                                    <p className="text-sm text-[var(--dc-text-muted)]">No active stories</p>
+                                    <p className="text-xs text-[var(--dc-text-muted)] mt-1">Stories disappear after 24 hours</p>
                                 </div>
                             ) : (
                                 <div className="flex gap-4 overflow-x-auto pb-2">
                                     {activeStories.map((story) => (
                                         <div key={story.id} className="group relative min-w-35 max-w-35 shrink-0">
-                                            <div className="relative overflow-hidden rounded-2xl ring-2 ring-sky-300/30 shadow-lg shadow-sky-300/10">
+                                            <div className="relative overflow-hidden rounded-2xl ring-2 ring-[var(--dc-accent)]/30 shadow-lg">
                                                 <img
                                                     src={story.imageUrl}
                                                     alt="Story"
                                                     onError={handleImgError}
-                                                    className="h-50 w-full object-cover object-center bg-white/10 transition-transform duration-300 group-hover:scale-105"
+                                                    className="h-50 w-full object-cover object-center bg-[var(--dc-bg-tertiary)] transition-transform duration-300 group-hover:scale-105"
                                                 />
                                                 <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
                                                 <div className="absolute bottom-2 left-2 right-2">
@@ -819,7 +819,7 @@ export default function ProfilePage() {
                         />
 
                         {showAddHighlight && (
-                            <form className="mt-5 p-4 rounded-xl bg-white/5 border border-white/5 space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addHighlight}>
+                            <form className="mt-5 p-4 rounded-xl bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)] space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addHighlight}>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <InputField
                                         label="Title"
@@ -854,17 +854,17 @@ export default function ProfilePage() {
                         <div className="mt-5">
                             {userProfile.highlights.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-                                        <Star className="h-8 w-8 text-slate-600" />
+                                    <div className="h-16 w-16 rounded-2xl bg-[var(--dc-bg-tertiary)] flex items-center justify-center mb-4">
+                                        <Star className="h-8 w-8 text-[var(--dc-text-muted)]" />
                                     </div>
-                                    <p className="text-sm text-slate-400">No highlights yet</p>
-                                    <p className="text-xs text-slate-500 mt-1">Pin your best moments here</p>
+                                    <p className="text-sm text-[var(--dc-text-muted)]">No highlights yet</p>
+                                    <p className="text-xs text-[var(--dc-text-muted)] mt-1">Pin your best moments here</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                     {userProfile.highlights.map((highlight) => (
                                         <div key={highlight.id} className="group relative">
-                                            <div className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 transition-all duration-300 hover:border-sky-300/25 hover:shadow-lg hover:shadow-sky-300/5">
+                                            <div className="relative overflow-hidden rounded-2xl bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)] transition-all duration-300 hover:border-[var(--dc-accent)]/25">
                                                 <img
                                                     src={highlight.coverImageUrl}
                                                     alt={highlight.title}
@@ -911,7 +911,7 @@ export default function ProfilePage() {
                         />
 
                         {showAddGallery && (
-                            <form className="mt-5 p-4 rounded-xl bg-white/5 border border-white/5 space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addGalleryItem}>
+                            <form className="mt-5 p-4 rounded-xl bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)] space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addGalleryItem}>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <InputField
                                         label="Image URL"
@@ -948,18 +948,18 @@ export default function ProfilePage() {
                         <div className="mt-5">
                             {userProfile.gallery.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-                                        <Grid3X3 className="h-8 w-8 text-slate-600" />
+                                    <div className="h-16 w-16 rounded-2xl bg-[var(--dc-bg-tertiary)] flex items-center justify-center mb-4">
+                                        <Grid3X3 className="h-8 w-8 text-[var(--dc-text-muted)]" />
                                     </div>
-                                    <p className="text-sm text-slate-400">No photos yet</p>
-                                    <p className="text-xs text-slate-500 mt-1">Start building your gallery</p>
+                                    <p className="text-sm text-[var(--dc-text-muted)]">No photos yet</p>
+                                    <p className="text-xs text-[var(--dc-text-muted)] mt-1">Start building your gallery</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     {userProfile.gallery.map((item) => (
                                         <div key={item.id} className="group relative">
                                             <div
-                                                className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 cursor-pointer transition-all duration-300 hover:border-sky-300/25 hover:shadow-lg hover:shadow-sky-300/5"
+                                                className="relative overflow-hidden rounded-2xl bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)] cursor-pointer transition-all duration-300 hover:border-[var(--dc-accent)]/25"
                                                 onClick={() => setGalleryPreview(galleryPreview === item.id ? null : item.id)}
                                             >
                                                 <img
@@ -1000,12 +1000,12 @@ export default function ProfilePage() {
                 )}
 
                 {/* ═══════════ FIRESTORE INDEX TIP ═══════════ */}
-                <div className="glass p-4">
+                <div className="dc-card p-4">
                     <div className="flex items-start gap-3">
-                        <div className="h-8 w-8 shrink-0 rounded-lg bg-white/5 flex items-center justify-center">
-                            <Sparkles className="h-4 w-4 text-slate-500" />
+                        <div className="h-8 w-8 shrink-0 rounded-lg bg-[var(--dc-bg-tertiary)] flex items-center justify-center">
+                            <Sparkles className="h-4 w-4 text-[var(--dc-text-muted)]" />
                         </div>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-[var(--dc-text-muted)]">
                             If you see Firestore index errors in the console, click the link in the error to create the required composite index in the Firebase Console.
                         </p>
                     </div>

@@ -10,9 +10,11 @@ import { useAuth } from '@/components/AuthProvider';
 import { resolveProfileImage } from '@/lib/profileImage';
 import GiphyPicker from '@/components/GiphyPicker';
 import type { GiphyGif } from '@/lib/giphy';
-import { Send, ArrowLeft } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import ChannelHeader from '@/components/ChannelHeader';
+import { Send, ArrowLeft, X } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
 import { sanitiseInput } from '@/lib/security';
+import { shouldShowHeader } from '@/lib/utils';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
@@ -144,9 +146,9 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
             <DashboardLayout>
                 <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">
                     <div className="flex gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-sky-300 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-sky-200 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--dc-accent)] animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--dc-accent)] animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--dc-accent)] animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                 </div>
             </DashboardLayout>
@@ -159,43 +161,81 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 
     return (
         <DashboardLayout>
-            <div className="max-w-4xl mx-auto h-[calc(100vh-6rem)] flex flex-col font-sans animate-[fade-in-up_0.5s_ease-out]">
-                <div className="glass-strong rounded-b-none p-4 shrink-0 flex items-center gap-4">
-                    <Link href="/messages" className="text-slate-400 hover:text-white transition-colors">
-                        <ArrowLeft className="w-6 h-6" />
+            <div className="h-full flex flex-col">
+                <ChannelHeader name={otherName} description="Direct Message" type="dm">
+                    <Link href="/messages" className="p-1.5 text-[var(--dc-text-muted)] hover:text-[var(--dc-text-primary)] rounded transition-colors">
+                        <ArrowLeft className="w-4 h-4" />
                     </Link>
-                    <img src={otherImage} alt={otherName} className="w-10 h-10 rounded-full border border-white/20 object-cover object-center" />
-                    <div>
-                        <h2 className="text-lg font-bold text-white leading-tight">{otherName}</h2>
-                    </div>
-                </div>
+                </ChannelHeader>
 
-                <div className="flex-1 bg-white/[0.02] border-l border-r border-white/10 overflow-y-auto p-4 flex flex-col gap-4">
+                {/* Messages stream (Discord flat layout) */}
+                <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
                     {messages.length === 0 ? (
-                        <div className="m-auto text-slate-500 text-sm text-center">
-                            Start the conversation with {otherName} 💬
+                        <div className="flex flex-col items-center justify-center h-full text-center">
+                            <div className="w-16 h-16 rounded-full bg-[var(--dc-bg-tertiary)] flex items-center justify-center mb-4">
+                                <img src={otherImage} alt={otherName} className="w-16 h-16 rounded-full object-cover" />
+                            </div>
+                            <h3 className="text-xl font-bold text-[var(--dc-text-primary)]">{otherName}</h3>
+                            <p className="text-sm text-[var(--dc-text-muted)] mt-1">This is the beginning of your direct message history with {otherName}. Say hello! 👋</p>
                         </div>
                     ) : (
-                        messages.map((msg) => {
+                        messages.map((msg, i) => {
                             const isMine = msg.senderId === user?.uid;
+                            const senderName = isMine ? 'You' : otherName;
+                            const senderImage = isMine
+                                ? resolveProfileImage(chatInfo.participantImages?.[user.uid], undefined, 'You')
+                                : otherImage;
+                            const prev = i > 0 ? messages[i - 1] : null;
+                            const showMsgHeader = shouldShowHeader(
+                                msg.senderId,
+                                prev?.senderId,
+                                msg.timestamp?.toDate?.() ?? null,
+                                prev?.timestamp?.toDate?.() ?? null
+                            );
+                            const ts = msg.timestamp?.toDate?.();
+
                             return (
-                                <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                                    <div className="flex max-w-[75%] gap-2 flex-col">
-                                        <div className={`px-4 py-2.5 rounded-2xl ${isMine ? 'bg-linear-to-r from-sky-600 to-sky-800 text-white rounded-br-sm' : 'bg-white/10 text-slate-200 rounded-bl-sm border border-white/5'}`}>
-                                            {msg.gifUrl && (
+                                <div
+                                    key={msg.id}
+                                    className={`dc-message group ${showMsgHeader ? 'mt-4' : 'mt-0'}`}
+                                >
+                                    <div className="flex gap-4">
+                                        {/* Avatar or timestamp spacer */}
+                                        <div className="w-10 shrink-0 flex items-start pt-0.5">
+                                            {showMsgHeader ? (
                                                 <img
-                                                    src={msg.gifUrl}
-                                                    alt="GIF"
-                                                    className="w-full max-w-[260px] rounded-lg mb-2 object-cover object-center"
+                                                    src={senderImage}
+                                                    alt=""
+                                                    className="w-10 h-10 rounded-full object-cover"
                                                 />
-                                            )}
-                                            {msg.text && (
-                                                <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
+                                            ) : (
+                                                <span className="text-[10px] text-[var(--dc-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity w-full text-center pt-1">
+                                                    {ts ? format(ts, 'HH:mm') : ''}
+                                                </span>
                                             )}
                                         </div>
-                                        <span className={`text-[10px] text-slate-600 mt-1 ${isMine ? 'text-right mr-1' : 'ml-1'}`}>
-                                            {msg.timestamp?.toDate ? formatDistanceToNow(msg.timestamp.toDate(), { addSuffix: true }) : 'Sending...'}
-                                        </span>
+
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            {showMsgHeader && (
+                                                <div className="flex items-baseline gap-2 mb-0.5">
+                                                    <span className={`font-medium text-[15px] ${isMine ? 'text-[var(--dc-accent)]' : 'text-[var(--dc-text-primary)]'}`}>
+                                                        {senderName}
+                                                    </span>
+                                                    <span className="text-xs text-[var(--dc-text-muted)]">
+                                                        {ts ? format(ts, 'dd/MM/yyyy HH:mm') : 'Sending...'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {msg.gifUrl && (
+                                                <img src={msg.gifUrl} alt="GIF" className="max-w-[300px] rounded-lg mt-1 object-cover" />
+                                            )}
+                                            {msg.text && (
+                                                <p className="text-[15px] text-[var(--dc-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
+                                                    {msg.text}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             );
@@ -204,32 +244,34 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                     <div ref={messagesEndRef} />
                 </div>
 
-                <div className="glass-strong rounded-t-none border-t-0 p-3 shrink-0">
+                {/* Typing indicator area */}
+                <div className="h-6 px-4 flex items-center" />
+
+                {/* Discord-style input bar */}
+                <div className="px-4 pb-4 shrink-0">
                     {selectedGifUrl && (
-                        <div className="mb-3 rounded-xl border border-white/10 bg-white/5 p-2.5 flex items-start gap-3">
-                            <img src={selectedGifUrl} alt="Selected GIF" className="h-16 w-16 rounded-lg object-cover object-center" />
+                        <div className="mb-2 rounded-lg bg-[var(--dc-bg-secondary)] border border-[var(--dc-border)] p-2 flex items-center gap-3">
+                            <img src={selectedGifUrl} alt="GIF" className="h-14 w-14 rounded object-cover" />
                             <div className="flex-1">
-                                <p className="text-xs text-slate-400">GIF selected</p>
-                                <button
-                                    type="button"
-                                    onClick={() => setSelectedGifUrl('')}
-                                    className="mt-1 text-xs text-red-400 hover:text-red-300 font-medium"
-                                >
-                                    Remove GIF
-                                </button>
+                                <p className="text-xs text-[var(--dc-text-muted)]">GIF attached</p>
                             </div>
+                            <button onClick={() => setSelectedGifUrl('')} className="p-1 text-[var(--dc-text-muted)] hover:text-[var(--dc-dnd)]">
+                                <X className="w-4 h-4" />
+                            </button>
                         </div>
                     )}
-                    <form className="flex gap-2" onSubmit={handleSubmit}>
-                        <GiphyPicker
-                            disabled={loading}
-                            onSelect={(gif: GiphyGif) => setSelectedGifUrl(gif.url)}
-                            align="left"
-                        />
+                    <form className="flex items-center gap-0 bg-[var(--dc-bg-input)] rounded-lg" onSubmit={handleSubmit}>
+                        <div className="flex items-center pl-3 gap-1 shrink-0">
+                            <GiphyPicker
+                                disabled={loading}
+                                onSelect={(gif: GiphyGif) => setSelectedGifUrl(gif.url)}
+                                align="left"
+                            />
+                        </div>
                         <input
                             type="text"
-                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 focus:border-sky-300/30 transition-all"
-                            placeholder="Type a message..."
+                            className="dc-input bg-transparent"
+                            placeholder={`Message @${otherName}`}
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                             disabled={loading}
@@ -238,9 +280,9 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                         <button
                             type="submit"
                             disabled={loading || (!newMessage.trim() && !selectedGifUrl)}
-                            className="bg-linear-to-r from-sky-400 to-sky-600 hover:from-sky-300 hover:to-sky-500 text-slate-900 p-2.5 rounded-full disabled:opacity-50 transition-all duration-300 flex shrink-0 items-center justify-center w-10 h-10 shadow-lg shadow-sky-300/15"
+                            className="p-2.5 pr-3 text-[var(--dc-text-muted)] hover:text-[var(--dc-accent)] disabled:opacity-30 transition-colors shrink-0"
                         >
-                            <Send className="w-4 h-4" />
+                            <Send className="w-5 h-5" />
                         </button>
                     </form>
                 </div>
