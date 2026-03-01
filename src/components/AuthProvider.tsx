@@ -57,7 +57,7 @@ function mapAuthError(error: unknown): Error {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const { setCurrentUser, setUserProfile } = useStore();
+    const { setCurrentUser, setUserProfile, setLoading: setStoreLoading } = useStore();
     const router = useRouter();
 
     // Guard: if Firebase wasn't initialised (env vars missing at build time)
@@ -66,7 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         if (!firebaseReady) {
-            const id = requestAnimationFrame(() => setLoading(false));
+            const id = requestAnimationFrame(() => {
+                setLoading(false);
+                setStoreLoading(false);
+            });
             return () => cancelAnimationFrame(id);
         }
 
@@ -123,10 +126,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setUserProfile(null);
             }
             setLoading(false);
+            setStoreLoading(false);
         });
 
         return () => unsubscribe();
-    }, [firebaseReady, setCurrentUser, setUserProfile]);
+    }, [firebaseReady, setCurrentUser, setUserProfile, setStoreLoading]);
 
     const sendLoginLink = async (email: string) => {
         if (!email.endsWith('@dypatil.edu')) {
