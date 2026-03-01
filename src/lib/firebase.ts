@@ -4,17 +4,16 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics, isSupported } from "firebase/analytics";
 
-const firebaseEnv = {
-    NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-};
+// ---------------------------------------------------------------------------
+// Build-safe Firebase initialisation
+//
+// During Next.js static page generation (e.g. /_not-found) on Netlify / Vercel,
+// NEXT_PUBLIC_* env vars may not be present. We skip initialisation in that
+// case so the build never crashes. The validation still runs at runtime in the
+// browser — if env vars are missing the app will show a clear error.
+// ---------------------------------------------------------------------------
 
-const requiredFirebaseEnvKeys = [
+const requiredEnvKeys = [
     "NEXT_PUBLIC_FIREBASE_API_KEY",
     "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
     "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
@@ -23,47 +22,75 @@ const requiredFirebaseEnvKeys = [
     "NEXT_PUBLIC_FIREBASE_APP_ID",
 ] as const;
 
-const missingFirebaseEnvKeys = requiredFirebaseEnvKeys.filter((key) => {
-    const value = firebaseEnv[key];
-    return typeof value !== "string" || value.trim().length === 0;
-});
-
-const placeholderFirebaseEnvKeys = requiredFirebaseEnvKeys.filter((key) => {
-    const value = firebaseEnv[key];
-    return typeof value === "string" && value.trim().startsWith("your_");
-});
-
-if (missingFirebaseEnvKeys.length > 0) {
-    throw new Error(
-        `Missing Firebase environment variables: ${missingFirebaseEnvKeys.join(", ")}. Add them to .env.local (see .env.example) and restart the Next.js dev server.`
-    );
+function readEnv(key: string): string {
+    return (process.env[key] ?? "").trim();
 }
 
-if (placeholderFirebaseEnvKeys.length > 0) {
-    throw new Error(
-        `Firebase environment variables still contain placeholder values: ${placeholderFirebaseEnvKeys.join(", ")}. Replace them with real Firebase project values in .env.local and restart the Next.js dev server.`
-    );
+/** True when all required env vars are present and non-placeholder. */
+function hasValidEnv(): boolean {
+    return requiredEnvKeys.every((k) => {
+        const v = readEnv(k);
+        return v.length > 0 && !v.startsWith("your_");
+    });
 }
 
-const firebaseConfig: FirebaseOptions = {
-    apiKey: firebaseEnv.NEXT_PUBLIC_FIREBASE_API_KEY!,
-    authDomain: firebaseEnv.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
-    projectId: firebaseEnv.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
-    storageBucket: firebaseEnv.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
-    messagingSenderId: firebaseEnv.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
-    appId: firebaseEnv.NEXT_PUBLIC_FIREBASE_APP_ID!,
-    measurementId: firebaseEnv.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-};
+/** Throws a descriptive error — called only at runtime (in the browser). */
+function assertEnv(): void {
+    const missing = requiredEnvKeys.filter((k) => readEnv(k).length === 0);
+    if (missing.length > 0) {
+        throw new Error(
+            `Missing Firebase environment variables: ${missing.join(", ")}. ` +
+            `Add them to .env.local (see .env.example) and restart the dev server.`
+        );
+    }
+    const placeholders = requiredEnvKeys.filter((k) => readEnv(k).startsWith("your_"));
+    if (placeholders.length > 0) {
+        throw new Error(
+            `Firebase environment variables still contain placeholder values: ${placeholders.join(", ")}. ` +
+            `Replace them with real Firebase project values in .env.local and restart the dev server.`
+        );
+    }
+}
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// ---------------------------------------------------------------------------
+// Initialise only when env is available (skipped during static generation)
+// ---------------------------------------------------------------------------
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+const canInit = hasValidEnv();
 
-// Initialize Analytics conditionally (it only works in browser environments)
-export const analytics = typeof window !== 'undefined' ?
-    isSupported().then(yes => yes ? getAnalytics(app) : null) :
-    null;
+if (canInit) {
+    // Eagerly initialise so that `auth`, `db`, `storage` are real SDK objects.
+    const firebaseConfig: FirebaseOptions = {
+        apiKey: readEnv("NEXT_PUBLIC_FIREBASE_API_KEY"),
+        authDomain: readEnv("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"),
+        projectId: readEnv("NEXT_PUBLIC_FIREBASE_PROJECT_ID"),
+        storageBucket: readEnv("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"),
+        messagingSenderId: readEnv("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"),
+        appId: readEnv("NEXT_PUBLIC_FIREBASE_APP_ID"),
+        measurementId: readEnv("NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID") || undefined,
+    };
+
+    if (!getApps().length) {
+        initializeApp(firebaseConfig);
+    }
+}
+
+// Helper that returns the app or throws a clear runtime error.
+function app() {
+    if (!canInit) {
+        assertEnv(); // will throw with a descriptive message
+    }
+    return getApp();
+}
+
+export const auth = canInit ? getAuth(getApp()) : (null as unknown as ReturnType<typeof getAuth>);
+export const db = canInit ? getFirestore(getApp()) : (null as unknown as ReturnType<typeof getFirestore>);
+export const storage = canInit ? getStorage(getApp()) : (null as unknown as ReturnType<typeof getStorage>);
+
+// Initialize Analytics conditionally (browser-only)
+export const analytics =
+    typeof window !== "undefined" && canInit
+        ? isSupported().then((yes) => (yes ? getAnalytics(getApp()) : null))
+        : null;
 
 export default app;
