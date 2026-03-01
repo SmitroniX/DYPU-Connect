@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { resolveProfileImage } from '@/lib/profileImage';
 import { isSuperAdmin } from '@/lib/admin';
+import { cacheGet, cacheInvalidate } from '@/lib/cache';
 import { useStore } from '@/store/useStore';
 
 interface UserData {
@@ -40,9 +41,11 @@ export default function AdminUsersPage() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-            const snapshot = await getDocs(q);
-            const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as UserData[];
+            const data = await cacheGet<UserData[]>('admin_users', async () => {
+                const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+                const snapshot = await getDocs(q);
+                return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as UserData[];
+            }, { ttl: 60_000, swr: 300_000 });
             setUsers(data);
         } catch {
             toast.error('Failed to load users');
@@ -55,6 +58,7 @@ export default function AdminUsersPage() {
         const newStatus = currentStatus === 'active' ? 'banned' : 'active';
         try {
             await updateDoc(doc(db, 'users', userId), { status: newStatus });
+            cacheInvalidate('admin_users');
             setUsers(users.map(u => u.id === userId ? { ...u, status: newStatus } : u));
             toast.success(`User has been ${newStatus === 'banned' ? 'banned' : 'unbanned'}.`);
         } catch {
@@ -70,6 +74,7 @@ export default function AdminUsersPage() {
         const newRole = currentRole === 'admin' ? 'user' : 'admin';
         try {
             await updateDoc(doc(db, 'users', userId), { role: newRole });
+            cacheInvalidate('admin_users');
             setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
             toast.success(`User role changed to ${newRole}.`);
         } catch {

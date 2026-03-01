@@ -7,6 +7,7 @@ import { collection, getCountFromServer, query, getDocs, orderBy, limit, where }
 import type { Timestamp } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
+import { cacheGet, cacheInvalidate } from '@/lib/cache';
 import {
     Activity,
     EyeOff,
@@ -40,60 +41,74 @@ export default function AdminDashboard() {
     const [refreshing, setRefreshing] = useState(false);
 
     const fetchDashboardData = useCallback(async (isRefresh = false) => {
-        if (isRefresh) setRefreshing(true);
-        else setLoading(true);
+        if (isRefresh) {
+            setRefreshing(true);
+            cacheInvalidate('admin_dashboard');
+        } else {
+            setLoading(true);
+        }
 
         try {
-            // Fetch counts using getCountFromServer for efficiency
-            const [usersCount, bannedCount, confessionsCount, anonCount] = await Promise.all([
-                getCountFromServer(collection(db, 'users')),
-                getCountFromServer(query(collection(db, 'users'), where('status', '==', 'banned'))),
-                getCountFromServer(collection(db, 'confessions_public')),
-                getCountFromServer(collection(db, 'anonymous_public_chat_private')),
-            ]);
+            const { stats: fetchedStats, activities } = await cacheGet(
+                'admin_dashboard',
+                async () => {
+                    // Fetch counts using getCountFromServer for efficiency
+                    const [usersCount, bannedCount, confessionsCount, anonCount] = await Promise.all([
+                        getCountFromServer(collection(db, 'users')),
+                        getCountFromServer(query(collection(db, 'users'), where('status', '==', 'banned'))),
+                        getCountFromServer(collection(db, 'confessions_public')),
+                        getCountFromServer(collection(db, 'anonymous_public_chat_private')),
+                    ]);
 
-            setStats({
-                totalUsers: usersCount.data().count,
-                bannedUsers: bannedCount.data().count,
-                totalConfessions: confessionsCount.data().count,
-                totalAnonMessages: anonCount.data().count,
-            });
+                    const fetchedStats: DashboardStats = {
+                        totalUsers: usersCount.data().count,
+                        bannedUsers: bannedCount.data().count,
+                        totalConfessions: confessionsCount.data().count,
+                        totalAnonMessages: anonCount.data().count,
+                    };
 
-            // Fetch recent activity
-            const [confessionLogs, anonLogs] = await Promise.all([
-                getDocs(query(collection(db, 'confessions_private'), orderBy('createdAt', 'desc'), limit(5))),
-                getDocs(query(collection(db, 'anonymous_public_chat_private'), orderBy('timestamp', 'desc'), limit(5))),
-            ]);
+                    // Fetch recent activity
+                    const [confessionLogs, anonLogs] = await Promise.all([
+                        getDocs(query(collection(db, 'confessions_private'), orderBy('createdAt', 'desc'), limit(5))),
+                        getDocs(query(collection(db, 'anonymous_public_chat_private'), orderBy('timestamp', 'desc'), limit(5))),
+                    ]);
 
-            const activities: RecentActivity[] = [];
+                    const activities: RecentActivity[] = [];
 
-            confessionLogs.docs.forEach(doc => {
-                const data = doc.data();
-                const ts = data.createdAt as Timestamp | null;
-                activities.push({
-                    id: doc.id,
-                    type: 'confession',
-                    text: data.anonymousName || 'Anonymous confession',
-                    identity: data.email || data.realName || 'Unknown',
-                    timestamp: ts?.toDate?.() ?? null,
-                });
-            });
+                    confessionLogs.docs.forEach(doc => {
+                        const data = doc.data();
+                        const ts = data.createdAt as Timestamp | null;
+                        activities.push({
+                            id: doc.id,
+                            type: 'confession',
+                            text: data.anonymousName || 'Anonymous confession',
+                            identity: data.email || data.realName || 'Unknown',
+                            timestamp: ts?.toDate?.() ?? null,
+                        });
+                    });
 
-            anonLogs.docs.forEach(doc => {
-                const data = doc.data();
-                const ts = data.timestamp as Timestamp | null;
-                activities.push({
-                    id: doc.id,
-                    type: 'anon_message',
-                    text: data.text ? (data.text.length > 60 ? data.text.slice(0, 60) + '…' : data.text) : '[GIF]',
-                    identity: data.email || 'Unknown',
-                    timestamp: ts?.toDate?.() ?? null,
-                });
-            });
+                    anonLogs.docs.forEach(doc => {
+                        const data = doc.data();
+                        const ts = data.timestamp as Timestamp | null;
+                        activities.push({
+                            id: doc.id,
+                            type: 'anon_message',
+                            text: data.text ? (data.text.length > 60 ? data.text.slice(0, 60) + '…' : data.text) : '[GIF]',
+                            identity: data.email || 'Unknown',
+                            timestamp: ts?.toDate?.() ?? null,
+                        });
+                    });
 
-            // Sort by timestamp descending and take top 8
-            activities.sort((a, b) => (b.timestamp?.getTime() ?? 0) - (a.timestamp?.getTime() ?? 0));
-            setRecentActivity(activities.slice(0, 8));
+                    // Sort by timestamp descending and take top 8
+                    activities.sort((a, b) => (b.timestamp?.getTime() ?? 0) - (a.timestamp?.getTime() ?? 0));
+
+                    return { stats: fetchedStats, activities: activities.slice(0, 8) };
+                },
+                { ttl: 30_000, swr: 120_000 }
+            );
+
+            setStats(fetchedStats);
+            setRecentActivity(activities);
 
         } catch (error) {
             console.error('Admin dashboard fetch error:', error);

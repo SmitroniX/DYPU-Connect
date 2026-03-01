@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, getDocs, orderBy, limit } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { ImageIcon, Search, Terminal } from 'lucide-react';
+import { cacheGet } from '@/lib/cache';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -29,12 +30,18 @@ export default function AdminAnonChatPage() {
     const fetchLogs = async () => {
         setLoading(true);
         try {
-            const q = query(collection(db, 'anonymous_public_chat_private'), orderBy('timestamp', 'desc'), limit(200));
-            const snapshot = await getDocs(q);
-            const data: AnonChatLog[] = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...(doc.data() as Omit<AnonChatLog, 'id'>),
-            }));
+            const data = await cacheGet<AnonChatLog[]>(
+                'admin_anon_chat',
+                async () => {
+                    const q = query(collection(db, 'anonymous_public_chat_private'), orderBy('timestamp', 'desc'), limit(200));
+                    const snapshot = await getDocs(q);
+                    return snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...(doc.data() as Omit<AnonChatLog, 'id'>),
+                    }));
+                },
+                { ttl: 60_000, swr: 300_000 }
+            );
             setLogs(data);
         } catch {
             toast.error('Failed to load tracking data.');

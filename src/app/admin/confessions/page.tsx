@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, getDocs, orderBy, limit } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { AlertTriangle, Eye, Search } from 'lucide-react';
+import { cacheGet } from '@/lib/cache';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -29,21 +30,27 @@ export default function AdminConfessionsPage() {
     const fetchLogs = async () => {
         setLoading(true);
         try {
-            const q = query(collection(db, 'confessions_private'), orderBy('createdAt', 'desc'), limit(200));
-            const snapshot = await getDocs(q);
-            const privateData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PrivateConfession[];
+            const combined = await cacheGet<(PrivateConfession & { text: string })[]>(
+                'admin_confessions',
+                async () => {
+                    const q = query(collection(db, 'confessions_private'), orderBy('createdAt', 'desc'), limit(200));
+                    const snapshot = await getDocs(q);
+                    const privateData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PrivateConfession[];
 
-            const pubQ = query(collection(db, 'confessions_public'), limit(500));
-            const pubSnapshot = await getDocs(pubQ);
-            const publicDataMap = pubSnapshot.docs.reduce((acc, doc) => {
-                acc[doc.id] = doc.data().text;
-                return acc;
-            }, {} as Record<string, string>);
+                    const pubQ = query(collection(db, 'confessions_public'), limit(500));
+                    const pubSnapshot = await getDocs(pubQ);
+                    const publicDataMap = pubSnapshot.docs.reduce((acc, doc) => {
+                        acc[doc.id] = doc.data().text;
+                        return acc;
+                    }, {} as Record<string, string>);
 
-            const combined = privateData.map(log => ({
-                ...log,
-                text: publicDataMap[log.confessionId] || '[Deleted or Not Found]'
-            }));
+                    return privateData.map(log => ({
+                        ...log,
+                        text: publicDataMap[log.confessionId] || '[Deleted or Not Found]'
+                    }));
+                },
+                { ttl: 60_000, swr: 300_000 }
+            );
             setLogs(combined);
         } catch (error) {
             console.error('error fetching logs', error);

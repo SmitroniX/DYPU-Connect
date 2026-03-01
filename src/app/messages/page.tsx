@@ -59,12 +59,17 @@ export default function InboxPage() {
     useEffect(() => {
         if (showNewChat) {
             const fetchUsers = async () => {
-                const q = query(collection(db, 'users'), limit(50));
-                const snapshot = await getDocs(q);
-                const data: DirectoryUser[] = snapshot.docs
-                    .map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as Omit<DirectoryUser, 'id'>) }))
-                    .filter((u) => u.id !== user?.uid);
-                setUsers(data);
+                const data = await cacheGet<DirectoryUser[]>(
+                    'user_directory',
+                    async () => {
+                        const q = query(collection(db, 'users'), limit(50));
+                        const snapshot = await getDocs(q);
+                        return snapshot.docs
+                            .map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as Omit<DirectoryUser, 'id'>) }));
+                    },
+                    { ttl: 120_000, swr: 600_000 }
+                );
+                setUsers(data.filter((u) => u.id !== user?.uid));
             };
             fetchUsers();
         }
