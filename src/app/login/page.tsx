@@ -63,6 +63,17 @@ export default function LoginPage() {
                         <p className="mt-2 text-sm text-emerald-400/80">
                             We&apos;ve sent a sign-in link to <strong className="text-emerald-300">{email}</strong>.
                         </p>
+
+                        {/* Spam folder warning */}
+                        <div className="mt-4 flex items-start gap-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 px-4 py-3 text-left">
+                            <span className="text-lg leading-none mt-0.5">📂</span>
+                            <p className="text-xs text-amber-300/90">
+                                <strong className="text-amber-300">Can&apos;t find the email?</strong>{' '}
+                                Please check your <span className="font-semibold text-amber-200">Spam</span> or{' '}
+                                <span className="font-semibold text-amber-200">Junk</span> folder — sign-in
+                                emails sometimes land there.
+                            </p>
+                        </div>
                     </div>
                 ) : (
                     <form className="space-y-5" onSubmit={handleLogin}>
