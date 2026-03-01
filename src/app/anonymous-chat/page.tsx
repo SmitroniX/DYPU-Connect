@@ -58,14 +58,20 @@ export default function AnonymousChatPage() {
             limit(100)
         );
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Message[];
-            setMessages(data);
-            scrollToBottom();
-        });
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const data = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })) as Message[];
+                setMessages(data);
+                scrollToBottom();
+            },
+            (error) => {
+                console.error('Anonymous chat listener error:', error);
+            }
+        );
 
         return () => unsubscribe();
     }, []);

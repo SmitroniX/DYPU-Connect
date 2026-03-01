@@ -3,6 +3,8 @@
 /* ── Native Design Tokens ───────────────────────── */
 
 :root {
+  color-scheme: dark;
+
   /* Surfaces — Zinc-based neutral dark */
   --ui-bg-base:      #09090b;
   --ui-bg-surface:   #18181b;

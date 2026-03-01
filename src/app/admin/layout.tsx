@@ -2,22 +2,47 @@
 
 import DashboardLayout from '@/components/DashboardLayout';
 import { useStore } from '@/store/useStore';
+import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ShieldAlert, ShieldX, Zap } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { userProfile, isLoading } = useStore();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
+    const [timedOut, setTimedOut] = useState(false);
+
+    // Safety timeout — if loading doesn't resolve in 10s, stop waiting
+    useEffect(() => {
+        const timer = setTimeout(() => setTimedOut(true), 10_000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    const stillLoading = (isLoading || authLoading) && !timedOut;
 
     useEffect(() => {
-        if (!isLoading && userProfile && userProfile.role !== 'admin') {
+        if (stillLoading) return;
+
+        // Not logged in at all
+        if (!user) {
+            router.replace('/login');
+            return;
+        }
+
+        // Logged in but not admin
+        if (userProfile && userProfile.role !== 'admin') {
             router.replace('/');
         }
-    }, [userProfile, isLoading, router]);
+
+        // Timed out with no profile — redirect to login
+        if (timedOut && !userProfile) {
+            router.replace('/login');
+        }
+    }, [userProfile, stillLoading, user, timedOut, router]);
 
     /* Still loading user data */
-    if (isLoading) {
+    if (stillLoading) {
         return (
             <DashboardLayout>
                 <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">

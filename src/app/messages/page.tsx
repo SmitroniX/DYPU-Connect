@@ -51,10 +51,23 @@ export default function InboxPage() {
             where('participants', 'array-contains', user.uid),
             orderBy('updatedAt', 'desc')
         );
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PrivateChat[];
-            setChats(data);
-        });
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PrivateChat[];
+                setChats(data);
+            },
+            (error) => {
+                console.error('Messages listener error:', error);
+                if (error.code === 'failed-precondition') {
+                    toast.error('Chat index is building. Please wait a minute and refresh.');
+                } else if (error.code === 'permission-denied') {
+                    toast.error('You don\'t have permission to access messages.');
+                } else {
+                    toast.error('Failed to load messages. Please refresh.');
+                }
+            }
+        );
         return () => unsubscribe();
     }, [user]);
 

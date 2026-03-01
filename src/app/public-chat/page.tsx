@@ -41,11 +41,17 @@ export default function PublicChatPage() {
             orderBy('timestamp', 'asc'),
             limit(100)
         );
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Message[];
-            setMessages(data);
-            scrollToBottom();
-        });
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Message[];
+                setMessages(data);
+                scrollToBottom();
+            },
+            (error) => {
+                console.error('Public chat listener error:', error);
+            }
+        );
         return () => unsubscribe();
     }, []);
 

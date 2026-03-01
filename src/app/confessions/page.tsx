@@ -36,13 +36,19 @@ export default function ConfessionsPage() {
             limit(50)
         );
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Confession[];
-            setConfessions(data);
-        });
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const data = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })) as Confession[];
+                setConfessions(data);
+            },
+            (error) => {
+                console.error('Confessions listener error:', error);
+            }
+        );
 
         return () => unsubscribe();
     }, []);

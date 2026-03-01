@@ -101,6 +101,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             profile.role = 'admin';
                         }
 
+                        // Back-sync Google profile photo if current image is a DiceBear fallback
+                        const googlePhotoUrl = firebaseUser.photoURL;
+                        if (
+                            googlePhotoUrl &&
+                            googlePhotoUrl.startsWith('https://') &&
+                            (!profile.profileImage || profile.profileImage.includes('dicebear.com') || profile.profileImage.includes('ui-avatars.com'))
+                        ) {
+                            profileUpdates.profileImage = googlePhotoUrl;
+                            profile.profileImage = googlePhotoUrl;
+                        }
+
                         if (needsNormalization) {
                             profileUpdates.gender = profile.gender;
                             profileUpdates.accountVisibility = profile.accountVisibility;
