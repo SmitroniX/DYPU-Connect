@@ -10,7 +10,7 @@ export function generateAnonymousName(): string {
 }
 
 /**
- * Discord-style message grouping.
+ * Chat message grouping.
  * Messages from the same sender within 5 minutes are grouped —
  * only the first message in a group shows avatar + name.
  */

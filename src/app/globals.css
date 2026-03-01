@@ -1,70 +1,77 @@
 @import "tailwindcss";
 
-/* ── Discord-inspired Design Tokens ─────────────── */
+/* ── Native Design Tokens ───────────────────────── */
 
 :root {
-  /* Surfaces */
-  --dc-bg-primary:   #313338;
-  --dc-bg-secondary: #2b2d31;
-  --dc-bg-tertiary:  #1e1f22;
-  --dc-bg-input:     #383a40;
-  --dc-bg-hover:     rgba(79, 84, 92, 0.4);
-  --dc-bg-active:    rgba(79, 84, 92, 0.6);
-  --dc-bg-overlay:   rgba(0, 0, 0, 0.7);
+  /* Surfaces — Zinc-based neutral dark */
+  --ui-bg-base:      #09090b;
+  --ui-bg-surface:   #18181b;
+  --ui-bg-elevated:  #27272a;
+  --ui-bg-input:     #27272a;
+  --ui-bg-hover:     rgba(63, 63, 70, 0.5);
+  --ui-bg-active:    rgba(63, 63, 70, 0.7);
+  --ui-bg-overlay:   rgba(0, 0, 0, 0.6);
 
-  /* Text */
-  --dc-text-primary:   #f2f3f5;
-  --dc-text-secondary: #b5bac1;
-  --dc-text-muted:     #949ba4;
-  --dc-text-link:      #00a8fc;
+  /* Text — Zinc-based hierarchy */
+  --ui-text:           #fafafa;
+  --ui-text-secondary: #a1a1aa;
+  --ui-text-muted:     #71717a;
+  --ui-text-link:      #818cf8;
 
-  /* Moonstone accent (replaces Discord blurple) */
-  --dc-accent:       #7dd3fc;
-  --dc-accent-hover: #bae6fd;
-  --dc-accent-dim:   rgba(125, 211, 252, 0.15);
+  /* Accent — Indigo-violet brand */
+  --ui-accent:       #818cf8;
+  --ui-accent-hover: #a5b4fc;
+  --ui-accent-dim:   rgba(129, 140, 248, 0.12);
+  --ui-accent-text:  #09090b;
 
   /* Borders & Dividers */
-  --dc-divider: rgba(255, 255, 255, 0.06);
-  --dc-border:  rgba(255, 255, 255, 0.08);
+  --ui-border:  rgba(63, 63, 70, 0.6);
+  --ui-divider: rgba(63, 63, 70, 0.4);
 
-  /* Status */
-  --dc-online:  #23a55a;
-  --dc-idle:    #f0b232;
-  --dc-dnd:     #f23f43;
-  --dc-offline: #80848e;
+  /* Semantic colors */
+  --ui-success: #34d399;
+  --ui-warning: #fbbf24;
+  --ui-danger:  #f87171;
+  --ui-info:    #60a5fa;
+
+  /* ── dc-* backward compat aliases ─── */
+  --dc-bg-primary:     var(--ui-bg-base);
+  --dc-bg-secondary:   var(--ui-bg-surface);
+  --dc-bg-tertiary:    var(--ui-bg-elevated);
+  --dc-bg-input:       var(--ui-bg-input);
+  --dc-bg-hover:       var(--ui-bg-hover);
+  --dc-bg-active:      var(--ui-bg-active);
+  --dc-bg-overlay:     var(--ui-bg-overlay);
+  --dc-text-primary:   var(--ui-text);
+  --dc-text-secondary: var(--ui-text-secondary);
+  --dc-text-muted:     var(--ui-text-muted);
+  --dc-text-link:      var(--ui-text-link);
+  --dc-accent:         var(--ui-accent);
+  --dc-accent-hover:   var(--ui-accent-hover);
+  --dc-accent-dim:     var(--ui-accent-dim);
+  --dc-divider:        var(--ui-divider);
+  --dc-border:         var(--ui-border);
+  --dc-online:         var(--ui-success);
+  --dc-idle:           var(--ui-warning);
+  --dc-dnd:            var(--ui-danger);
+  --dc-offline:        var(--ui-text-muted);
 
   /* Legacy compat */
-  --background: var(--dc-bg-primary);
-  --foreground: var(--dc-text-primary);
+  --background: var(--ui-bg-base);
+  --foreground: var(--ui-text);
 }
 
 @theme inline {
-  --color-background: var(--dc-bg-primary);
-  --color-foreground: var(--dc-text-primary);
-  --color-dc-primary: var(--dc-bg-primary);
-  --color-dc-secondary: var(--dc-bg-secondary);
-  --color-dc-tertiary: var(--dc-bg-tertiary);
-  --color-dc-input: var(--dc-bg-input);
-  --color-dc-hover: var(--dc-bg-hover);
-  --color-dc-active: var(--dc-bg-active);
-  --color-dc-divider: var(--dc-divider);
-  --color-dc-border: var(--dc-border);
-  --color-dc-accent: var(--dc-accent);
-  --color-dc-accent-dim: var(--dc-accent-dim);
-  --color-dc-text: var(--dc-text-primary);
-  --color-dc-text-secondary: var(--dc-text-secondary);
-  --color-dc-text-muted: var(--dc-text-muted);
-  --color-dc-online: var(--dc-online);
-  --color-dc-idle: var(--dc-idle);
-  --color-dc-dnd: var(--dc-dnd);
+  --color-background: var(--ui-bg-base);
+  --color-foreground: var(--ui-text);
 }
 
 /* ── Typography ─────────────────────────────────── */
 
 body {
-  background: var(--dc-bg-primary);
-  color: var(--dc-text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--ui-bg-base);
+  color: var(--ui-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -101,140 +108,147 @@ body {
   30% { transform: translateY(-4px); }
 }
 
-/* ── Scrollbar (Discord-style) ──────────────────── */
+/* ── Scrollbar ──────────────────────────────────── */
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--dc-bg-secondary);
-  border-radius: 4px;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--dc-bg-tertiary);
-  border-radius: 4px;
+  background: var(--ui-bg-elevated);
+  border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #232428;
+  background: var(--ui-text-muted);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--dc-bg-tertiary) var(--dc-bg-secondary);
+  scrollbar-color: var(--ui-bg-elevated) transparent;
 }
 
 /* ── Selection ──────────────────────────────────── */
 
 ::selection {
-  background: rgba(125, 211, 252, 0.25);
+  background: rgba(129, 140, 248, 0.3);
   color: #fff;
 }
 
-/* ── Discord Card Utilities ─────────────────────── */
+/* ── Surface Utilities ──────────────────────────── */
 
-.dc-card {
-  background: var(--dc-bg-secondary);
-  border-radius: 0.5rem;
-  border: 1px solid var(--dc-border);
+.surface {
+  background: var(--ui-bg-surface);
+  border-radius: 0.75rem;
+  border: 1px solid var(--ui-border);
 }
 
-.dc-card-interactive {
-  background: var(--dc-bg-secondary);
-  border-radius: 0.5rem;
-  border: 1px solid var(--dc-border);
-  transition: background 0.15s ease;
+.surface-interactive {
+  background: var(--ui-bg-surface);
+  border-radius: 0.75rem;
+  border: 1px solid var(--ui-border);
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-.dc-card-interactive:hover {
-  background: var(--dc-bg-hover);
+.surface-interactive:hover {
+  background: var(--ui-bg-hover);
+  border-color: rgba(63, 63, 70, 0.8);
 }
 
-/* Discord-style embed (left accent bar) */
-.dc-embed {
-  background: var(--dc-bg-secondary);
-  border-left: 4px solid var(--dc-accent);
-  border-radius: 0 0.5rem 0.5rem 0;
+/* Accent-bordered callout */
+.callout {
+  background: var(--ui-bg-surface);
+  border-left: 3px solid var(--ui-accent);
+  border-radius: 0 0.75rem 0.75rem 0;
   padding: 1rem;
 }
 
-/* Discord-style message hover */
-.dc-message {
+/* Message row */
+.message-row {
   padding: 2px 1rem;
   position: relative;
+  border-radius: 0.375rem;
   transition: background 0.1s ease;
 }
-.dc-message:hover {
-  background: var(--dc-bg-hover);
+.message-row:hover {
+  background: var(--ui-bg-hover);
 }
 
-/* Discord-style input */
-.dc-input {
-  background: var(--dc-bg-input);
-  border: none;
+/* Input */
+.input {
+  background: var(--ui-bg-input);
+  border: 1px solid var(--ui-border);
   border-radius: 0.5rem;
-  color: var(--dc-text-primary);
-  font-size: 0.9375rem;
-  padding: 0.6875rem 1rem;
+  color: var(--ui-text);
+  font-size: 0.875rem;
+  padding: 0.625rem 0.875rem;
   outline: none;
   width: 100%;
+  transition: border-color 0.15s ease;
 }
-.dc-input::placeholder {
-  color: var(--dc-text-muted);
+.input::placeholder {
+  color: var(--ui-text-muted);
 }
-.dc-input:focus {
+.input:focus {
+  border-color: var(--ui-accent);
   outline: none;
 }
 
 /* Typing indicator dots */
-.dc-typing-dot {
+.typing-dot {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--dc-text-muted);
+  background: var(--ui-text-muted);
   display: inline-block;
   animation: typing-dot 1.4s infinite;
 }
-.dc-typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.dc-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
-/* Discord-style pill (reaction, badge) */
-.dc-pill {
+/* Badge / pill */
+.badge {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  background: var(--dc-bg-tertiary);
+  background: var(--ui-bg-elevated);
   border-radius: 9999px;
   padding: 0.125rem 0.5rem;
   font-size: 0.75rem;
-  color: var(--dc-text-secondary);
+  color: var(--ui-text-secondary);
   border: 1px solid transparent;
   transition: all 0.15s ease;
 }
-.dc-pill:hover {
-  border-color: var(--dc-border);
-  background: var(--dc-bg-input);
+.badge:hover {
+  border-color: var(--ui-border);
 }
 
-/* Discord-style channel header */
-.dc-channel-header {
-  height: 48px;
+/* Page header bar */
+.page-header {
+  height: 52px;
   display: flex;
   align-items: center;
-  padding: 0 1rem;
-  border-bottom: 1px solid var(--dc-divider);
-  background: var(--dc-bg-primary);
+  padding: 0 1.25rem;
+  border-bottom: 1px solid var(--ui-divider);
+  background: var(--ui-bg-base);
   flex-shrink: 0;
 }
 
-/* Legacy glass compat (for gradual migration) */
-.glass {
-  background: var(--dc-bg-secondary);
-  border: 1px solid var(--dc-border);
-  border-radius: 0.5rem;
-}
+/* ── dc-* backward compat (class aliases) ───────── */
 
-.glass-strong {
-  background: var(--dc-bg-secondary);
-  border: 1px solid var(--dc-border);
-  border-radius: 0.5rem;
-}
+.dc-card             { background: var(--ui-bg-surface); border-radius: 0.75rem; border: 1px solid var(--ui-border); }
+.dc-card-interactive { background: var(--ui-bg-surface); border-radius: 0.75rem; border: 1px solid var(--ui-border); transition: background 0.15s ease, border-color 0.15s ease; }
+.dc-card-interactive:hover { background: var(--ui-bg-hover); border-color: rgba(63, 63, 70, 0.8); }
+.dc-embed            { background: var(--ui-bg-surface); border-left: 3px solid var(--ui-accent); border-radius: 0 0.75rem 0.75rem 0; padding: 1rem; }
+.dc-message          { padding: 2px 1rem; position: relative; border-radius: 0.375rem; transition: background 0.1s ease; }
+.dc-message:hover    { background: var(--ui-bg-hover); }
+.dc-input            { background: var(--ui-bg-input); border: 1px solid var(--ui-border); border-radius: 0.5rem; color: var(--ui-text); font-size: 0.875rem; padding: 0.625rem 0.875rem; outline: none; width: 100%; transition: border-color 0.15s ease; }
+.dc-input::placeholder { color: var(--ui-text-muted); }
+.dc-input:focus      { border-color: var(--ui-accent); outline: none; }
+.dc-pill             { display: inline-flex; align-items: center; gap: 0.25rem; background: var(--ui-bg-elevated); border-radius: 9999px; padding: 0.125rem 0.5rem; font-size: 0.75rem; color: var(--ui-text-secondary); }
+.dc-channel-header   { height: 52px; display: flex; align-items: center; padding: 0 1.25rem; border-bottom: 1px solid var(--ui-divider); background: var(--ui-bg-base); flex-shrink: 0; }
+
+/* Legacy glass */
+.glass        { background: var(--ui-bg-surface); border: 1px solid var(--ui-border); border-radius: 0.75rem; }
+.glass-strong { background: var(--ui-bg-surface); border: 1px solid var(--ui-border); border-radius: 0.75rem; }

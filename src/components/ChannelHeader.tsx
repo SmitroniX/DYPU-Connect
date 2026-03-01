@@ -1,6 +1,6 @@
 'use client';
 
-import { Hash, AtSign, Volume2 } from 'lucide-react';
+import PageHeader from '@/components/PageHeader';
 
 interface ChannelHeaderProps {
     /** Channel name displayed after the # icon */
@@ -13,31 +13,14 @@ interface ChannelHeaderProps {
     children?: React.ReactNode;
 }
 
-export default function ChannelHeader({ name, description, type = 'text', children }: ChannelHeaderProps) {
-    const Icon = type === 'dm' ? AtSign : type === 'voice' ? Volume2 : Hash;
-
+/**
+ * @deprecated Use PageHeader directly instead.
+ * This wrapper exists for backward compatibility during migration.
+ */
+export default function ChannelHeader({ name, description, children }: ChannelHeaderProps) {
     return (
-        <div className="dc-channel-header">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-                <Icon className="h-5 w-5 text-[var(--dc-text-muted)] shrink-0" />
-                <h1 className="text-base font-semibold text-[var(--dc-text-primary)] truncate">
-                    {name}
-                </h1>
-                {description && (
-                    <>
-                        <div className="w-px h-5 bg-[var(--dc-divider)] mx-1 shrink-0" />
-                        <p className="text-sm text-[var(--dc-text-muted)] truncate">
-                            {description}
-                        </p>
-                    </>
-                )}
-            </div>
-            {children && (
-                <div className="flex items-center gap-2 shrink-0 ml-2">
-                    {children}
-                </div>
-            )}
-        </div>
+        <PageHeader title={name} description={description}>
+            {children}
+        </PageHeader>
     );
 }
-

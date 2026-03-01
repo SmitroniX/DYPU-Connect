@@ -14,19 +14,19 @@ export default function DashboardLayout({
 
     return (
         <ProtectedRoute>
-            <div className="flex h-screen bg-[var(--dc-bg-primary)] text-[var(--dc-text-primary)]">
+            <div className="flex h-screen bg-[var(--ui-bg-base)] text-[var(--ui-text)]">
                 {/* Mobile sidebar overlay */}
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-50 lg:hidden">
                         <div
-                            className="fixed inset-0 bg-[var(--dc-bg-overlay)]"
+                            className="fixed inset-0 bg-[var(--ui-bg-overlay)]"
                             onClick={() => setSidebarOpen(false)}
                         />
-                        <div className="fixed inset-y-0 left-0 z-50 w-[240px] shadow-2xl">
+                        <div className="fixed inset-y-0 left-0 z-50 w-[260px] shadow-2xl">
                             <div className="absolute right-2 top-2 z-10">
                                 <button
                                     onClick={() => setSidebarOpen(false)}
-                                    className="p-1.5 rounded text-[var(--dc-text-muted)] hover:text-[var(--dc-text-primary)] hover:bg-[var(--dc-bg-hover)] transition-colors"
+                                    className="p-1.5 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
                                 >
                                     <X className="h-5 w-5" />
                                 </button>
@@ -37,22 +37,22 @@ export default function DashboardLayout({
                 )}
 
                 {/* Desktop sidebar */}
-                <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-[240px] lg:flex-col">
+                <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-[260px] lg:flex-col">
                     <Sidebar />
                 </div>
 
                 {/* Main content area */}
-                <div className="flex-1 flex flex-col lg:pl-[240px] h-screen overflow-hidden">
+                <div className="flex-1 flex flex-col lg:pl-[260px] h-screen overflow-hidden">
                     {/* Mobile header bar */}
-                    <div className="lg:hidden flex items-center h-12 bg-[var(--dc-bg-primary)] border-b border-[var(--dc-divider)] px-3 shrink-0">
+                    <div className="lg:hidden flex items-center h-14 bg-[var(--ui-bg-base)] border-b border-[var(--ui-divider)] px-4 shrink-0">
                         <button
                             onClick={() => setSidebarOpen(true)}
-                            className="p-1.5 text-[var(--dc-text-muted)] hover:text-[var(--dc-text-primary)] transition-colors"
+                            className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] transition-colors"
                         >
                             <Menu className="h-5 w-5" />
                         </button>
-                        <span className="ml-2 text-base font-bold text-[var(--dc-text-primary)]">
-                            ✦ DYPU Connect
+                        <span className="ml-3 text-[15px] font-semibold text-[var(--ui-text)]">
+                            <span className="text-[var(--ui-accent)]">✦</span> DYPU Connect
                         </span>
                     </div>
 
