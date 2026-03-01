@@ -1,9 +1,78 @@
 'use client';
 
-import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { AlertCircle, Info, Menu, X, Zap } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { db } from '@/lib/firebase';
+import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { useStore } from '@/store/useStore';
+
+interface ActiveAnnouncement {
+    id: string;
+    title: string;
+    body: string;
+    priority: 'info' | 'warning' | 'critical';
+    targetAudience: string;
+}
+
+const PRIORITY_STYLES = {
+    info: { bg: 'bg-blue-500/10 border-blue-500/20', icon: Info, iconColor: 'text-blue-400', text: 'text-blue-300' },
+    warning: { bg: 'bg-amber-500/10 border-amber-500/20', icon: AlertCircle, iconColor: 'text-amber-400', text: 'text-amber-300' },
+    critical: { bg: 'bg-red-500/10 border-red-500/20', icon: Zap, iconColor: 'text-red-400', text: 'text-red-300' },
+};
+
+function AnnouncementBanner() {
+    const [announcements, setAnnouncements] = useState<ActiveAnnouncement[]>([]);
+    const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+    const { userProfile } = useStore();
+
+    useEffect(() => {
+        if (!db) return;
+        const now = new Date();
+        const q = query(
+            collection(db, 'announcements'),
+            where('expiresAt', '>', now),
+            orderBy('expiresAt', 'asc'),
+            limit(5)
+        );
+        const unsub = onSnapshot(q, (snap) => {
+            const data = snap.docs.map(d => ({ id: d.id, ...d.data() })) as ActiveAnnouncement[];
+            // Filter by audience
+            const filtered = data.filter(a =>
+                a.targetAudience === 'all' ||
+                a.targetAudience === userProfile?.field ||
+                a.targetAudience === userProfile?.year
+            );
+            setAnnouncements(filtered);
+        }, () => {});
+        return () => unsub();
+    }, [userProfile?.field, userProfile?.year]);
+
+    const visible = announcements.filter(a => !dismissed.has(a.id));
+    if (visible.length === 0) return null;
+
+    return (
+        <div className="shrink-0 space-y-0">
+            {visible.map(ann => {
+                const style = PRIORITY_STYLES[ann.priority] || PRIORITY_STYLES.info;
+                const PIcon = style.icon;
+                return (
+                    <div key={ann.id} className={`flex items-center gap-3 px-4 py-2.5 border-b ${style.bg}`}>
+                        <PIcon className={`h-4 w-4 shrink-0 ${style.iconColor}`} />
+                        <div className="flex-1 min-w-0">
+                            <span className={`text-sm font-semibold ${style.text}`}>{ann.title}</span>
+                            <span className="text-sm text-[var(--ui-text-muted)] ml-2 truncate">{ann.body}</span>
+                        </div>
+                        <button onClick={() => setDismissed(prev => new Set(prev).add(ann.id))} className="p-1 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] shrink-0">
+                            <X className="h-3.5 w-3.5" />
+                        </button>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
 
 export default function DashboardLayout({
     children,
@@ -55,6 +124,9 @@ export default function DashboardLayout({
                             <span className="text-[var(--ui-accent)]">✦</span> DYPU Connect
                         </span>
                     </div>
+
+                    {/* Announcement banners */}
+                    <AnnouncementBanner />
 
                     {/* Page content */}
                     <main className="flex-1 overflow-y-auto">

@@ -10,10 +10,14 @@ import toast from 'react-hot-toast';
 import { cacheGet, cacheInvalidate } from '@/lib/cache';
 import {
     Activity,
+    BarChart3,
+    ClipboardList,
     EyeOff,
+    Megaphone,
     MessageSquare,
     RefreshCw,
     ShieldAlert,
+    Trash2,
     TrendingUp,
     UserX,
     Users,
@@ -133,6 +137,10 @@ export default function AdminDashboard() {
         { name: 'Confession Tracker', description: 'Real identities behind anonymous confessions.', href: '/admin/confessions', icon: MessageSquare, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
         { name: 'Shadow Realm Oversight', description: 'Monitor anonymous chat with real email addresses.', href: '/admin/anonymous-chat', icon: EyeOff, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
         { name: 'Moderation Reports', description: 'Review and act on user-submitted reports.', href: '/admin/reports', icon: ShieldAlert, color: 'text-red-400 bg-red-500/15' },
+        { name: 'Content Moderation', description: 'Browse, search, and bulk-delete messages and confessions.', href: '/admin/content', icon: Trash2, color: 'text-red-400 bg-red-500/15' },
+        { name: 'Announcements', description: 'Broadcast notices to all students or specific groups.', href: '/admin/announcements', icon: Megaphone, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
+        { name: 'Platform Analytics', description: 'Enrollment distribution, engagement stats, and trends.', href: '/admin/analytics', icon: BarChart3, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
+        { name: 'Audit Log', description: 'Track all admin actions for accountability.', href: '/admin/audit-log', icon: ClipboardList, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
     ];
 
     return (

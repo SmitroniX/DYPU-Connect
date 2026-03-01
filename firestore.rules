@@ -82,5 +82,23 @@ service cloud.firestore {
     match /confessions_private/{docId} {
       allow read, write: if isAdmin();
     }
+
+    // ── Reports (user-submitted content flags) ──────────────
+    match /reports/{docId} {
+      allow create: if signedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── Announcements (admin broadcasts to students) ────────
+    match /announcements/{docId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ── Admin audit log (tracks all admin actions) ──────────
+    match /admin_audit_log/{docId} {
+      allow create: if isAdmin();
+      allow read: if isAdmin();
+    }
   }
 }
