@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut } from 'firebase/auth';
+import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, signInWithPopup, OAuthProvider, deleteUser } from 'firebase/auth';
 import type { FirebaseError } from 'firebase/app';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -15,6 +15,7 @@ interface AuthContextType {
     loading: boolean;
     sendLoginLink: (email: string) => Promise<void>;
     verifyLoginLink: (email: string, link: string) => Promise<void>;
+    signInWithGoogle: () => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -57,7 +58,7 @@ function mapAuthError(error: unknown): Error {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const { setCurrentUser, setUserProfile, setLoading: setStoreLoading } = useStore();
+    const { setCurrentUser, setUserProfile, setLoading: setStoreLoading, setDriveAccessToken } = useStore();
     const router = useRouter();
 
     // Guard: if Firebase wasn't initialised (env vars missing at build time)
@@ -164,7 +165,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const signInWithGoogle = async () => {
+        const provider = new GoogleAuthProvider();
+        // Request Drive file-level access + profile info in one consent screen
+        provider.addScope('https://www.googleapis.com/auth/drive.file');
+        provider.addScope('email');
+        provider.addScope('profile');
+        provider.setCustomParameters({ hd: 'dypatil.edu', prompt: 'consent' });
+
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const email = result.user.email;
+
+            // Enforce @dypatil.edu restriction
+            if (!email || !email.endsWith('@dypatil.edu')) {
+                // Delete the just-created Firebase account for non-dypatil emails
+                await deleteUser(result.user).catch(() => {});
+                await signOut(auth);
+                throw new Error('Only @dypatil.edu Google accounts are allowed. Please use your university email.');
+            }
+
+            // Extract the Google OAuth access token (includes Drive scope)
+            const credential = OAuthProvider.credentialFromResult(result);
+            const accessToken = (credential as unknown as { accessToken?: string })?.accessToken
+                || (result as unknown as { _tokenResponse?: { oauthAccessToken?: string } })?._tokenResponse?.oauthAccessToken
+                || null;
+
+            if (accessToken) {
+                setDriveAccessToken(accessToken);
+
+                // Auto-connect Google Drive on the user's Firestore profile (if it exists)
+                try {
+                    const docRef = doc(db, 'users', result.user.uid);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const existing = docSnap.data() as UserProfile;
+                        if (!existing.googleDrive) {
+                            await updateDoc(docRef, {
+                                googleDrive: {
+                                    email: email,
+                                    connectedAt: Date.now(),
+                                },
+                            });
+                        }
+                    }
+                } catch {
+                    // Non-critical — Drive connection will be saved when profile is created
+                }
+            }
+        } catch (error) {
+            if (error instanceof Error && error.message.includes('@dypatil.edu')) {
+                throw error;
+            }
+            throw mapAuthError(error);
+        }
+    };
+
     const logout = async () => {
+        setDriveAccessToken(null);
         await signOut(auth);
         router.push('/login');
     };
@@ -199,7 +257,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <AuthContext.Provider value={{ user, loading, sendLoginLink, verifyLoginLink, logout }}>
+        <AuthContext.Provider value={{ user, loading, sendLoginLink, verifyLoginLink, signInWithGoogle, logout }}>
             {!loading && children}
         </AuthContext.Provider>
     );

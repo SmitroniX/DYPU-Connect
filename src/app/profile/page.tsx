@@ -457,15 +457,22 @@ export default function ProfilePage() {
     const driveConnected = !!userProfile?.googleDrive;
     const canUploadToDrive = driveConfigured && driveConnected;
 
+    const { driveAccessToken } = useStore();
+
     const uploadImageFileToDrive = async (file: File, target: 'profile' | 'story' | 'highlight' | 'gallery'): Promise<string | null> => {
         if (!userProfile?.googleDrive) { toast.error('Connect Google Drive from Settings first.'); return null; }
         if (!driveConfigured) { toast.error('Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID in .env.local'); return null; }
         if (!file.type.startsWith('image/')) { toast.error('Please choose an image file.'); return null; }
         setUploadingTarget(target);
         try {
+            // Prefer the in-memory token from Google sign-in, fallback to GIS popup
             let accessToken: string;
-            try { accessToken = await requestGoogleDriveAccessToken(''); }
-            catch { accessToken = await requestGoogleDriveAccessToken('consent'); }
+            if (driveAccessToken) {
+                accessToken = driveAccessToken;
+            } else {
+                try { accessToken = await requestGoogleDriveAccessToken(''); }
+                catch { accessToken = await requestGoogleDriveAccessToken('consent'); }
+            }
             const uploadResult = await uploadImageToGoogleDrive({ accessToken, file, folderId: userProfile.googleDrive.folderId });
             toast.success('Image uploaded to Google Drive.');
             return uploadResult.directImageUrl;

@@ -58,7 +58,7 @@ export function middleware(request: NextRequest) {
     );
 
     // ── Cross-Origin Policies ─────────────────────────────────────────
-    headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+    headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     // CORP must be cross-origin to allow external images (profile photos,
     // DiceBear avatars, Giphy GIFs, Google profile pictures).
     headers.set('Cross-Origin-Resource-Policy', 'cross-origin');

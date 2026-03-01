@@ -31,7 +31,7 @@ import {
 
 export default function SetupProfilePage() {
     const { user } = useAuth();
-    const { userProfile, setUserProfile } = useStore();
+    const { userProfile, setUserProfile, driveAccessToken } = useStore();
     const router = useRouter();
 
     const [loading, setLoading] = useState(false);
@@ -100,6 +100,15 @@ export default function SetupProfilePage() {
                 gallery: [],
                 stories: [],
                 highlights: [],
+                // Auto-connect Google Drive if user signed in via Google
+                ...(user.providerData.some(p => p.providerId === 'google.com') && driveAccessToken
+                    ? {
+                        googleDrive: {
+                            email: user.email as string,
+                            connectedAt: Date.now(),
+                        },
+                    }
+                    : {}),
                 role: isAutoAdminEmail(user.email) ? 'admin' : 'user',
                 status: 'active' as const,
                 createdAt: Date.now()
