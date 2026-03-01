@@ -265,10 +265,18 @@ export default function ProfilePage() {
     const [showAddHighlight, setShowAddHighlight] = useState(false);
     const [showAddGallery, setShowAddGallery] = useState(false);
     const [galleryPreview, setGalleryPreview] = useState<string | null>(null);
+    const [busy, setBusy] = useState(false);
+
+    // Only populate form from profile on first load (not on every profile change)
+    const formInitialized = useRef(false);
+    const prevFieldRef = useRef(formData.field);
+    const storiesCleanedRef = useRef(false);
 
     useEffect(() => {
         if (!user) { router.replace('/login'); return; }
         if (!userProfile) { router.replace('/setup-profile'); return; }
+        if (formInitialized.current) return;
+        formInitialized.current = true;
         setFormData({
             name: userProfile.name,
             field: userProfile.field,
@@ -288,16 +296,22 @@ export default function ProfilePage() {
 
     const branchOptions = getProfileBranchOptions(formData.field);
 
+    // Only reset branch when the field actually changes, not on every render
     useEffect(() => {
-        if (!branchOptions.includes(formData.branch)) {
-            setFormData((prev) => ({ ...prev, branch: branchOptions[0] }));
+        if (formData.field !== prevFieldRef.current) {
+            prevFieldRef.current = formData.field;
+            if (!branchOptions.includes(formData.branch)) {
+                setFormData((prev) => ({ ...prev, branch: branchOptions[0] }));
+            }
         }
-    }, [branchOptions, formData.branch]);
+    }, [branchOptions, formData.branch, formData.field]);
 
+    // Clean up expired stories — run only once per page load, not on every tick
     useEffect(() => {
-        if (!user || !userProfile) return;
+        if (!user || !userProfile || storiesCleanedRef.current) return;
         const activeStories = userProfile.stories.filter((s) => s.expiresAt > Date.now());
         if (activeStories.length === userProfile.stories.length) return;
+        storiesCleanedRef.current = true;
         const syncStories = async () => {
             try {
                 await updateDoc(doc(db, 'users', user.uid), { stories: activeStories });
@@ -305,12 +319,15 @@ export default function ProfilePage() {
             } catch { /* silent */ }
         };
         void syncStories();
-    }, [currentTime, user, userProfile, setUserProfile]);
+    }, [user, userProfile, setUserProfile]);
 
+    // Use fresh store state to avoid stale closure bugs when overlapping async ops
     const applyProfileUpdates = async (updates: Partial<UserProfile>, successMessage?: string) => {
-        if (!user || !userProfile) return false;
+        if (!user) return false;
+        const freshProfile = useStore.getState().userProfile;
+        if (!freshProfile) return false;
         await updateDoc(doc(db, 'users', user.uid), updates);
-        setUserProfile({ ...userProfile, ...updates });
+        setUserProfile({ ...freshProfile, ...updates });
         if (successMessage) toast.success(successMessage);
         return true;
     };
@@ -343,71 +360,92 @@ export default function ProfilePage() {
 
     const addGalleryItem = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (busy) return;
         const imageUrl = getValidHttpUrl(galleryDraft.imageSource);
         if (!userProfile || !imageUrl) { toast.error('Add a valid image URL for the gallery photo.'); return; }
         const item: ProfileGalleryItem = { id: createClientId('gallery'), imageUrl, caption: galleryDraft.caption.trim(), visibility: galleryDraft.visibility, createdAt: Date.now() };
+        setBusy(true);
         try {
-            await applyProfileUpdates({ gallery: [item, ...userProfile.gallery] }, 'Gallery updated.');
+            const freshProfile = useStore.getState().userProfile;
+            await applyProfileUpdates({ gallery: [item, ...(freshProfile?.gallery ?? [])] }, 'Gallery updated.');
             setGalleryDraft({ imageSource: '', caption: '', visibility: 'public' });
             setShowAddGallery(false);
         } catch (error: unknown) {
             const firebaseError = error as FirebaseError | undefined;
             if (firebaseError?.code === 'permission-denied') toast.error('You do not have permission to update gallery.');
             else toast.error('Failed to add gallery photo.');
-        }
+        } finally { setBusy(false); }
     };
 
     const removeGalleryItem = async (itemId: string) => {
-        if (!userProfile) return;
-        try { await applyProfileUpdates({ gallery: userProfile.gallery.filter((i) => i.id !== itemId) }, 'Photo removed.'); }
-        catch { toast.error('Failed to remove gallery photo.'); }
+        if (!userProfile || busy) return;
+        setBusy(true);
+        try {
+            const freshProfile = useStore.getState().userProfile;
+            await applyProfileUpdates({ gallery: (freshProfile?.gallery ?? []).filter((i) => i.id !== itemId) }, 'Photo removed.');
+            if (galleryPreview === itemId) setGalleryPreview(null);
+        } catch { toast.error('Failed to remove gallery photo.'); }
+        finally { setBusy(false); }
     };
 
     const addStory = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (busy) return;
         const imageUrl = getValidHttpUrl(storyDraft.imageSource);
         if (!userProfile || !imageUrl) { toast.error('Add a valid image URL for your story.'); return; }
         const createdAt = Date.now();
         const story: ProfileStoryItem = { id: createClientId('story'), imageUrl, visibility: storyDraft.visibility, createdAt, expiresAt: createdAt + STORY_TTL_MS };
+        setBusy(true);
         try {
-            await applyProfileUpdates({ stories: [story, ...userProfile.stories] }, 'Story uploaded.');
+            const freshProfile = useStore.getState().userProfile;
+            await applyProfileUpdates({ stories: [story, ...(freshProfile?.stories ?? [])] }, 'Story uploaded.');
             setStoryDraft({ imageSource: '', visibility: 'public' });
             setShowAddStory(false);
         } catch (error: unknown) {
             const firebaseError = error as FirebaseError | undefined;
             if (firebaseError?.code === 'permission-denied') toast.error('You do not have permission to upload stories.');
             else toast.error('Failed to upload story.');
-        }
+        } finally { setBusy(false); }
     };
 
     const removeStory = async (storyId: string) => {
-        if (!userProfile) return;
-        try { await applyProfileUpdates({ stories: userProfile.stories.filter((s) => s.id !== storyId) }, 'Story removed.'); }
-        catch { toast.error('Failed to remove story.'); }
+        if (!userProfile || busy) return;
+        setBusy(true);
+        try {
+            const freshProfile = useStore.getState().userProfile;
+            await applyProfileUpdates({ stories: (freshProfile?.stories ?? []).filter((s) => s.id !== storyId) }, 'Story removed.');
+        } catch { toast.error('Failed to remove story.'); }
+        finally { setBusy(false); }
     };
 
     const addHighlight = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!userProfile) return;
+        if (!userProfile || busy) return;
         const cleanTitle = highlightDraft.title.trim();
         const cleanCover = getValidHttpUrl(highlightDraft.coverSource);
         if (!cleanTitle || !cleanCover) { toast.error('Add a highlight title and a valid image URL.'); return; }
         const highlight: ProfileHighlightItem = { id: createClientId('highlight'), title: cleanTitle, coverImageUrl: cleanCover, visibility: highlightDraft.visibility, createdAt: Date.now() };
+        setBusy(true);
         try {
-            await applyProfileUpdates({ highlights: [highlight, ...userProfile.highlights] }, 'Highlight added.');
+            const freshProfile = useStore.getState().userProfile;
+            await applyProfileUpdates({ highlights: [highlight, ...(freshProfile?.highlights ?? [])] }, 'Highlight added.');
             setHighlightDraft({ title: '', coverSource: '', visibility: 'public' });
             setShowAddHighlight(false);
         } catch (error: unknown) {
             const firebaseError = error as FirebaseError | undefined;
             if (firebaseError?.code === 'permission-denied') toast.error('You do not have permission to add highlights.');
             else toast.error('Failed to add highlight.');
-        }
+        } finally { setBusy(false); }
     };
 
     const removeHighlight = async (highlightId: string) => {
-        if (!userProfile) return;
-        try { await applyProfileUpdates({ highlights: userProfile.highlights.filter((h) => h.id !== highlightId) }, 'Highlight removed.'); }
-        catch { toast.error('Failed to remove highlight.'); }
+        if (!userProfile || busy) return;
+        setBusy(true);
+        try {
+            const freshProfile = useStore.getState().userProfile;
+            await applyProfileUpdates({ highlights: (freshProfile?.highlights ?? []).filter((h) => h.id !== highlightId) }, 'Highlight removed.');
+        } catch { toast.error('Failed to remove highlight.'); }
+        finally { setBusy(false); }
     };
 
     const activeStories = useMemo(
@@ -476,6 +514,10 @@ export default function ProfilePage() {
 
     const createdOn = new Date(userProfile.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
     const resolvedPreviewImage = resolveProfileImage(formData.profileImage, userProfile.email, formData.name || userProfile.name);
+    const fallbackSrc = resolveProfileImage('', userProfile.email, userProfile.name);
+    const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+        e.currentTarget.src = fallbackSrc;
+    };
 
     return (
         <DashboardLayout>
@@ -498,6 +540,7 @@ export default function ProfilePage() {
                                     <img
                                         src={resolvedPreviewImage}
                                         alt={formData.name || 'Profile'}
+                                        onError={handleImgError}
                                         className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                                     />
                                 </div>
@@ -591,6 +634,7 @@ export default function ProfilePage() {
                                 <img
                                     src={resolvedPreviewImage}
                                     alt="Preview"
+                                    onError={handleImgError}
                                     className="h-16 w-16 rounded-xl object-cover object-center ring-2 ring-white/10"
                                 />
                                 <div className="flex-1 min-w-0 space-y-2">
@@ -692,8 +736,8 @@ export default function ProfilePage() {
                                         {PROFILE_VISIBILITY_OPTIONS.map((v) => <option key={v} value={v}>{visibilityLabel(v)}</option>)}
                                     </SelectField>
                                     <div className="flex items-end gap-2">
-                                        <PrimaryButton type="submit">
-                                            <ImagePlus className="h-4 w-4" /> Upload Story
+                                        <PrimaryButton type="submit" disabled={busy}>
+                                            <ImagePlus className="h-4 w-4" /> {busy ? 'Uploading...' : 'Upload Story'}
                                         </PrimaryButton>
                                         <SecondaryButton type="button" disabled={!canUploadToDrive || !!uploadingTarget} onClick={() => storyFileInputRef.current?.click()}>
                                             <Upload className="h-4 w-4" /> {uploadingTarget === 'story' ? 'Uploading...' : 'Pick File'}
@@ -722,6 +766,7 @@ export default function ProfilePage() {
                                                 <img
                                                     src={story.imageUrl}
                                                     alt="Story"
+                                                    onError={handleImgError}
                                                     className="h-50 w-full object-cover object-center bg-white/10 transition-transform duration-300 group-hover:scale-105"
                                                 />
                                                 <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
@@ -788,8 +833,8 @@ export default function ProfilePage() {
                                     <SelectField label="Visibility" id="highlightVisibility" value={highlightDraft.visibility} onChange={(e) => setHighlightDraft((prev) => ({ ...prev, visibility: e.target.value as ProfileVisibility }))}>
                                         {PROFILE_VISIBILITY_OPTIONS.map((v) => <option key={v} value={v}>{visibilityLabel(v)}</option>)}
                                     </SelectField>
-                                    <PrimaryButton type="submit">
-                                        <Plus className="h-4 w-4" /> Add Highlight
+                                    <PrimaryButton type="submit" disabled={busy}>
+                                        <Plus className="h-4 w-4" /> {busy ? 'Adding...' : 'Add Highlight'}
                                     </PrimaryButton>
                                     <SecondaryButton type="button" disabled={!canUploadToDrive || !!uploadingTarget} onClick={() => highlightFileInputRef.current?.click()}>
                                         <Upload className="h-4 w-4" /> {uploadingTarget === 'highlight' ? 'Uploading...' : 'Pick File'}
@@ -816,6 +861,7 @@ export default function ProfilePage() {
                                                 <img
                                                     src={highlight.coverImageUrl}
                                                     alt={highlight.title}
+                                                    onError={handleImgError}
                                                     className="h-28 sm:h-32 w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                                                 />
                                                 <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
@@ -912,6 +958,7 @@ export default function ProfilePage() {
                                                 <img
                                                     src={item.imageUrl}
                                                     alt={item.caption || 'Gallery photo'}
+                                                    onError={handleImgError}
                                                     className={`w-full object-cover object-center transition-all duration-500 ${
                                                         galleryPreview === item.id ? 'h-auto max-h-96' : 'h-36 sm:h-44'
                                                     } group-hover:scale-[1.02]`}
