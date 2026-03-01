@@ -60,7 +60,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { setCurrentUser, setUserProfile } = useStore();
     const router = useRouter();
 
+    // Guard: if Firebase wasn't initialised (env vars missing at build time)
+    // show an error screen instead of crashing.
+    const firebaseReady = auth !== null && db !== null;
+
     useEffect(() => {
+        if (!firebaseReady) {
+            const id = requestAnimationFrame(() => setLoading(false));
+            return () => cancelAnimationFrame(id);
+        }
+
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             setUser(firebaseUser);
             setCurrentUser(firebaseUser);
@@ -117,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         return () => unsubscribe();
-    }, [setCurrentUser, setUserProfile]);
+    }, [firebaseReady, setCurrentUser, setUserProfile]);
 
     const sendLoginLink = async (email: string) => {
         if (!email.endsWith('@dypatil.edu')) {
@@ -155,6 +164,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await signOut(auth);
         router.push('/login');
     };
+
+    if (!firebaseReady) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 px-6 text-center gap-4">
+                <h1 className="text-2xl font-bold text-red-400">⚠ Firebase Not Configured</h1>
+                <p className="text-slate-400 max-w-md">
+                    The <code className="text-amber-400">NEXT_PUBLIC_FIREBASE_*</code> environment
+                    variables are missing. Set them in your hosting dashboard
+                    (Netlify&nbsp;/&nbsp;Vercel) or in <code className="text-amber-400">.env.local</code>,
+                    then redeploy.
+                </p>
+            </div>
+        );
+    }
 
     return (
         <AuthContext.Provider value={{ user, loading, sendLoginLink, verifyLoginLink, logout }}>
