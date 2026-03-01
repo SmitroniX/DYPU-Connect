@@ -121,7 +121,7 @@ export default function PublicChatPage() {
                                             <span className={`text-xs text-slate-500 mb-1 ${isMine ? 'mr-1 text-right' : 'ml-1'}`}>
                                                 {isMine ? `You (${displayName})` : displayName}
                                             </span>
-                                            <div className={`px-4 py-2.5 rounded-2xl ${isMine ? 'bg-linear-to-r from-violet-600 to-indigo-600 text-white rounded-tr-sm' : 'bg-white/10 text-slate-200 rounded-tl-sm border border-white/5'}`}>
+                                            <div className={`px-4 py-2.5 rounded-2xl ${isMine ? 'bg-linear-to-r from-sky-600 to-sky-800 text-white rounded-tr-sm' : 'bg-white/10 text-slate-200 rounded-tl-sm border border-white/5'}`}>
                                                 {msg.gifUrl && (
                                                     <img
                                                         src={msg.gifUrl}
@@ -170,7 +170,7 @@ export default function PublicChatPage() {
                         />
                         <input
                             type="text"
-                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
+                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/50 focus:border-sky-300/30 transition-all"
                             placeholder="Message Campus Plaza..."
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}

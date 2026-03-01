@@ -99,7 +99,7 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left' }: Giph
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Search GIFs..."
-                            className="w-full rounded-lg bg-white/5 border border-white/10 pl-8 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
+                            className="w-full rounded-lg bg-white/5 border border-white/10 pl-8 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-300/40 focus:border-sky-300/30 transition-all"
                         />
                     </div>
 
@@ -123,7 +123,7 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left' }: Giph
                                         onSelect(gif);
                                         setOpen(false);
                                     }}
-                                    className="group rounded-lg overflow-hidden border border-white/10 hover:border-violet-500/40 transition-all hover:scale-105"
+                                    className="group rounded-lg overflow-hidden border border-white/10 hover:border-sky-300/30 transition-all hover:scale-105"
                                     title={gif.title}
                                 >
                                     <img

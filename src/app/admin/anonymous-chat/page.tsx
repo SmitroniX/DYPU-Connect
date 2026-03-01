@@ -54,20 +54,20 @@ export default function AdminAnonChatPage() {
     return (
         <div className="max-w-6xl mx-auto pb-12 font-sans animate-[fade-in-up_0.4s_ease-out]">
             {/* Header */}
-            <div className="mb-6 glass border-purple-500/20 bg-purple-500/5 p-5 flex items-start gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-500/15 ring-1 ring-purple-500/20 shrink-0">
-                    <Terminal className="h-5 w-5 text-purple-400" />
+            <div className="mb-6 glass border-sky-300/20 bg-sky-400/5 p-5 flex items-start gap-4">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-400/15 ring-1 ring-sky-300/20 shrink-0">
+                    <Terminal className="h-5 w-5 text-sky-300" />
                 </div>
                 <div className="flex-1">
                     <div className="flex items-center gap-3">
                         <h1 className="text-2xl font-bold tracking-tight text-white">Shadow Realm Oversight</h1>
                         {!loading && (
-                            <span className="inline-flex items-center rounded-full bg-purple-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-purple-400 ring-1 ring-purple-500/20">
+                            <span className="inline-flex items-center rounded-full bg-sky-400/15 px-2.5 py-0.5 text-[11px] font-semibold text-sky-300 ring-1 ring-sky-300/20">
                                 {filteredLogs.length} intercepted
                             </span>
                         )}
                     </div>
-                    <p className="text-sm text-purple-300/70 mt-1">
+                    <p className="text-sm text-sky-200/70 mt-1">
                         Monitoring stream for Anonymous Public Chat. Real email addresses attached to masked messages.
                     </p>
                 </div>
@@ -81,7 +81,7 @@ export default function AdminAnonChatPage() {
                     </div>
                     <input
                         type="text"
-                        className="block w-full pl-10 pr-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/30 transition-all"
+                        className="block w-full pl-10 pr-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 focus:border-sky-300/30 transition-all"
                         placeholder="Search by email, message text, or user ID..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -93,22 +93,22 @@ export default function AdminAnonChatPage() {
             <div className="glass overflow-hidden">
                 {loading ? (
                     <div className="p-12 flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-2 border-purple-500/30 border-t-purple-500 animate-spin" />
+                        <div className="h-10 w-10 rounded-full border-2 border-sky-300/30 border-t-sky-300 animate-spin" />
                         <p className="text-sm text-slate-500">Decrypting streams...</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-white/5">
-                            <thead className="bg-purple-500/5">
+                            <thead className="bg-sky-400/5">
                                 <tr>
-                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-purple-300 uppercase tracking-wider">Target Identity</th>
-                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-purple-300 uppercase tracking-wider">Message Content</th>
-                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-purple-300 uppercase tracking-wider">Time Intercepted</th>
+                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-sky-200 uppercase tracking-wider">Target Identity</th>
+                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-sky-200 uppercase tracking-wider">Message Content</th>
+                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-sky-200 uppercase tracking-wider">Time Intercepted</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {filteredLogs.map((log) => (
-                                    <tr key={log.id} className="hover:bg-purple-500/5 transition-colors">
+                                    <tr key={log.id} className="hover:bg-sky-400/5 transition-colors">
                                         <td className="px-5 py-3.5 whitespace-nowrap">
                                             <span className="text-sm font-bold text-red-400 font-mono tracking-tight">{log.email}</span>
                                             <div className="text-[10px] text-slate-600 mt-0.5">UID: {log.userId}</div>
@@ -123,7 +123,7 @@ export default function AdminAnonChatPage() {
                                                             alt="GIF"
                                                             className="h-10 w-10 rounded-lg object-cover ring-1 ring-white/10"
                                                         />
-                                                        <div className="absolute -top-1 -right-1 h-4 w-4 rounded bg-purple-500/80 flex items-center justify-center">
+                                                        <div className="absolute -top-1 -right-1 h-4 w-4 rounded bg-sky-400/80 flex items-center justify-center">
                                                             <ImageIcon className="h-2.5 w-2.5 text-white" />
                                                         </div>
                                                     </div>

@@ -118,7 +118,7 @@ export default function ConfessionsPage() {
                             <button
                                 type="submit"
                                 disabled={loading || !newConfession.trim()}
-                                className="inline-flex items-center px-5 py-2.5 bg-linear-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white text-sm font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-pink-500/20 disabled:opacity-50"
+                                className="inline-flex items-center px-5 py-2.5 bg-linear-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white text-sm font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-sky-300/20 disabled:opacity-50"
                             >
                                 {loading ? 'Posting...' : (
                                     <>
@@ -136,7 +136,7 @@ export default function ConfessionsPage() {
                         <div key={confession.id} className="glass hover:border-pink-500/30 hover:bg-white/[0.07] transition-all duration-300 p-5">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center space-x-3">
-                                    <div className="w-9 h-9 rounded-full bg-linear-to-tr from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-pink-500/20">
+                                    <div className="w-9 h-9 rounded-full bg-linear-to-tr from-sky-400 to-slate-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-sky-300/20">
                                         {confession.anonymousName.charAt(0)}
                                     </div>
                                     <div>

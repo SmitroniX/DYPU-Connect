@@ -19,13 +19,13 @@ export default function DashboardPage() {
   const stats = [
     { name: 'Confessions', stat: 'Share secrets', icon: MessageSquare, href: '/confessions', gradient: 'from-pink-500/20 to-rose-500/20', iconColor: 'text-pink-400', borderHover: 'hover:border-pink-500/30' },
     { name: 'Public Chat', stat: 'Join the buzz', icon: Users, href: '/public-chat', gradient: 'from-amber-500/20 to-orange-500/20', iconColor: 'text-amber-400', borderHover: 'hover:border-amber-500/30' },
-    { name: 'Anonymous Chat', stat: 'Speak freely', icon: MessageCircle, href: '/anonymous-chat', gradient: 'from-violet-500/20 to-purple-500/20', iconColor: 'text-violet-400', borderHover: 'hover:border-violet-500/30' },
+    { name: 'Anonymous Chat', stat: 'Speak freely', icon: MessageCircle, href: '/anonymous-chat', gradient: 'from-sky-500/20 to-slate-500/20', iconColor: 'text-sky-300', borderHover: 'hover:border-sky-400/30' },
   ];
 
   const quickActions = [
     { name: 'Groups', icon: Users, href: '/groups', color: 'text-emerald-400' },
     { name: 'Messages', icon: Mail, href: '/messages', color: 'text-sky-400' },
-    { name: 'Profile', icon: User, href: '/profile', color: 'text-violet-400' },
+    { name: 'Profile', icon: User, href: '/profile', color: 'text-sky-300' },
     { name: 'Settings', icon: Settings, href: '/settings', color: 'text-slate-400' },
   ];
 
@@ -59,7 +59,7 @@ export default function DashboardPage() {
                 <p className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">{item.stat}</p>
               </div>
               <div className="relative z-10 mt-6 pt-4 border-t border-white/10">
-                <span className="text-sm font-medium text-violet-400 group-hover:text-violet-300 flex items-center gap-1.5 transition-colors">
+                <span className="text-sm font-medium text-sky-300 group-hover:text-sky-200 flex items-center gap-1.5 transition-colors">
                   <Sparkles className="w-3.5 h-3.5" />
                   Explore
                 </span>

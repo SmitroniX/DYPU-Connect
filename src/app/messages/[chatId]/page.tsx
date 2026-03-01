@@ -143,9 +143,9 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
             <DashboardLayout>
                 <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">
                     <div className="flex gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-sky-300 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-sky-200 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                 </div>
             </DashboardLayout>
@@ -180,7 +180,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                             return (
                                 <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                                     <div className="flex max-w-[75%] gap-2 flex-col">
-                                        <div className={`px-4 py-2.5 rounded-2xl ${isMine ? 'bg-linear-to-r from-violet-600 to-indigo-600 text-white rounded-br-sm' : 'bg-white/10 text-slate-200 rounded-bl-sm border border-white/5'}`}>
+                                        <div className={`px-4 py-2.5 rounded-2xl ${isMine ? 'bg-linear-to-r from-sky-600 to-sky-800 text-white rounded-br-sm' : 'bg-white/10 text-slate-200 rounded-bl-sm border border-white/5'}`}>
                                             {msg.gifUrl && (
                                                 <img
                                                     src={msg.gifUrl}
@@ -227,7 +227,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                         />
                         <input
                             type="text"
-                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
+                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 focus:border-sky-300/30 transition-all"
                             placeholder="Type a message..."
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
@@ -237,7 +237,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                         <button
                             type="submit"
                             disabled={loading || (!newMessage.trim() && !selectedGifUrl)}
-                            className="bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-2.5 rounded-full disabled:opacity-50 transition-all duration-300 flex shrink-0 items-center justify-center w-10 h-10 shadow-lg shadow-violet-500/20"
+                            className="bg-linear-to-r from-sky-400 to-sky-600 hover:from-sky-300 hover:to-sky-500 text-slate-900 p-2.5 rounded-full disabled:opacity-50 transition-all duration-300 flex shrink-0 items-center justify-center w-10 h-10 shadow-lg shadow-sky-300/15"
                         >
                             <Send className="w-4 h-4" />
                         </button>

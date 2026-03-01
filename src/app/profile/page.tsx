@@ -106,7 +106,7 @@ function Badge({ children, variant = 'default' }: { children: React.ReactNode; v
     const base = 'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase';
     const styles: Record<string, string> = {
         default: 'bg-white/10 text-slate-300',
-        accent: 'bg-violet-500/20 text-violet-300 ring-1 ring-violet-500/30',
+        accent: 'bg-sky-300/15 text-sky-200 ring-1 ring-sky-300/30',
         success: 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30',
         warning: 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/30',
     };
@@ -117,8 +117,8 @@ function SectionHeader({ icon: Icon, title, subtitle, action }: { icon: React.El
     return (
         <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-violet-500/20 to-indigo-500/20 ring-1 ring-violet-500/20">
-                    <Icon className="h-5 w-5 text-violet-400" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-sky-300/15 to-slate-300/10 ring-1 ring-sky-300/20">
+                    <Icon className="h-5 w-5 text-sky-300" />
                 </div>
                 <div>
                     <h2 className="text-lg font-semibold text-white">{title}</h2>
@@ -144,7 +144,7 @@ function InputField({ label, id, ...props }: { label: string; id: string } & Rea
             <label htmlFor={id} className="block text-xs font-medium text-slate-400 mb-1.5">{label}</label>
             <input
                 id={id}
-                className="w-full rounded-lg bg-white/5 border border-white/10 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/30 transition-all"
+                className="w-full rounded-lg bg-white/5 border border-white/10 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 focus:border-sky-300/30 transition-all"
                 {...props}
             />
         </div>
@@ -157,7 +157,7 @@ function SelectField({ label, id, children, ...props }: { label: string; id: str
             <label htmlFor={id} className="block text-xs font-medium text-slate-400 mb-1.5">{label}</label>
             <select
                 id={id}
-                className="w-full rounded-lg bg-white/5 border border-white/10 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/30 transition-all appearance-none"
+                className="w-full rounded-lg bg-white/5 border border-white/10 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-300/40 focus:border-sky-300/30 transition-all appearance-none"
                 {...props}
             >
                 {children}
@@ -169,7 +169,7 @@ function SelectField({ label, id, children, ...props }: { label: string; id: str
 function PrimaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
     return (
         <button
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 hover:from-violet-500 hover:to-indigo-500 hover:shadow-violet-500/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-sky-200 to-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-lg shadow-sky-300/15 hover:from-sky-100 hover:to-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             {...props}
         >
             {children}
@@ -214,7 +214,7 @@ function TabBar({ activeTab, setActiveTab, storiesCount, highlightsCount, galler
                     onClick={() => setActiveTab(key)}
                     className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-medium transition-all duration-200 ${
                         activeTab === key
-                            ? 'bg-linear-to-r from-violet-600/90 to-indigo-600/90 text-white shadow-lg shadow-violet-500/20'
+                            ? 'bg-linear-to-r from-sky-300/80 to-slate-300/80 text-slate-900 shadow-lg shadow-sky-300/15'
                             : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                 >
@@ -503,7 +503,7 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
                     <div className="flex flex-col items-center gap-4">
                         <div className="relative">
-                            <div className="h-12 w-12 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
+                            <div className="h-12 w-12 rounded-full border-2 border-sky-300/30 border-t-sky-300 animate-spin" />
                         </div>
                         <p className="text-sm text-slate-400 animate-pulse">Loading profile...</p>
                     </div>
@@ -526,7 +526,7 @@ export default function ProfilePage() {
                 {/* ═══════════ HERO PROFILE HEADER ═══════════ */}
                 <div className="relative overflow-hidden rounded-2xl">
                     {/* Gradient Banner */}
-                    <div className="h-36 sm:h-44 bg-linear-to-br from-violet-600 via-indigo-600 to-purple-700 relative">
+                    <div className="h-36 sm:h-44 bg-linear-to-br from-sky-400 via-sky-600 to-slate-700 relative">
                         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE4YzEuNjU3IDAgMyAxLjM0MyAzIDNzLTEuMzQzIDMtMyAzLTMtMS4zNDMtMy0zIDEuMzQzLTMgMy0zek0yNCAzNmMxLjY1NyAwIDMgMS4zNDMgMyAzcy0xLjM0MyAzLTMgMy0zLTEuMzQzLTMtMyAxLjM0My0zIDMtM3oiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-50" />
                         <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-slate-950/80 to-transparent" />
                     </div>
@@ -546,7 +546,7 @@ export default function ProfilePage() {
                                 </div>
                                 <button
                                     onClick={() => setActiveTab('edit')}
-                                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-xl bg-violet-600 flex items-center justify-center shadow-lg hover:bg-violet-500 transition-colors"
+                                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-xl bg-sky-400 flex items-center justify-center shadow-lg hover:bg-sky-300 transition-colors"
                                     title="Edit profile photo"
                                 >
                                     <Camera className="h-4 w-4 text-white" />
@@ -762,7 +762,7 @@ export default function ProfilePage() {
                                 <div className="flex gap-4 overflow-x-auto pb-2">
                                     {activeStories.map((story) => (
                                         <div key={story.id} className="group relative min-w-35 max-w-35 shrink-0">
-                                            <div className="relative overflow-hidden rounded-2xl ring-2 ring-violet-500/40 shadow-lg shadow-violet-500/10">
+                                            <div className="relative overflow-hidden rounded-2xl ring-2 ring-sky-300/30 shadow-lg shadow-sky-300/10">
                                                 <img
                                                     src={story.imageUrl}
                                                     alt="Story"
@@ -857,7 +857,7 @@ export default function ProfilePage() {
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                     {userProfile.highlights.map((highlight) => (
                                         <div key={highlight.id} className="group relative">
-                                            <div className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 transition-all duration-300 hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/5">
+                                            <div className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 transition-all duration-300 hover:border-sky-300/25 hover:shadow-lg hover:shadow-sky-300/5">
                                                 <img
                                                     src={highlight.coverImageUrl}
                                                     alt={highlight.title}
@@ -952,7 +952,7 @@ export default function ProfilePage() {
                                     {userProfile.gallery.map((item) => (
                                         <div key={item.id} className="group relative">
                                             <div
-                                                className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 cursor-pointer transition-all duration-300 hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/5"
+                                                className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 cursor-pointer transition-all duration-300 hover:border-sky-300/25 hover:shadow-lg hover:shadow-sky-300/5"
                                                 onClick={() => setGalleryPreview(galleryPreview === item.id ? null : item.id)}
                                             >
                                                 <img

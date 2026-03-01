@@ -14,7 +14,7 @@ export default function DashboardLayout({
 
     return (
         <ProtectedRoute>
-            <div className="flex h-screen bg-slate-950 text-white font-sans">
+            <div className="flex h-screen bg-[#0a0e1a] text-white font-sans">
                 {/* Mobile sidebar overlay */}
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-50 lg:hidden">
@@ -22,7 +22,7 @@ export default function DashboardLayout({
                             className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                             onClick={() => setSidebarOpen(false)}
                         />
-                        <div className="fixed inset-y-0 left-0 z-50 w-72 bg-slate-950/95 backdrop-blur-xl shadow-2xl border-r border-white/10">
+                        <div className="fixed inset-y-0 left-0 z-50 w-72 bg-[#0a0e1a]/95 backdrop-blur-xl shadow-2xl border-r border-white/10">
                             <div className="absolute right-2 top-2 z-10">
                                 <button
                                     onClick={() => setSidebarOpen(false)}
@@ -42,14 +42,14 @@ export default function DashboardLayout({
                 </div>
 
                 {/* Mobile header */}
-                <div className="lg:hidden sticky top-0 z-40 flex items-center gap-x-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/10 px-4 py-4 sm:px-6">
+                <div className="lg:hidden sticky top-0 z-40 flex items-center gap-x-4 bg-[#0a0e1a]/80 backdrop-blur-xl border-b border-white/10 px-4 py-4 sm:px-6">
                     <button
                         onClick={() => setSidebarOpen(true)}
                         className="-m-2 p-2 text-slate-400 hover:text-white transition-colors"
                     >
                         <Menu className="h-6 w-6" />
                     </button>
-                    <div className="flex-1 text-sm font-bold leading-6 bg-clip-text text-transparent bg-linear-to-r from-violet-400 to-indigo-400">
+                    <div className="flex-1 text-sm font-bold leading-6 bg-clip-text text-transparent bg-linear-to-r from-sky-200 to-slate-300">
                         ✦ DYPU Connect
                     </div>
                 </div>

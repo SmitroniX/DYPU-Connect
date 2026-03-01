@@ -45,7 +45,7 @@ export default function AdminReportsPage() {
                             <p className="text-[10px] text-slate-500 mt-0.5">Reported user accounts</p>
                         </div>
                         <div className="glass p-4 text-center">
-                            <Inbox className="h-5 w-5 text-violet-400 mx-auto mb-2" />
+                            <Inbox className="h-5 w-5 text-sky-300 mx-auto mb-2" />
                             <p className="text-xs font-medium text-white">Review Queue</p>
                             <p className="text-[10px] text-slate-500 mt-0.5">Pending moderation items</p>
                         </div>

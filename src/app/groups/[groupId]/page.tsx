@@ -146,9 +146,9 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
             <DashboardLayout>
                 <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">
                     <div className="flex gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-sky-300 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-sky-200 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                 </div>
             </DashboardLayout>
@@ -162,7 +162,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                     <ShieldAlert className="mx-auto h-12 w-12 text-red-400 mb-4" />
                     <h2 className="text-2xl font-bold text-white mb-2">Access Denied</h2>
                     <p className="text-slate-400">You are not a member of this group.</p>
-                    <Link href="/groups" className="mt-6 inline-block text-violet-400 hover:text-violet-300 font-medium transition-colors">
+                    <Link href="/groups" className="mt-6 inline-block text-sky-300 hover:text-sky-200 font-medium transition-colors">
                         ← Back to My Groups
                     </Link>
                 </div>
@@ -210,7 +210,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                             {!isMine && (
                                                 <span className="text-xs text-slate-500 mb-1 ml-1 font-medium">{msg.senderName}</span>
                                             )}
-                                            <div className={`px-4 py-2.5 rounded-2xl ${isMine ? 'bg-linear-to-r from-violet-600 to-indigo-600 text-white rounded-tr-sm' : 'bg-white/10 text-slate-200 rounded-tl-sm border border-white/5'}`}>
+                                            <div className={`px-4 py-2.5 rounded-2xl ${isMine ? 'bg-linear-to-r from-sky-500 to-sky-700 text-white rounded-tr-sm' : 'bg-white/10 text-slate-200 rounded-tl-sm border border-white/5'}`}>
                                                 {msg.gifUrl && (
                                                     <img src={msg.gifUrl} alt="GIF" className="w-full max-w-[260px] rounded-lg mb-2 object-cover object-center" />
                                                 )}
@@ -247,7 +247,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                         <GiphyPicker disabled={loading} onSelect={(gif: GiphyGif) => setSelectedGifUrl(gif.url)} align="left" />
                         <input
                             type="text"
-                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30 transition-all"
+                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 focus:border-sky-300/30 transition-all"
                             placeholder={`Message ${humanReadableName}...`}
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
@@ -257,7 +257,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                         <button
                             type="submit"
                             disabled={loading || (!newMessage.trim() && !selectedGifUrl)}
-                            className="bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-2.5 rounded-full disabled:opacity-50 transition-all duration-300 flex shrink-0 items-center justify-center w-10 h-10 shadow-lg shadow-violet-500/20"
+                            className="bg-linear-to-r from-sky-500 to-sky-700 hover:from-sky-400 hover:to-sky-600 text-white p-2.5 rounded-full disabled:opacity-50 transition-all duration-300 flex shrink-0 items-center justify-center w-10 h-10 shadow-lg shadow-sky-300/20"
                         >
                             <Send className="w-4 h-4" />
                         </button>

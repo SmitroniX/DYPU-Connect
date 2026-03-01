@@ -110,13 +110,13 @@ export default function AdminDashboard() {
         { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'from-sky-500/20 to-cyan-500/20', iconColor: 'text-sky-400', ringColor: 'ring-sky-500/20' },
         { label: 'Banned Users', value: stats.bannedUsers, icon: UserX, color: 'from-red-500/20 to-orange-500/20', iconColor: 'text-red-400', ringColor: 'ring-red-500/20' },
         { label: 'Confessions', value: stats.totalConfessions, icon: MessageSquare, color: 'from-pink-500/20 to-rose-500/20', iconColor: 'text-pink-400', ringColor: 'ring-pink-500/20' },
-        { label: 'Anon Messages', value: stats.totalAnonMessages, icon: EyeOff, color: 'from-purple-500/20 to-violet-500/20', iconColor: 'text-purple-400', ringColor: 'ring-purple-500/20' },
+        { label: 'Anon Messages', value: stats.totalAnonMessages, icon: EyeOff, color: 'from-slate-400/20 to-sky-400/20', iconColor: 'text-sky-300', ringColor: 'ring-sky-300/20' },
     ];
 
     const adminModules = [
         { name: 'User Management', description: 'View users, manage roles, and issue bans.', href: '/admin/users', icon: Users, accent: 'sky', color: 'text-sky-400 bg-sky-500/15', borderHover: 'hover:border-sky-500/30', shadowHover: 'hover:shadow-sky-500/5' },
-        { name: 'Confession Tracker', description: 'Real identities behind anonymous confessions.', href: '/admin/confessions', icon: MessageSquare, accent: 'pink', color: 'text-pink-400 bg-pink-500/15', borderHover: 'hover:border-pink-500/30', shadowHover: 'hover:shadow-pink-500/5' },
-        { name: 'Shadow Realm Oversight', description: 'Monitor anonymous chat with real email addresses.', href: '/admin/anonymous-chat', icon: EyeOff, accent: 'purple', color: 'text-purple-400 bg-purple-500/15', borderHover: 'hover:border-purple-500/30', shadowHover: 'hover:shadow-purple-500/5' },
+        { name: 'Confession Tracker', description: 'Real identities behind anonymous confessions.', href: '/admin/confessions', icon: MessageSquare, accent: 'pink', color: 'text-pink-400 bg-pink-500/15', borderHover: 'hover:border-pink-500/30', shadowHover: 'hover:shadow-sky-300/5' },
+        { name: 'Shadow Realm Oversight', description: 'Monitor anonymous chat with real email addresses.', href: '/admin/anonymous-chat', icon: EyeOff, accent: 'sky', color: 'text-sky-300 bg-sky-400/15', borderHover: 'hover:border-sky-300/30', shadowHover: 'hover:shadow-sky-300/5' },
         { name: 'Moderation Reports', description: 'Review and act on user-submitted reports.', href: '/admin/reports', icon: ShieldAlert, accent: 'red', color: 'text-red-400 bg-red-500/15', borderHover: 'hover:border-red-500/30', shadowHover: 'hover:shadow-red-500/5' },
     ];
 
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
             <div className="flex items-start justify-between mb-8">
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-red-500/20 to-violet-500/20 ring-1 ring-red-500/20">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-red-500/20 to-sky-400/20 ring-1 ring-red-500/20">
                             <ShieldAlert className="h-5 w-5 text-red-400" />
                         </span>
                         Admin Control Center
@@ -211,7 +211,7 @@ export default function AdminDashboard() {
                     {loading ? (
                         <div className="p-8 text-center">
                             <div className="flex flex-col items-center gap-3">
-                                <div className="h-10 w-10 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
+                                <div className="h-10 w-10 rounded-full border-2 border-sky-300/30 border-t-sky-300 animate-spin" />
                                 <p className="text-sm text-slate-500">Loading activity...</p>
                             </div>
                         </div>
@@ -227,11 +227,11 @@ export default function AdminDashboard() {
                                 <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
                                     activity.type === 'confession'
                                         ? 'bg-pink-500/15 ring-1 ring-pink-500/20'
-                                        : 'bg-purple-500/15 ring-1 ring-purple-500/20'
+                                        : 'bg-sky-400/15 ring-1 ring-sky-300/20'
                                 }`}>
                                     {activity.type === 'confession'
                                         ? <MessageSquare className="h-4 w-4 text-pink-400" />
-                                        : <EyeOff className="h-4 w-4 text-purple-400" />
+                                        : <EyeOff className="h-4 w-4 text-sky-300" />
                                     }
                                 </div>
                                 <div className="flex-1 min-w-0">

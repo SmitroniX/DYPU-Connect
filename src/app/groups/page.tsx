@@ -13,9 +13,9 @@ export default function GroupsPage() {
             <DashboardLayout>
                 <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">
                     <div className="flex gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-sky-300 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-sky-200 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2.5 h-2.5 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                 </div>
             </DashboardLayout>
@@ -47,8 +47,8 @@ export default function GroupsPage() {
             type: 'Division Level',
             description: `Your primary class group (Division ${userProfile.division})`,
             icon: Building,
-            color: 'bg-violet-500/15 text-violet-400',
-            borderHover: 'hover:border-violet-500/30',
+            color: 'bg-sky-300/15 text-sky-300',
+            borderHover: 'hover:border-sky-300/30',
         }
     ];
 

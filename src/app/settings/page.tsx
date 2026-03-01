@@ -203,7 +203,7 @@ export default function SettingsPage() {
         return (
             <DashboardLayout>
                 <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-300"></div>
                 </div>
             </DashboardLayout>
         );
@@ -225,7 +225,7 @@ export default function SettingsPage() {
                                     type="checkbox"
                                     checked={settings.emailNotifications}
                                     onChange={() => toggle('emailNotifications')}
-                                    className="h-4 w-4 rounded border-white/10 text-violet-400 focus:ring-violet-500/50"
+                                    className="h-4 w-4 rounded border-white/10 text-sky-300 focus:ring-sky-300/50"
                                 />
                             </label>
                             <label className="flex items-center justify-between rounded-lg border border-white/10 p-3">
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                                     type="checkbox"
                                     checked={settings.soundEffects}
                                     onChange={() => toggle('soundEffects')}
-                                    className="h-4 w-4 rounded border-white/10 text-violet-400 focus:ring-violet-500/50"
+                                    className="h-4 w-4 rounded border-white/10 text-sky-300 focus:ring-sky-300/50"
                                 />
                             </label>
                             <label className="flex items-center justify-between rounded-lg border border-white/10 p-3">
@@ -243,13 +243,13 @@ export default function SettingsPage() {
                                     type="checkbox"
                                     checked={settings.compactMode}
                                     onChange={() => toggle('compactMode')}
-                                    className="h-4 w-4 rounded border-white/10 text-violet-400 focus:ring-violet-500/50"
+                                    className="h-4 w-4 rounded border-white/10 text-sky-300 focus:ring-sky-300/50"
                                 />
                             </label>
                         </div>
                         <button
                             onClick={resetSettings}
-                            className="mt-4 text-sm font-medium text-violet-400 hover:text-violet-300"
+                            className="mt-4 text-sm font-medium text-sky-300 hover:text-sky-200"
                         >
                             Reset to default
                         </button>
@@ -287,7 +287,7 @@ export default function SettingsPage() {
                                         <button
                                             onClick={connectGoogleDrive}
                                             disabled={driveBusy}
-                                            className="rounded-md bg-linear-to-r from-violet-600 to-indigo-600 px-3 py-2 text-sm font-medium text-white hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50"
+                                         className="rounded-md bg-linear-to-r from-sky-300 to-slate-300 px-3 py-2 text-sm font-medium text-slate-900 hover:from-sky-200 hover:to-slate-200 disabled:opacity-50"
                                         >
                                             Connect Google Drive
                                         </button>
@@ -304,7 +304,7 @@ export default function SettingsPage() {
                                     value={driveFolderLink}
                                     onChange={(e) => setDriveFolderLink(e.target.value)}
                                     placeholder="https://drive.google.com/drive/folders/..."
-                                    className="w-full rounded-md border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30"
+                                    className="w-full rounded-md border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300/50 focus:border-sky-300/30"
                                 />
                                 <button
                                     onClick={saveDriveFolder}

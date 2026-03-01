@@ -36,7 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Admin Mode Banner */}
             <div className="relative overflow-hidden glass border-red-500/20 p-4 mb-6 w-full mx-auto">
                 {/* Background gradient accent */}
-                <div className="absolute inset-0 bg-linear-to-r from-red-500/10 via-transparent to-violet-500/10" />
+                <div className="absolute inset-0 bg-linear-to-r from-red-500/10 via-transparent to-sky-400/10" />
                 <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-red-500/50 to-transparent" />
 
                 <div className="relative flex items-center justify-between gap-3">

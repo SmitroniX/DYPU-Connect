@@ -197,7 +197,7 @@ export default function AdminUsersPage() {
                                         <td className="px-5 py-3.5 whitespace-nowrap">
                                             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide ${
                                                 user.role === 'admin'
-                                                    ? 'bg-violet-500/15 text-violet-400 ring-1 ring-violet-500/20'
+                                                    ? 'bg-sky-300/15 text-sky-300 ring-1 ring-sky-300/20'
                                                     : 'bg-white/10 text-slate-400'
                                             }`}>
                                                 {user.role === 'admin' && <Shield className="h-3 w-3" />}

@@ -109,7 +109,7 @@ export default function InboxPage() {
                     </div>
                     <button
                         onClick={() => setShowNewChat(!showNewChat)}
-                        className="flex items-center gap-2 bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white px-4 py-2.5 rounded-xl transition-all duration-300 font-semibold text-sm shadow-lg shadow-violet-500/20"
+pache                        className="flex items-center gap-2 bg-linear-to-r from-sky-300 to-slate-300 hover:from-sky-200 hover:to-slate-200 text-slate-900 px-4 py-2.5 rounded-xl transition-all duration-300 font-semibold text-sm shadow-lg shadow-sky-300/15"
                     >
                         {showNewChat ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                         {showNewChat ? 'Cancel' : 'New Chat'}
@@ -123,7 +123,7 @@ export default function InboxPage() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                             <input
                                 type="text"
-                                className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all"
+                                className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300/50 transition-all"
                                 placeholder="Search students by name or field..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
