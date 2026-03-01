@@ -84,18 +84,18 @@ export default function PublicChatPage() {
         <DashboardLayout>
             <div className="h-full flex flex-col">
                 <ChannelHeader name="campus-plaza" description="Real-time public chat for everyone at DYPU">
-                    <Users className="h-4 w-4 text-[var(--dc-text-muted)]" />
+                    <Users className="h-4 w-4 text-[var(--ui-text-muted)]" />
                 </ChannelHeader>
 
                 {/* Messages stream (Discord-style flat layout) */}
                 <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
                     {messages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center">
-                            <div className="w-16 h-16 rounded-full bg-[var(--dc-bg-tertiary)] flex items-center justify-center mb-4">
-                                <Users className="h-8 w-8 text-[var(--dc-text-muted)]" />
+                            <div className="w-16 h-16 rounded-full bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
+                                <Users className="h-8 w-8 text-[var(--ui-text-muted)]" />
                             </div>
-                            <h3 className="text-xl font-bold text-[var(--dc-text-primary)]">Welcome to #campus-plaza!</h3>
-                            <p className="text-sm text-[var(--dc-text-muted)] mt-1">This is the start of the channel. Say hello! 👋</p>
+                            <h3 className="text-xl font-bold text-[var(--ui-text)]">Welcome to #campus-plaza!</h3>
+                            <p className="text-sm text-[var(--ui-text-muted)] mt-1">This is the start of the channel. Say hello! 👋</p>
                         </div>
                     ) : (
                         messages.map((msg, i) => {
@@ -111,7 +111,7 @@ export default function PublicChatPage() {
                             return (
                                 <div
                                     key={msg.id}
-                                    className={`dc-message group ${showHeader ? 'mt-4' : 'mt-0'}`}
+                                    className={`message-row group ${showHeader ? 'mt-4' : 'mt-0'}`}
                                 >
                                     <div className="flex gap-4">
                                         {/* Avatar or spacer */}
@@ -123,7 +123,7 @@ export default function PublicChatPage() {
                                                     className="w-10 h-10 rounded-full object-cover"
                                                 />
                                             ) : (
-                                                <span className="text-[10px] text-[var(--dc-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity w-full text-center pt-1">
+                                                <span className="text-[10px] text-[var(--ui-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity w-full text-center pt-1">
                                                     {ts ? format(ts, 'HH:mm') : ''}
                                                 </span>
                                             )}
@@ -133,10 +133,10 @@ export default function PublicChatPage() {
                                         <div className="flex-1 min-w-0">
                                             {showHeader && (
                                                 <div className="flex items-baseline gap-2 mb-0.5">
-                                                    <span className="font-medium text-[var(--dc-text-primary)] text-[15px] hover:underline cursor-pointer">
+                                                    <span className="font-medium text-[var(--ui-text)] text-[15px] hover:underline cursor-pointer">
                                                         {msg.senderName}
                                                     </span>
-                                                    <span className="text-xs text-[var(--dc-text-muted)]">
+                                                    <span className="text-xs text-[var(--ui-text-muted)]">
                                                         {ts ? format(ts, 'dd/MM/yyyy HH:mm') : 'Sending...'}
                                                     </span>
                                                 </div>
@@ -145,7 +145,7 @@ export default function PublicChatPage() {
                                                 <img src={msg.gifUrl} alt="GIF" className="max-w-[300px] rounded-lg mt-1 object-cover" />
                                             )}
                                             {msg.text && (
-                                                <p className="text-[15px] text-[var(--dc-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
+                                                <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
                                                     {msg.text}
                                                 </p>
                                             )}
@@ -166,28 +166,28 @@ export default function PublicChatPage() {
                 {/* Discord-style input bar */}
                 <div className="px-4 pb-4 shrink-0">
                     {selectedGifUrl && (
-                        <div className="mb-2 rounded-lg bg-[var(--dc-bg-secondary)] border border-[var(--dc-border)] p-2 flex items-center gap-3">
+                        <div className="mb-2 rounded-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] p-2 flex items-center gap-3">
                             <img src={selectedGifUrl} alt="GIF" className="h-14 w-14 rounded object-cover" />
                             <div className="flex-1">
-                                <p className="text-xs text-[var(--dc-text-muted)]">GIF attached</p>
+                                <p className="text-xs text-[var(--ui-text-muted)]">GIF attached</p>
                             </div>
-                            <button onClick={() => setSelectedGifUrl('')} className="p-1 text-[var(--dc-text-muted)] hover:text-[var(--dc-dnd)]">
+                            <button onClick={() => setSelectedGifUrl('')} className="p-1 text-[var(--ui-text-muted)] hover:text-[var(--ui-danger)]">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
                     )}
-                    <form className="flex items-center gap-0 bg-[var(--dc-bg-input)] rounded-lg" onSubmit={handleSubmit}>
+                    <form className="flex items-center gap-0 bg-[var(--ui-bg-input)] rounded-lg" onSubmit={handleSubmit}>
                         <div className="flex items-center pl-3 gap-1 shrink-0">
                             <GiphyPicker
                                 disabled={loading}
                                 onSelect={(gif: GiphyGif) => setSelectedGifUrl(gif.url)}
                                 align="left"
                             />
-                            <PlusCircle className="h-5 w-5 text-[var(--dc-text-muted)] hover:text-[var(--dc-text-primary)] cursor-pointer transition-colors" />
+                            <PlusCircle className="h-5 w-5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] cursor-pointer transition-colors" />
                         </div>
                         <input
                             type="text"
-                            className="dc-input bg-transparent"
+                            className="input bg-transparent"
                             placeholder="Message #campus-plaza"
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
@@ -196,7 +196,7 @@ export default function PublicChatPage() {
                         <button
                             type="submit"
                             disabled={loading || (!newMessage.trim() && !selectedGifUrl)}
-                            className="p-2.5 pr-3 text-[var(--dc-text-muted)] hover:text-[var(--dc-accent)] disabled:opacity-30 transition-colors shrink-0"
+                            className="p-2.5 pr-3 text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] disabled:opacity-30 transition-colors shrink-0"
                         >
                             <Send className="w-5 h-5" />
                         </button>

@@ -99,28 +99,28 @@ export default function AdminUsersPage() {
     return (
         <div className="max-w-6xl mx-auto pb-12 font-sans animate-[fade-in-up_0.4s_ease-out]">
             {/* Header */}
-            <div className="mb-6 dc-card border-[var(--dc-accent)]/20 p-5 flex items-start gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--dc-accent-dim)] ring-1 ring-[var(--dc-accent)]/20 shrink-0">
-                    <Users className="h-5 w-5 text-[var(--dc-accent)]" />
+            <div className="mb-6 surface border-[var(--ui-accent)]/20 p-5 flex items-start gap-4">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--ui-accent-dim)] ring-1 ring-[var(--ui-accent)]/20 shrink-0">
+                    <Users className="h-5 w-5 text-[var(--ui-accent)]" />
                 </div>
                 <div className="flex-1">
-                    <h1 className="text-2xl font-bold tracking-tight text-[var(--dc-text-primary)]">User Management</h1>
-                    <p className="text-sm text-[var(--dc-accent)]/70 mt-1">
+                    <h1 className="text-2xl font-bold tracking-tight text-[var(--ui-text)]">User Management</h1>
+                    <p className="text-sm text-[var(--ui-accent)]/70 mt-1">
                         {loading ? 'Loading...' : `${filteredUsers.length} of ${users.length} users`}
                     </p>
                 </div>
             </div>
 
             {/* Search and Filters */}
-            <div className="dc-card p-4 mb-6 space-y-3">
+            <div className="surface p-4 mb-6 space-y-3">
                 {/* Search */}
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <Search className="h-4.5 w-4.5 text-[var(--dc-text-muted)]" />
+                        <Search className="h-4.5 w-4.5 text-[var(--ui-text-muted)]" />
                     </div>
                     <input
                         type="text"
-                        className="dc-input pl-10"
+                        className="input pl-10"
                         placeholder="Search by name or email..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -132,7 +132,7 @@ export default function AdminUsersPage() {
                     <select
                         value={filterField}
                         onChange={(e) => setFilterField(e.target.value)}
-                        className="rounded-lg bg-[var(--dc-bg-input)] border-none px-3 py-2 text-sm text-[var(--dc-text-primary)] focus:outline-none transition-all appearance-none"
+                        className="rounded-lg bg-[var(--ui-bg-input)] border-none px-3 py-2 text-sm text-[var(--ui-text)] focus:outline-none transition-all appearance-none"
                     >
                         <option value="all">All Fields</option>
                         {uniqueFields.map(f => <option key={f} value={f}>{f}</option>)}
@@ -140,7 +140,7 @@ export default function AdminUsersPage() {
                     <select
                         value={filterYear}
                         onChange={(e) => setFilterYear(e.target.value)}
-                        className="rounded-lg bg-[var(--dc-bg-input)] border-none px-3 py-2 text-sm text-[var(--dc-text-primary)] focus:outline-none transition-all appearance-none"
+                        className="rounded-lg bg-[var(--ui-bg-input)] border-none px-3 py-2 text-sm text-[var(--ui-text)] focus:outline-none transition-all appearance-none"
                     >
                         <option value="all">All Years</option>
                         {uniqueYears.map(y => <option key={y} value={y}>{y}</option>)}
@@ -148,7 +148,7 @@ export default function AdminUsersPage() {
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="rounded-lg bg-[var(--dc-bg-input)] border-none px-3 py-2 text-sm text-[var(--dc-text-primary)] focus:outline-none transition-all appearance-none"
+                        className="rounded-lg bg-[var(--ui-bg-input)] border-none px-3 py-2 text-sm text-[var(--ui-text)] focus:outline-none transition-all appearance-none"
                     >
                         <option value="all">All Statuses</option>
                         <option value="active">Active</option>
@@ -158,52 +158,52 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Users Table */}
-            <div className="dc-card overflow-hidden">
+            <div className="surface overflow-hidden">
                 {loading ? (
                     <div className="p-12 flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-2 border-[var(--dc-accent)]/30 border-t-[var(--dc-accent)] animate-spin" />
-                        <p className="text-sm text-[var(--dc-text-muted)]">Loading users...</p>
+                        <div className="h-10 w-10 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
+                        <p className="text-sm text-[var(--ui-text-muted)]">Loading users...</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-[var(--dc-divider)]">
-                            <thead className="bg-[var(--dc-bg-tertiary)]">
+                        <table className="min-w-full divide-y divide-[var(--ui-divider)]">
+                            <thead className="bg-[var(--ui-bg-elevated)]">
                                 <tr>
-                                    <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--dc-text-muted)] uppercase tracking-wider">User</th>
-                                    <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--dc-text-muted)] uppercase tracking-wider">Academic Info</th>
-                                    <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--dc-text-muted)] uppercase tracking-wider">Role</th>
-                                    <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--dc-text-muted)] uppercase tracking-wider">Status</th>
-                                    <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--dc-text-muted)] uppercase tracking-wider">Joined</th>
-                                    <th scope="col" className="px-5 py-3.5 text-right text-xs font-semibold text-[var(--dc-text-muted)] uppercase tracking-wider">Actions</th>
+                                    <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">User</th>
+                                    <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Academic Info</th>
+                                    <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Role</th>
+                                    <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Status</th>
+                                    <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Joined</th>
+                                    <th scope="col" className="px-5 py-3.5 text-right text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[var(--dc-divider)]">
+                            <tbody className="divide-y divide-[var(--ui-divider)]">
                                 {filteredUsers.map((user) => (
-                                    <tr key={user.id} className="hover:bg-[var(--dc-bg-hover)] transition-colors">
+                                    <tr key={user.id} className="hover:bg-[var(--ui-bg-hover)] transition-colors">
                                         <td className="px-5 py-3.5 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
                                                 <img
-                                                    className="h-9 w-9 rounded-xl object-cover object-center ring-1 ring-[var(--dc-border)]"
+                                                    className="h-9 w-9 rounded-xl object-cover object-center ring-1 ring-[var(--ui-border)]"
                                                     src={resolveProfileImage(user.profileImage, user.email, user.name)}
                                                     alt=""
                                                 />
                                                 <div className="max-w-50">
-                                                    <p className="text-sm font-medium text-[var(--dc-text-primary)] truncate">{user.name}</p>
-                                                    <p className="text-xs text-[var(--dc-text-muted)] truncate">{user.email}</p>
+                                                    <p className="text-sm font-medium text-[var(--ui-text)] truncate">{user.name}</p>
+                                                    <p className="text-xs text-[var(--ui-text-muted)] truncate">{user.email}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-5 py-3.5 whitespace-nowrap">
-                                            <p className="text-sm text-[var(--dc-text-secondary)]">{user.field}</p>
-                                            <p className="text-xs text-[var(--dc-text-muted)]">
+                                            <p className="text-sm text-[var(--ui-text-secondary)]">{user.field}</p>
+                                            <p className="text-xs text-[var(--ui-text-muted)]">
                                                 {user.branch ? `${user.branch} · ` : ''}{user.year} · Div {user.division}
                                             </p>
                                         </td>
                                         <td className="px-5 py-3.5 whitespace-nowrap">
                                             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide ${
                                                 user.role === 'admin'
-                                                    ? 'bg-[var(--dc-accent-dim)] text-[var(--dc-accent)] ring-1 ring-[var(--dc-accent)]/20'
-                                                    : 'bg-[var(--dc-bg-tertiary)] text-[var(--dc-text-muted)]'
+                                                    ? 'bg-[var(--ui-accent-dim)] text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/20'
+                                                    : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)]'
                                             }`}>
                                                 {user.role === 'admin' && <Shield className="h-3 w-3" />}
                                                 {user.role}
@@ -212,7 +212,7 @@ export default function AdminUsersPage() {
                                         <td className="px-5 py-3.5 whitespace-nowrap">
                                             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide ${
                                                 user.status === 'active'
-                                                    ? 'bg-[var(--dc-accent-dim)] text-[var(--dc-accent)] ring-1 ring-[var(--dc-accent)]/20'
+                                                    ? 'bg-[var(--ui-accent-dim)] text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/20'
                                                     : 'bg-red-500/15 text-red-400 ring-1 ring-red-500/20'
                                             }`}>
                                                 {user.status === 'active' ? <UserCheck className="h-3 w-3" /> : <Ban className="h-3 w-3" />}
@@ -220,7 +220,7 @@ export default function AdminUsersPage() {
                                             </span>
                                         </td>
                                         <td className="px-5 py-3.5 whitespace-nowrap">
-                                            <p className="text-xs text-[var(--dc-text-muted)]">
+                                            <p className="text-xs text-[var(--ui-text-muted)]">
                                                 {user.createdAt ? formatDistanceToNow(new Date(user.createdAt), { addSuffix: true }) : 'N/A'}
                                             </p>
                                         </td>
@@ -228,7 +228,7 @@ export default function AdminUsersPage() {
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
                                                     onClick={() => toggleUserRole(user.id, user.role)}
-                                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)] text-[var(--dc-text-secondary)] hover:bg-[var(--dc-bg-hover)] hover:text-[var(--dc-text-primary)] transition-colors"
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] transition-colors"
                                                     title={user.role === 'admin' ? 'Remove admin' : 'Make admin'}
                                                 >
                                                     <Shield className="h-3 w-3" />
@@ -239,7 +239,7 @@ export default function AdminUsersPage() {
                                                     className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                                                         user.status === 'active'
                                                             ? 'bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20'
-                                                            : 'bg-[var(--dc-accent-dim)] border border-[var(--dc-accent)]/20 text-[var(--dc-accent)] hover:bg-[var(--dc-accent)]/20'
+                                                            : 'bg-[var(--ui-accent-dim)] border border-[var(--ui-accent)]/20 text-[var(--ui-accent)] hover:bg-[var(--ui-accent)]/20'
                                                     }`}
                                                 >
                                                     {user.status === 'active' ? <Ban className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}

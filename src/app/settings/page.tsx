@@ -122,30 +122,30 @@ function CookiePrivacySection() {
     if (!loaded) return null;
 
     return (
-        <section className="dc-card p-6">
+        <section className="surface p-6">
             <div className="flex items-center gap-3 mb-1">
-                <Shield className="h-5 w-5 text-[var(--dc-accent)]" />
-                <h2 className="text-lg font-semibold text-[var(--dc-text-primary)]">Cookie &amp; Privacy</h2>
+                <Shield className="h-5 w-5 text-[var(--ui-accent)]" />
+                <h2 className="text-lg font-semibold text-[var(--ui-text)]">Cookie &amp; Privacy</h2>
             </div>
-            <p className="text-sm text-[var(--dc-text-muted)] mb-5">
+            <p className="text-sm text-[var(--ui-text-muted)] mb-5">
                 Manage cookie preferences and anti-sniffing protection.
             </p>
 
             {/* ── Anti-Sniffing Shield Panel ──────────────── */}
-            <div className="mb-5 rounded-xl border border-[var(--dc-accent)]/15 bg-[var(--dc-accent-dim)] p-4 space-y-3">
+            <div className="mb-5 rounded-xl border border-[var(--ui-accent)]/15 bg-[var(--ui-accent-dim)] p-4 space-y-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         {sessionValid ? (
-                            <ShieldCheck className="h-5 w-5 text-[var(--dc-accent)]" />
+                            <ShieldCheck className="h-5 w-5 text-[var(--ui-accent)]" />
                         ) : (
-                            <ShieldAlert className="h-5 w-5 text-[var(--dc-dnd)]" />
+                            <ShieldAlert className="h-5 w-5 text-[var(--ui-danger)]" />
                         )}
-                        <h3 className="text-sm font-bold text-[var(--dc-text-primary)]">Anti-Sniffing Shield</h3>
+                        <h3 className="text-sm font-bold text-[var(--ui-text)]">Anti-Sniffing Shield</h3>
                     </div>
                     <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
                         sessionValid
-                            ? 'bg-[var(--dc-accent-dim)] text-[var(--dc-accent)]'
-                            : 'bg-red-500/15 text-[var(--dc-dnd)]'
+                            ? 'bg-[var(--ui-accent-dim)] text-[var(--ui-accent)]'
+                            : 'bg-red-500/15 text-[var(--ui-danger)]'
                     }`}>
                         {sessionValid ? 'Protected' : 'Threat Detected'}
                     </span>
@@ -154,40 +154,40 @@ function CookiePrivacySection() {
                 {/* Shield details grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {/* Session integrity */}
-                    <div className="flex items-center gap-2 rounded-lg bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)] px-3 py-2">
-                        <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${sessionValid ? 'text-[var(--dc-accent)]' : 'text-[var(--dc-dnd)]'}`} />
+                    <div className="flex items-center gap-2 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] px-3 py-2">
+                        <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${sessionValid ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-danger)]'}`} />
                         <div>
-                            <p className="text-[10px] font-semibold text-[var(--dc-text-secondary)]">Session Integrity</p>
-                            <p className={`text-[9px] ${sessionValid ? 'text-[var(--dc-accent)]' : 'text-[var(--dc-dnd)]'}`}>
+                            <p className="text-[10px] font-semibold text-[var(--ui-text-secondary)]">Session Integrity</p>
+                            <p className={`text-[9px] ${sessionValid ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-danger)]'}`}>
                                 {sessionValid ? 'Verified — no hijack detected' : sessionReason}
                             </p>
                         </div>
                     </div>
 
                     {/* Browser fingerprint */}
-                    <div className="flex items-center gap-2 rounded-lg bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)] px-3 py-2">
-                        <Fingerprint className="h-3.5 w-3.5 text-[var(--dc-accent)] shrink-0" />
+                    <div className="flex items-center gap-2 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] px-3 py-2">
+                        <Fingerprint className="h-3.5 w-3.5 text-[var(--ui-accent)] shrink-0" />
                         <div>
-                            <p className="text-[10px] font-semibold text-[var(--dc-text-secondary)]">Browser Fingerprint</p>
-                            <p className="text-[9px] text-[var(--dc-accent)] font-mono">{fingerprint || '—'}</p>
+                            <p className="text-[10px] font-semibold text-[var(--ui-text-secondary)]">Browser Fingerprint</p>
+                            <p className="text-[9px] text-[var(--ui-accent)] font-mono">{fingerprint || '—'}</p>
                         </div>
                     </div>
 
                     {/* Cookie encryption */}
-                    <div className="flex items-center gap-2 rounded-lg bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)] px-3 py-2">
-                        <Lock className="h-3.5 w-3.5 text-[var(--dc-accent)] shrink-0" />
+                    <div className="flex items-center gap-2 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] px-3 py-2">
+                        <Lock className="h-3.5 w-3.5 text-[var(--ui-accent)] shrink-0" />
                         <div>
-                            <p className="text-[10px] font-semibold text-[var(--dc-text-secondary)]">Encryption</p>
-                            <p className="text-[9px] text-[var(--dc-accent)]">XOR cipher + HMAC signed</p>
+                            <p className="text-[10px] font-semibold text-[var(--ui-text-secondary)]">Encryption</p>
+                            <p className="text-[9px] text-[var(--ui-accent)]">XOR cipher + HMAC signed</p>
                         </div>
                     </div>
 
                     {/* Active cookies */}
-                    <div className="flex items-center gap-2 rounded-lg bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)] px-3 py-2">
-                        <Cookie className="h-3.5 w-3.5 text-[var(--dc-accent)] shrink-0" />
+                    <div className="flex items-center gap-2 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] px-3 py-2">
+                        <Cookie className="h-3.5 w-3.5 text-[var(--ui-accent)] shrink-0" />
                         <div>
-                            <p className="text-[10px] font-semibold text-[var(--dc-text-secondary)]">Active Cookies</p>
-                            <p className="text-[9px] text-[var(--dc-accent)]">{cookieCount} cookie{cookieCount !== 1 ? 's' : ''} · Secure + SameSite=Strict</p>
+                            <p className="text-[10px] font-semibold text-[var(--ui-text-secondary)]">Active Cookies</p>
+                            <p className="text-[9px] text-[var(--ui-accent)]">{cookieCount} cookie{cookieCount !== 1 ? 's' : ''} · Secure + SameSite=Strict</p>
                         </div>
                     </div>
                 </div>
@@ -196,7 +196,7 @@ function CookiePrivacySection() {
                 <div className="flex flex-wrap gap-2 pt-1">
                     <button
                         onClick={handleRevalidate}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--dc-bg-tertiary)] border border-[var(--dc-border)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--dc-text-secondary)] hover:bg-[var(--dc-bg-hover)] hover:text-[var(--dc-text-primary)] transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] transition-colors"
                     >
                         <RefreshCw className="h-3 w-3" />
                         Re-validate Session
@@ -211,7 +211,7 @@ function CookiePrivacySection() {
                 </div>
 
                 {/* Protection list */}
-                <div className="text-[9px] text-[var(--dc-accent)]/50 leading-relaxed space-y-0.5 pt-1 border-t border-[var(--dc-border)]">
+                <div className="text-[9px] text-[var(--ui-accent)]/50 leading-relaxed space-y-0.5 pt-1 border-t border-[var(--ui-border)]">
                     <p>✓ Cookies encrypted with browser-bound key</p>
                     <p>✓ HMAC signature prevents tampering</p>
                     <p>✓ Fingerprint binding blocks replay from other devices</p>
@@ -222,51 +222,51 @@ function CookiePrivacySection() {
             </div>
 
             {/* ── Cookie Preferences ──────────────────────── */}
-            <h3 className="text-sm font-semibold text-[var(--dc-text-primary)] mb-3">Cookie Preferences</h3>
+            <h3 className="text-sm font-semibold text-[var(--ui-text)] mb-3">Cookie Preferences</h3>
             <div className="space-y-3">
                 {/* Essential */}
-                <div className="flex items-center justify-between rounded-lg border border-[var(--dc-border)] p-3">
+                <div className="flex items-center justify-between rounded-lg border border-[var(--ui-border)] p-3">
                     <div className="flex items-center gap-2.5">
-                        <Lock className="h-4 w-4 text-[var(--dc-accent)]" />
+                        <Lock className="h-4 w-4 text-[var(--ui-accent)]" />
                         <div>
-                            <span className="text-sm text-[var(--dc-text-primary)] font-medium">Essential cookies</span>
-                            <p className="text-[10px] text-[var(--dc-text-muted)]">Auth, sessions, security. Always required.</p>
+                            <span className="text-sm text-[var(--ui-text)] font-medium">Essential cookies</span>
+                            <p className="text-[10px] text-[var(--ui-text-muted)]">Auth, sessions, security. Always required.</p>
                         </div>
                     </div>
-                    <span className="text-[10px] font-bold text-[var(--dc-accent)] uppercase bg-[var(--dc-accent-dim)] px-2 py-0.5 rounded-full">Required</span>
+                    <span className="text-[10px] font-bold text-[var(--ui-accent)] uppercase bg-[var(--ui-accent-dim)] px-2 py-0.5 rounded-full">Required</span>
                 </div>
 
                 {/* Analytics */}
-                <label className="flex items-center justify-between rounded-lg border border-[var(--dc-border)] p-3 cursor-pointer hover:bg-[var(--dc-bg-hover)] transition-colors">
+                <label className="flex items-center justify-between rounded-lg border border-[var(--ui-border)] p-3 cursor-pointer hover:bg-[var(--ui-bg-hover)] transition-colors">
                     <div className="flex items-center gap-2.5">
                         <span className="text-sm">📊</span>
                         <div>
-                            <span className="text-sm text-[var(--dc-text-secondary)]">Analytics cookies</span>
-                            <p className="text-[10px] text-[var(--dc-text-muted)]">Firebase Analytics &amp; performance monitoring.</p>
+                            <span className="text-sm text-[var(--ui-text-secondary)]">Analytics cookies</span>
+                            <p className="text-[10px] text-[var(--ui-text-muted)]">Firebase Analytics &amp; performance monitoring.</p>
                         </div>
                     </div>
                     <input
                         type="checkbox"
                         checked={analytics}
                         onChange={(e) => setAnalytics(e.target.checked)}
-                        className="h-4 w-4 rounded border-[var(--dc-border)] text-[var(--dc-accent)] focus:ring-[var(--dc-accent)]/50"
+                        className="h-4 w-4 rounded border-[var(--ui-border)] text-[var(--ui-accent)] focus:ring-[var(--ui-accent)]/50"
                     />
                 </label>
 
                 {/* Functional */}
-                <label className="flex items-center justify-between rounded-lg border border-[var(--dc-border)] p-3 cursor-pointer hover:bg-[var(--dc-bg-hover)] transition-colors">
+                <label className="flex items-center justify-between rounded-lg border border-[var(--ui-border)] p-3 cursor-pointer hover:bg-[var(--ui-bg-hover)] transition-colors">
                     <div className="flex items-center gap-2.5">
                         <span className="text-sm">⚙️</span>
                         <div>
-                            <span className="text-sm text-[var(--dc-text-secondary)]">Functional cookies</span>
-                            <p className="text-[10px] text-[var(--dc-text-muted)]">Preferences, themes, compact mode.</p>
+                            <span className="text-sm text-[var(--ui-text-secondary)]">Functional cookies</span>
+                            <p className="text-[10px] text-[var(--ui-text-muted)]">Preferences, themes, compact mode.</p>
                         </div>
                     </div>
                     <input
                         type="checkbox"
                         checked={functional}
                         onChange={(e) => setFunctional(e.target.checked)}
-                        className="h-4 w-4 rounded border-[var(--dc-border)] text-[var(--dc-accent)] focus:ring-[var(--dc-accent)]/50"
+                        className="h-4 w-4 rounded border-[var(--ui-border)] text-[var(--ui-accent)] focus:ring-[var(--ui-accent)]/50"
                     />
                 </label>
             </div>
@@ -275,13 +275,13 @@ function CookiePrivacySection() {
             <div className="mt-4 flex flex-wrap items-center gap-3">
                 <button
                     onClick={handleSave}
-                    className="rounded-md bg-[var(--dc-accent)] px-3 py-2 text-sm font-medium text-[var(--dc-bg-tertiary)] hover:bg-[var(--dc-accent-hover)] transition-colors"
+                    className="rounded-md bg-[var(--ui-accent)] px-3 py-2 text-sm font-medium text-[var(--ui-bg-elevated)] hover:bg-[var(--ui-accent-hover)] transition-colors"
                 >
                     Save Preferences
                 </button>
                 <button
                     onClick={handleAcceptAll}
-                    className="rounded-md border border-[var(--dc-border)] px-3 py-2 text-sm font-medium text-[var(--dc-text-secondary)] hover:bg-[var(--dc-bg-hover)] transition-colors"
+                    className="rounded-md border border-[var(--ui-border)] px-3 py-2 text-sm font-medium text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] transition-colors"
                 >
                     Accept All
                 </button>
@@ -296,7 +296,7 @@ function CookiePrivacySection() {
             </div>
 
             {consent && (
-                <p className="mt-3 text-[10px] text-[var(--dc-text-muted)]">
+                <p className="mt-3 text-[10px] text-[var(--ui-text-muted)]">
                     <Cookie className="inline h-3 w-3 mr-1" />
                     Last consented: {new Date(consent.consentedAt).toLocaleDateString()} · v{consent.version}
                 </p>
@@ -478,7 +478,7 @@ export default function SettingsPage() {
         return (
             <DashboardLayout>
                 <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--dc-accent)]"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--ui-accent)]"></div>
                 </div>
             </DashboardLayout>
         );
@@ -491,62 +491,62 @@ export default function SettingsPage() {
 
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-3xl mx-auto w-full space-y-6 animate-[fade-in-up_0.3s_ease-out]">
 
-                    <section className="dc-card p-6">
-                        <h2 className="text-lg font-semibold text-[var(--dc-text-primary)]">Preferences</h2>
+                    <section className="surface p-6">
+                        <h2 className="text-lg font-semibold text-[var(--ui-text)]">Preferences</h2>
                         <div className="mt-4 space-y-3">
-                            <label className="flex items-center justify-between rounded-lg border border-[var(--dc-border)] p-3">
-                                <span className="text-sm text-[var(--dc-text-secondary)]">Email notifications</span>
+                            <label className="flex items-center justify-between rounded-lg border border-[var(--ui-border)] p-3">
+                                <span className="text-sm text-[var(--ui-text-secondary)]">Email notifications</span>
                                 <input
                                     type="checkbox"
                                     checked={settings.emailNotifications}
                                     onChange={() => toggle('emailNotifications')}
-                                    className="h-4 w-4 rounded border-[var(--dc-border)] text-[var(--dc-accent)] focus:ring-[var(--dc-accent)]/50"
+                                    className="h-4 w-4 rounded border-[var(--ui-border)] text-[var(--ui-accent)] focus:ring-[var(--ui-accent)]/50"
                                 />
                             </label>
-                            <label className="flex items-center justify-between rounded-lg border border-[var(--dc-border)] p-3">
-                                <span className="text-sm text-[var(--dc-text-secondary)]">Sound effects</span>
+                            <label className="flex items-center justify-between rounded-lg border border-[var(--ui-border)] p-3">
+                                <span className="text-sm text-[var(--ui-text-secondary)]">Sound effects</span>
                                 <input
                                     type="checkbox"
                                     checked={settings.soundEffects}
                                     onChange={() => toggle('soundEffects')}
-                                    className="h-4 w-4 rounded border-[var(--dc-border)] text-[var(--dc-accent)] focus:ring-[var(--dc-accent)]/50"
+                                    className="h-4 w-4 rounded border-[var(--ui-border)] text-[var(--ui-accent)] focus:ring-[var(--ui-accent)]/50"
                                 />
                             </label>
-                            <label className="flex items-center justify-between rounded-lg border border-[var(--dc-border)] p-3">
-                                <span className="text-sm text-[var(--dc-text-secondary)]">Compact mode</span>
+                            <label className="flex items-center justify-between rounded-lg border border-[var(--ui-border)] p-3">
+                                <span className="text-sm text-[var(--ui-text-secondary)]">Compact mode</span>
                                 <input
                                     type="checkbox"
                                     checked={settings.compactMode}
                                     onChange={() => toggle('compactMode')}
-                                    className="h-4 w-4 rounded border-[var(--dc-border)] text-[var(--dc-accent)] focus:ring-[var(--dc-accent)]/50"
+                                    className="h-4 w-4 rounded border-[var(--ui-border)] text-[var(--ui-accent)] focus:ring-[var(--ui-accent)]/50"
                                 />
                             </label>
                         </div>
                         <button
                             onClick={resetSettings}
-                            className="mt-4 text-sm font-medium text-[var(--dc-accent)] hover:text-[var(--dc-accent-hover)] transition-colors"
+                            className="mt-4 text-sm font-medium text-[var(--ui-accent)] hover:text-[var(--ui-accent-hover)] transition-colors"
                         >
                             Reset to default
                         </button>
                     </section>
 
-                    <section className="dc-card p-6">
-                        <h2 className="text-lg font-semibold text-[var(--dc-text-primary)]">Google Drive</h2>
-                        <p className="mt-1 text-sm text-[var(--dc-text-muted)]">
+                    <section className="surface p-6">
+                        <h2 className="text-lg font-semibold text-[var(--ui-text)]">Google Drive</h2>
+                        <p className="mt-1 text-sm text-[var(--ui-text-muted)]">
                             Connect your Google account to upload profile media to your own Drive storage.
                         </p>
 
-                        <div className="mt-4 rounded-lg border border-[var(--dc-border)] p-4">
+                        <div className="mt-4 rounded-lg border border-[var(--ui-border)] p-4">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div>
-                                    <p className="text-sm text-[var(--dc-text-secondary)]">
+                                    <p className="text-sm text-[var(--ui-text-secondary)]">
                                         Status:{' '}
-                                        <span className={`font-semibold ${userProfile.googleDrive ? 'text-[var(--dc-accent)]' : 'text-[var(--dc-text-muted)]'}`}>
+                                        <span className={`font-semibold ${userProfile.googleDrive ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text-muted)]'}`}>
                                             {userProfile.googleDrive ? 'Connected' : 'Not connected'}
                                         </span>
                                     </p>
                                     {userProfile.googleDrive?.email && (
-                                        <p className="text-xs text-[var(--dc-text-muted)] mt-1">{userProfile.googleDrive.email}</p>
+                                        <p className="text-xs text-[var(--ui-text-muted)] mt-1">{userProfile.googleDrive.email}</p>
                                     )}
                                 </div>
                                 <div className="flex gap-2">
@@ -562,7 +562,7 @@ export default function SettingsPage() {
                                         <button
                                             onClick={connectGoogleDrive}
                                             disabled={driveBusy}
-                                            className="rounded-md bg-[var(--dc-accent)] px-3 py-2 text-sm font-medium text-[var(--dc-bg-tertiary)] hover:bg-[var(--dc-accent-hover)] disabled:opacity-50 transition-colors"
+                                            className="rounded-md bg-[var(--ui-accent)] px-3 py-2 text-sm font-medium text-[var(--ui-bg-elevated)] hover:bg-[var(--ui-accent-hover)] disabled:opacity-50 transition-colors"
                                         >
                                             Connect Google Drive
                                         </button>
@@ -571,7 +571,7 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="mt-4 space-y-2">
-                                <label htmlFor="driveFolder" className="block text-sm font-medium text-[var(--dc-text-secondary)]">
+                                <label htmlFor="driveFolder" className="block text-sm font-medium text-[var(--ui-text-secondary)]">
                                     Drive Folder Link (optional)
                                 </label>
                                 <input
@@ -579,12 +579,12 @@ export default function SettingsPage() {
                                     value={driveFolderLink}
                                     onChange={(e) => setDriveFolderLink(e.target.value)}
                                     placeholder="https://drive.google.com/drive/folders/..."
-                                    className="dc-input"
+                                    className="input"
                                 />
                                 <button
                                     onClick={saveDriveFolder}
                                     disabled={driveBusy || !userProfile.googleDrive}
-                                    className="rounded-md border border-[var(--dc-border)] px-3 py-2 text-sm font-medium text-[var(--dc-text-secondary)] hover:bg-[var(--dc-bg-hover)] disabled:opacity-50 transition-colors"
+                                    className="rounded-md border border-[var(--ui-border)] px-3 py-2 text-sm font-medium text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] disabled:opacity-50 transition-colors"
                                 >
                                     Save Folder
                                 </button>
@@ -594,34 +594,34 @@ export default function SettingsPage() {
 
                     <CookiePrivacySection />
 
-                    <section className="dc-card p-6">
-                        <h2 className="text-lg font-semibold text-[var(--dc-text-primary)]">Account</h2>
+                    <section className="surface p-6">
+                        <h2 className="text-lg font-semibold text-[var(--ui-text)]">Account</h2>
                         <dl className="mt-4 space-y-2 text-sm">
                             <div className="flex justify-between">
-                                <dt className="text-[var(--dc-text-muted)]">Name</dt>
-                                <dd className="text-[var(--dc-text-primary)] font-medium">{userProfile.name}</dd>
+                                <dt className="text-[var(--ui-text-muted)]">Name</dt>
+                                <dd className="text-[var(--ui-text)] font-medium">{userProfile.name}</dd>
                             </div>
                             <div className="flex justify-between">
-                                <dt className="text-[var(--dc-text-muted)]">Email</dt>
-                                <dd className="text-[var(--dc-text-primary)] font-medium">{userProfile.email}</dd>
+                                <dt className="text-[var(--ui-text-muted)]">Email</dt>
+                                <dd className="text-[var(--ui-text)] font-medium">{userProfile.email}</dd>
                             </div>
                             <div className="flex justify-between">
-                                <dt className="text-[var(--dc-text-muted)]">Role</dt>
-                                <dd className="text-[var(--dc-text-primary)] font-medium capitalize">{userProfile.role}</dd>
+                                <dt className="text-[var(--ui-text-muted)]">Role</dt>
+                                <dd className="text-[var(--ui-text)] font-medium capitalize">{userProfile.role}</dd>
                             </div>
                             <div className="flex justify-between">
-                                <dt className="text-[var(--dc-text-muted)]">Gender</dt>
-                                <dd className="text-[var(--dc-text-primary)] font-medium capitalize">{userProfile.gender}</dd>
+                                <dt className="text-[var(--ui-text-muted)]">Gender</dt>
+                                <dd className="text-[var(--ui-text)] font-medium capitalize">{userProfile.gender}</dd>
                             </div>
                             <div className="flex justify-between">
-                                <dt className="text-[var(--dc-text-muted)]">Account Type</dt>
-                                <dd className="text-[var(--dc-text-primary)] font-medium capitalize">{userProfile.accountVisibility}</dd>
+                                <dt className="text-[var(--ui-text-muted)]">Account Type</dt>
+                                <dd className="text-[var(--ui-text)] font-medium capitalize">{userProfile.accountVisibility}</dd>
                             </div>
                         </dl>
                         <div className="mt-5">
                             <button
                                 onClick={logout}
-                                className="inline-flex items-center rounded-md bg-[var(--dc-dnd)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+                                className="inline-flex items-center rounded-md bg-[var(--ui-danger)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
                             >
                                 Logout
                             </button>

@@ -122,16 +122,16 @@ export default function AdminDashboard() {
     useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
 
     const statCards = [
-        { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'bg-[var(--dc-accent-dim)]', iconColor: 'text-[var(--dc-accent)]', ringColor: 'ring-[var(--dc-accent)]/20' },
+        { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'bg-[var(--ui-accent-dim)]', iconColor: 'text-[var(--ui-accent)]', ringColor: 'ring-[var(--ui-accent)]/20' },
         { label: 'Banned Users', value: stats.bannedUsers, icon: UserX, color: 'bg-red-500/15', iconColor: 'text-red-400', ringColor: 'ring-red-500/20' },
-        { label: 'Confessions', value: stats.totalConfessions, icon: MessageSquare, color: 'bg-[var(--dc-accent-dim)]', iconColor: 'text-[var(--dc-accent)]', ringColor: 'ring-[var(--dc-accent)]/20' },
-        { label: 'Anon Messages', value: stats.totalAnonMessages, icon: EyeOff, color: 'bg-[var(--dc-accent-dim)]', iconColor: 'text-[var(--dc-accent)]', ringColor: 'ring-[var(--dc-accent)]/20' },
+        { label: 'Confessions', value: stats.totalConfessions, icon: MessageSquare, color: 'bg-[var(--ui-accent-dim)]', iconColor: 'text-[var(--ui-accent)]', ringColor: 'ring-[var(--ui-accent)]/20' },
+        { label: 'Anon Messages', value: stats.totalAnonMessages, icon: EyeOff, color: 'bg-[var(--ui-accent-dim)]', iconColor: 'text-[var(--ui-accent)]', ringColor: 'ring-[var(--ui-accent)]/20' },
     ];
 
     const adminModules = [
-        { name: 'User Management', description: 'View users, manage roles, and issue bans.', href: '/admin/users', icon: Users, color: 'text-[var(--dc-accent)] bg-[var(--dc-accent-dim)]' },
-        { name: 'Confession Tracker', description: 'Real identities behind anonymous confessions.', href: '/admin/confessions', icon: MessageSquare, color: 'text-[var(--dc-accent)] bg-[var(--dc-accent-dim)]' },
-        { name: 'Shadow Realm Oversight', description: 'Monitor anonymous chat with real email addresses.', href: '/admin/anonymous-chat', icon: EyeOff, color: 'text-[var(--dc-accent)] bg-[var(--dc-accent-dim)]' },
+        { name: 'User Management', description: 'View users, manage roles, and issue bans.', href: '/admin/users', icon: Users, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
+        { name: 'Confession Tracker', description: 'Real identities behind anonymous confessions.', href: '/admin/confessions', icon: MessageSquare, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
+        { name: 'Shadow Realm Oversight', description: 'Monitor anonymous chat with real email addresses.', href: '/admin/anonymous-chat', icon: EyeOff, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
         { name: 'Moderation Reports', description: 'Review and act on user-submitted reports.', href: '/admin/reports', icon: ShieldAlert, color: 'text-red-400 bg-red-500/15' },
     ];
 
@@ -140,20 +140,20 @@ export default function AdminDashboard() {
             {/* Header */}
             <div className="flex items-start justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-[var(--dc-text-primary)] flex items-center gap-3">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-[var(--ui-text)] flex items-center gap-3">
                         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/15 ring-1 ring-red-500/20">
                             <ShieldAlert className="h-5 w-5 text-red-400" />
                         </span>
                         Admin Control Center
                     </h1>
-                    <p className="mt-2 text-sm text-[var(--dc-text-muted)]">
+                    <p className="mt-2 text-sm text-[var(--ui-text-muted)]">
                         Monitor platform activity and enforce community guidelines.
                     </p>
                 </div>
                 <button
                     onClick={() => fetchDashboardData(true)}
                     disabled={refreshing}
-                    className="inline-flex items-center gap-2 rounded-lg border border-[var(--dc-border)] bg-[var(--dc-bg-tertiary)] px-4 py-2.5 text-sm font-medium text-[var(--dc-text-secondary)] hover:bg-[var(--dc-bg-hover)] hover:text-[var(--dc-text-primary)] disabled:opacity-40 transition-colors duration-200"
+                    className="inline-flex items-center gap-2 rounded-lg border border-[var(--ui-border)] bg-[var(--ui-bg-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] disabled:opacity-40 transition-colors duration-200"
                 >
                     <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                     Refresh
@@ -163,22 +163,22 @@ export default function AdminDashboard() {
             {/* Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {statCards.map((stat) => (
-                    <div key={stat.label} className="dc-card p-5">
+                    <div key={stat.label} className="surface p-5">
                         <div className="flex items-center justify-between mb-3">
                             <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.color} ring-1 ${stat.ringColor}`}>
                                 <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
                             </div>
-                            <TrendingUp className="h-4 w-4 text-[var(--dc-text-muted)]" />
+                            <TrendingUp className="h-4 w-4 text-[var(--ui-text-muted)]" />
                         </div>
                         {loading ? (
                             <div className="space-y-2">
-                                <div className="h-8 w-16 rounded-lg bg-[var(--dc-bg-tertiary)] animate-pulse" />
-                                <div className="h-3 w-24 rounded bg-[var(--dc-bg-tertiary)] animate-pulse" />
+                                <div className="h-8 w-16 rounded-lg bg-[var(--ui-bg-elevated)] animate-pulse" />
+                                <div className="h-3 w-24 rounded bg-[var(--ui-bg-elevated)] animate-pulse" />
                             </div>
                         ) : (
                             <>
-                                <p className="text-2xl font-bold text-[var(--dc-text-primary)]">{stat.value.toLocaleString()}</p>
-                                <p className="text-xs text-[var(--dc-text-muted)] mt-1">{stat.label}</p>
+                                <p className="text-2xl font-bold text-[var(--ui-text)]">{stat.value.toLocaleString()}</p>
+                                <p className="text-xs text-[var(--ui-text-muted)] mt-1">{stat.label}</p>
                             </>
                         )}
                     </div>
@@ -187,8 +187,8 @@ export default function AdminDashboard() {
 
             {/* Admin Modules */}
             <div className="mb-8">
-                <h2 className="text-lg font-semibold text-[var(--dc-text-primary)] mb-4 flex items-center gap-2">
-                    <Activity className="h-4.5 w-4.5 text-[var(--dc-text-muted)]" />
+                <h2 className="text-lg font-semibold text-[var(--ui-text)] mb-4 flex items-center gap-2">
+                    <Activity className="h-4.5 w-4.5 text-[var(--ui-text-muted)]" />
                     Admin Modules
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -196,17 +196,17 @@ export default function AdminDashboard() {
                         <Link
                             key={item.name}
                             href={item.href}
-                            className="group dc-card-interactive p-5 overflow-hidden"
+                            className="group surface-interactive p-5 overflow-hidden"
                         >
                             <div className="relative z-10 flex items-start gap-4">
                                 <div className={`h-11 w-11 flex items-center justify-center rounded-xl ${item.color} group-hover:scale-110 transition-transform duration-300 shrink-0`}>
                                     <item.icon className="h-5 w-5" aria-hidden="true" />
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-bold text-[var(--dc-text-primary)] group-hover:text-[var(--dc-text-primary)] transition-colors">
+                                    <h3 className="text-base font-bold text-[var(--ui-text)] group-hover:text-[var(--ui-text)] transition-colors">
                                         {item.name}
                                     </h3>
-                                    <p className="text-sm text-[var(--dc-text-muted)] leading-relaxed mt-1">
+                                    <p className="text-sm text-[var(--ui-text-muted)] leading-relaxed mt-1">
                                         {item.description}
                                     </p>
                                 </div>
@@ -218,45 +218,45 @@ export default function AdminDashboard() {
 
             {/* Recent Activity Feed */}
             <div>
-                <h2 className="text-lg font-semibold text-[var(--dc-text-primary)] mb-4 flex items-center gap-2">
-                    <Activity className="h-4.5 w-4.5 text-[var(--dc-text-muted)]" />
+                <h2 className="text-lg font-semibold text-[var(--ui-text)] mb-4 flex items-center gap-2">
+                    <Activity className="h-4.5 w-4.5 text-[var(--ui-text-muted)]" />
                     Recent Activity
                 </h2>
-                <div className="dc-card overflow-hidden divide-y divide-[var(--dc-divider)]">
+                <div className="surface overflow-hidden divide-y divide-[var(--ui-divider)]">
                     {loading ? (
                         <div className="p-8 text-center">
                             <div className="flex flex-col items-center gap-3">
-                                <div className="h-10 w-10 rounded-full border-2 border-[var(--dc-accent)]/30 border-t-[var(--dc-accent)] animate-spin" />
-                                <p className="text-sm text-[var(--dc-text-muted)]">Loading activity...</p>
+                                <div className="h-10 w-10 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
+                                <p className="text-sm text-[var(--ui-text-muted)]">Loading activity...</p>
                             </div>
                         </div>
                     ) : recentActivity.length === 0 ? (
                         <div className="p-12 text-center">
-                            <Activity className="h-10 w-10 text-[var(--dc-text-muted)] mx-auto mb-3" />
-                            <p className="text-sm text-[var(--dc-text-muted)]">No recent activity found</p>
-                            <p className="text-xs text-[var(--dc-text-muted)] mt-1">Activity will appear here as users interact with the platform</p>
+                            <Activity className="h-10 w-10 text-[var(--ui-text-muted)] mx-auto mb-3" />
+                            <p className="text-sm text-[var(--ui-text-muted)]">No recent activity found</p>
+                            <p className="text-xs text-[var(--ui-text-muted)] mt-1">Activity will appear here as users interact with the platform</p>
                         </div>
                     ) : (
                         recentActivity.map((activity) => (
-                            <div key={activity.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-[var(--dc-bg-hover)] transition-colors">
+                            <div key={activity.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-[var(--ui-bg-hover)] transition-colors">
                                 <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
                                     activity.type === 'confession'
-                                        ? 'bg-[var(--dc-accent-dim)] ring-1 ring-[var(--dc-accent)]/20'
-                                        : 'bg-[var(--dc-accent-dim)] ring-1 ring-[var(--dc-accent)]/20'
+                                        ? 'bg-[var(--ui-accent-dim)] ring-1 ring-[var(--ui-accent)]/20'
+                                        : 'bg-[var(--ui-accent-dim)] ring-1 ring-[var(--ui-accent)]/20'
                                 }`}>
                                     {activity.type === 'confession'
-                                        ? <MessageSquare className="h-4 w-4 text-[var(--dc-accent)]" />
-                                        : <EyeOff className="h-4 w-4 text-[var(--dc-accent)]" />
+                                        ? <MessageSquare className="h-4 w-4 text-[var(--ui-accent)]" />
+                                        : <EyeOff className="h-4 w-4 text-[var(--ui-accent)]" />
                                     }
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-[var(--dc-text-primary)] truncate">{activity.text}</p>
-                                    <p className="text-xs text-[var(--dc-text-muted)] truncate">
+                                    <p className="text-sm text-[var(--ui-text)] truncate">{activity.text}</p>
+                                    <p className="text-xs text-[var(--ui-text-muted)] truncate">
                                         <span className="text-red-400/80 font-medium">{activity.identity}</span>
                                         {activity.type === 'confession' ? ' · Confession' : ' · Anon Message'}
                                     </p>
                                 </div>
-                                <p className="text-[11px] text-[var(--dc-text-muted)] shrink-0">
+                                <p className="text-[11px] text-[var(--ui-text-muted)] shrink-0">
                                     {activity.timestamp
                                         ? formatDistanceToNow(activity.timestamp, { addSuffix: true })
                                         : 'N/A'
