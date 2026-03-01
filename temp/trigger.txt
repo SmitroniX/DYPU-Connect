@@ -1,7 +1,0 @@
-﻿node.exe :  ┬╗   JSONHTTPError: Not Found
-At C:\Users\spart\AppData\Roaming\npm\netlify.ps1:24 char:5
-+     & "node$exe"  "$basedir/node_modules/netlify-cli/bin/run.js" $arg ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: ( ┬╗   JSONHTTPError: Not Found:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 

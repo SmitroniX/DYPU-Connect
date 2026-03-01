@@ -45,28 +45,28 @@ export default function VerifyEmailPage() {
     }, [verifyLoginLink, router]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-950 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-[#0a0e1a] relative overflow-hidden">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-linear-to-br from-violet-600/20 via-slate-950 to-indigo-600/20 animate-[gradient-shift_6s_ease_infinite]"
+                className="absolute inset-0 bg-linear-to-br from-sky-300/10 via-[#0a0e1a] to-slate-400/10 animate-[gradient-shift_6s_ease_infinite]"
                 style={{ backgroundSize: '200% 200%' }}
             />
-            <div className="absolute top-1/4 -left-20 w-72 h-72 rounded-full bg-violet-500/10 blur-3xl animate-[float_6s_ease-in-out_infinite]" />
-            <div className="absolute bottom-1/4 -right-20 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl animate-[float_8s_ease-in-out_infinite]" style={{ animationDelay: '2s' }} />
+            <div className="absolute top-1/4 -left-20 w-72 h-72 rounded-full bg-sky-200/8 blur-3xl animate-[float_6s_ease-in-out_infinite]" />
+            <div className="absolute bottom-1/4 -right-20 w-80 h-80 rounded-full bg-slate-300/8 blur-3xl animate-[float_8s_ease-in-out_infinite]" style={{ animationDelay: '2s' }} />
 
             <div className="relative z-10 max-w-md w-full mx-4 glass-strong p-8 text-center animate-[fade-in-up_0.6s_ease-out]">
                 {loading ? (
                     <div className="py-4">
                         <div className="animate-[pulse-glow_2s_ease-in-out_infinite] mb-6">
-                            <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-violet-400 to-indigo-400">
+                            <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-sky-200 to-slate-300">
                                 ✦ DYPU Connect
                             </h1>
                         </div>
                         <p className="text-white font-semibold mb-4">Verifying your login...</p>
                         <div className="flex justify-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                            <span className="w-2.5 h-2.5 rounded-full bg-sky-300 animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-2.5 h-2.5 rounded-full bg-sky-200 animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-2.5 h-2.5 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
                     </div>
                 ) : error ? (
@@ -76,7 +76,7 @@ export default function VerifyEmailPage() {
                         <p className="text-sm text-slate-400 mb-6">{error}</p>
                         <button
                             onClick={() => router.push('/login')}
-                            className="w-full flex items-center justify-center gap-2 py-3 px-4 text-sm font-semibold rounded-xl text-white bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 transition-all duration-300 shadow-lg shadow-violet-500/25"
+                            className="w-full flex items-center justify-center gap-2 py-3 px-4 text-sm font-semibold rounded-xl text-slate-900 bg-linear-to-r from-sky-200 to-slate-300 hover:from-sky-100 hover:to-slate-200 transition-all duration-300 shadow-lg shadow-sky-300/15"
                         >
                             <ArrowLeft className="w-4 h-4" />
                             Back to Login

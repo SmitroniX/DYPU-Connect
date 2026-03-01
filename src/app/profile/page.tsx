@@ -927,8 +927,8 @@ export default function ProfilePage() {
                                     <SelectField label="Visibility" id="galleryVisibility" value={galleryDraft.visibility} onChange={(e) => setGalleryDraft((prev) => ({ ...prev, visibility: e.target.value as ProfileVisibility }))}>
                                         {PROFILE_VISIBILITY_OPTIONS.map((v) => <option key={v} value={v}>{visibilityLabel(v)}</option>)}
                                     </SelectField>
-                                    <PrimaryButton type="submit">
-                                        <ImagePlus className="h-4 w-4" /> Add Photo
+                                    <PrimaryButton type="submit" disabled={busy}>
+                                        <ImagePlus className="h-4 w-4" /> {busy ? 'Adding...' : 'Add Photo'}
                                     </PrimaryButton>
                                     <SecondaryButton type="button" disabled={!canUploadToDrive || !!uploadingTarget} onClick={() => galleryFileInputRef.current?.click()}>
                                         <Upload className="h-4 w-4" /> {uploadingTarget === 'gallery' ? 'Uploading...' : 'Pick File'}

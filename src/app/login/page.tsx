@@ -33,22 +33,22 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-950 relative overflow-hidden">
-            {/* Animated gradient backdrop */}
+        <div className="min-h-screen flex items-center justify-center bg-[#0a0e1a] relative overflow-hidden">
+            {/* Moonstone gradient backdrop */}
             <div
-                className="absolute inset-0 bg-linear-to-br from-violet-600/20 via-slate-950 to-indigo-600/20 animate-[gradient-shift_6s_ease_infinite]"
+                className="absolute inset-0 bg-linear-to-br from-sky-300/10 via-[#0a0e1a] to-slate-400/10 animate-[gradient-shift_6s_ease_infinite]"
                 style={{ backgroundSize: '200% 200%' }}
             />
 
-            {/* Floating blobs */}
-            <div className="absolute top-1/4 -left-20 w-72 h-72 rounded-full bg-violet-500/10 blur-3xl animate-[float_6s_ease-in-out_infinite]" />
-            <div className="absolute bottom-1/4 -right-20 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl animate-[float_8s_ease-in-out_infinite]" style={{ animationDelay: '2s' }} />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-purple-500/5 blur-3xl animate-[pulse-glow_4s_ease-in-out_infinite]" />
+            {/* Floating moonstone glows */}
+            <div className="absolute top-1/4 -left-20 w-72 h-72 rounded-full bg-sky-200/8 blur-3xl animate-[float_6s_ease-in-out_infinite]" />
+            <div className="absolute bottom-1/4 -right-20 w-80 h-80 rounded-full bg-slate-300/8 blur-3xl animate-[float_8s_ease-in-out_infinite]" style={{ animationDelay: '2s' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-blue-200/5 blur-3xl animate-[pulse-glow_4s_ease-in-out_infinite]" />
 
             {/* Card */}
             <div className="relative z-10 max-w-md w-full mx-4 glass-strong p-8 animate-[fade-in-up_0.6s_ease-out]">
                 <div className="text-center mb-8">
-                    <h2 className="text-4xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-violet-400 to-indigo-400 tracking-tight">
+                    <h2 className="text-4xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-sky-200 to-slate-300 tracking-tight">
                         ✦ DYPU Connect
                     </h2>
                     <p className="mt-3 text-sm text-slate-400">
@@ -57,11 +57,11 @@ export default function LoginPage() {
                 </div>
 
                 {emailSent ? (
-                    <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-6 text-center animate-[fade-in-up_0.4s_ease-out]">
-                        <CheckCircle className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
-                        <h3 className="text-lg font-bold text-emerald-300">Check your email</h3>
-                        <p className="mt-2 text-sm text-emerald-400/80">
-                            We&apos;ve sent a sign-in link to <strong className="text-emerald-300">{email}</strong>.
+                    <div className="rounded-xl bg-sky-500/10 border border-sky-400/20 p-6 text-center animate-[fade-in-up_0.4s_ease-out]">
+                        <CheckCircle className="w-10 h-10 text-sky-300 mx-auto mb-3" />
+                        <h3 className="text-lg font-bold text-sky-200">Check your email</h3>
+                        <p className="mt-2 text-sm text-sky-300/80">
+                            We&apos;ve sent a sign-in link to <strong className="text-sky-200">{email}</strong>.
                         </p>
 
                         {/* Spam folder warning */}
@@ -84,7 +84,7 @@ export default function LoginPage() {
                                 name="email"
                                 type="email"
                                 required
-                                className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-12 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                                className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-12 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300/40 focus:border-sky-300/30 transition-all"
                                 placeholder="Your @dypatil.edu email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -94,11 +94,11 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 text-sm font-semibold rounded-xl text-white bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 transition-all duration-300 shadow-lg shadow-violet-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 text-sm font-semibold rounded-xl text-slate-900 bg-linear-to-r from-sky-200 to-slate-300 hover:from-sky-100 hover:to-slate-200 transition-all duration-300 shadow-lg shadow-sky-300/15 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <span className="flex items-center gap-2">
-                                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <span className="w-4 h-4 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
                                     Sending link...
                                 </span>
                             ) : (

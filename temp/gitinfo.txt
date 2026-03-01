@@ -1,3 +1,0 @@
-fe96010 chore: trigger Netlify redeploy with env vars
-2f9c394 chore: trigger Netlify redeploy with env vars
-2bdcb7a chore: remove temp files
