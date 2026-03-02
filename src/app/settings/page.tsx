@@ -27,10 +27,11 @@ import {
     panicWipeCookies,
 } from '@/lib/cookieShield';
 import { generateSessionFingerprint } from '@/lib/security';
-import { Shield, Cookie, Lock, Fingerprint, ShieldCheck, ShieldAlert, Trash2, RefreshCw, KeyRound, Activity, Eye } from 'lucide-react';
+import { Shield, Cookie, Lock, Fingerprint, ShieldCheck, ShieldAlert, Trash2, RefreshCw, KeyRound, Activity, Eye, Monitor, Smartphone, Laptop, Globe, X, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { fetchActivityLog, type ActivityLogEntry } from '@/lib/activityLog';
 import { getOrCreateEncryptionSalt } from '@/lib/encryption';
+import { fetchDeviceSessions, removeDeviceSession, removeAllOtherSessions, type DeviceSession } from '@/lib/deviceSessions';
 import { formatDistanceToNowStrict } from 'date-fns';
 
 interface UserSettings {
@@ -196,6 +197,210 @@ function SecuritySection() {
                     </div>
                 )}
             </div>
+        </section>
+    );
+}
+
+/* ── Logged-in Devices Section ───────────────────── */
+
+function DeviceSessionsSection() {
+    const { user } = useAuth();
+    const [sessions, setSessions] = useState<DeviceSession[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [removingId, setRemovingId] = useState<string | null>(null);
+    const [removingAll, setRemovingAll] = useState(false);
+
+    const loadSessions = async () => {
+        if (!user) return;
+        setLoading(true);
+        try {
+            const data = await fetchDeviceSessions(user.uid);
+            setSessions(data);
+        } catch {
+            toast.error('Failed to load device sessions.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user]);
+
+    const handleRemove = async (sessionId: string) => {
+        if (!user) return;
+        setRemovingId(sessionId);
+        try {
+            await removeDeviceSession(user.uid, sessionId);
+            setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+            toast.success('Device session removed.');
+        } catch {
+            toast.error('Failed to remove session.');
+        } finally {
+            setRemovingId(null);
+        }
+    };
+
+    const handleRemoveAll = async () => {
+        if (!user) return;
+        setRemovingAll(true);
+        try {
+            const count = await removeAllOtherSessions(user.uid);
+            setSessions((prev) => prev.filter((s) => s.isCurrent));
+            toast.success(`Signed out of ${count} other device${count !== 1 ? 's' : ''}.`);
+        } catch {
+            toast.error('Failed to remove other sessions.');
+        } finally {
+            setRemovingAll(false);
+        }
+    };
+
+    const getDeviceIcon = (device: string) => {
+        const d = device.toLowerCase();
+        if (d.includes('iphone') || d.includes('android phone')) return <Smartphone className="h-5 w-5" />;
+        if (d.includes('ipad') || d.includes('tablet')) return <Smartphone className="h-5 w-5" />;
+        if (d.includes('mac') || d.includes('laptop')) return <Laptop className="h-5 w-5" />;
+        return <Monitor className="h-5 w-5" />;
+    };
+
+    const otherSessions = sessions.filter((s) => !s.isCurrent);
+
+    return (
+        <section className="surface p-6">
+            <div className="flex items-center gap-3 mb-1">
+                <Monitor className="h-5 w-5 text-[var(--ui-accent)]" />
+                <h2 className="text-lg font-semibold text-[var(--ui-text)]">Logged-in Devices</h2>
+            </div>
+            <p className="text-sm text-[var(--ui-text-muted)] mb-5">
+                Manage devices where your account is currently active. Remove any you don&apos;t recognize.
+            </p>
+
+            {loading ? (
+                <div className="flex items-center justify-center py-8">
+                    <div className="h-6 w-6 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
+                </div>
+            ) : sessions.length === 0 ? (
+                <p className="text-xs text-[var(--ui-text-muted)] py-6 text-center">No device sessions recorded yet.</p>
+            ) : (
+                <div className="space-y-3">
+                    {/* Current device */}
+                    {sessions.filter((s) => s.isCurrent).map((session) => (
+                        <div
+                            key={session.id}
+                            className="rounded-xl border-2 border-[var(--ui-accent)]/30 bg-[var(--ui-accent-dim)] p-4"
+                        >
+                            <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 p-2 rounded-lg bg-[var(--ui-accent)]/15 text-[var(--ui-accent)]">
+                                    {getDeviceIcon(session.device)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                        <h4 className="text-sm font-bold text-[var(--ui-text)]">{session.device}</h4>
+                                        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-accent)] px-2 py-0.5 text-[9px] font-bold text-white uppercase tracking-wider">
+                                            This device
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-[var(--ui-text-secondary)]">{session.browser}</p>
+                                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5">
+                                        <span className="text-[10px] text-[var(--ui-text-muted)] flex items-center gap-1">
+                                            <Globe className="h-3 w-3" /> {session.os}
+                                        </span>
+                                        <span className="text-[10px] text-[var(--ui-text-muted)]">
+                                            🖥️ {session.screenResolution}
+                                        </span>
+                                        <span className="text-[10px] text-[var(--ui-text-muted)]">
+                                            🌐 {session.timezone}
+                                        </span>
+                                        <span className="text-[10px] text-[var(--ui-text-muted)]">
+                                            🗣️ {session.language}
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] text-[var(--ui-text-muted)] mt-1">
+                                        Active {formatDistanceToNowStrict(new Date(session.lastActiveAt), { addSuffix: true })}
+                                        {session.createdAt !== session.lastActiveAt && (
+                                            <> · First seen {formatDistanceToNowStrict(new Date(session.createdAt), { addSuffix: true })}</>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+
+                    {/* Other devices */}
+                    {otherSessions.length > 0 && (
+                        <div className="flex items-center justify-between pt-2 pb-1">
+                            <p className="text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">
+                                Other Devices ({otherSessions.length})
+                            </p>
+                            <button
+                                onClick={handleRemoveAll}
+                                disabled={removingAll}
+                                className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[var(--ui-danger)] hover:text-[var(--ui-danger)]/80 disabled:opacity-50 transition-colors"
+                            >
+                                {removingAll ? (
+                                    <div className="h-3 w-3 rounded-full border border-[var(--ui-danger)]/30 border-t-[var(--ui-danger)] animate-spin" />
+                                ) : (
+                                    <LogOut className="h-3 w-3" />
+                                )}
+                                Sign out all other devices
+                            </button>
+                        </div>
+                    )}
+
+                    {otherSessions.map((session) => (
+                        <div
+                            key={session.id}
+                            className="rounded-xl border border-[var(--ui-border)] bg-[var(--ui-bg-elevated)] p-4 group"
+                        >
+                            <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 p-2 rounded-lg bg-[var(--ui-bg-surface)] text-[var(--ui-text-muted)]">
+                                    {getDeviceIcon(session.device)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="text-sm font-semibold text-[var(--ui-text)]">{session.device}</h4>
+                                    <p className="text-xs text-[var(--ui-text-secondary)]">{session.browser}</p>
+                                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5">
+                                        <span className="text-[10px] text-[var(--ui-text-muted)] flex items-center gap-1">
+                                            <Globe className="h-3 w-3" /> {session.os}
+                                        </span>
+                                        <span className="text-[10px] text-[var(--ui-text-muted)]">
+                                            🖥️ {session.screenResolution}
+                                        </span>
+                                        <span className="text-[10px] text-[var(--ui-text-muted)]">
+                                            🌐 {session.timezone}
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] text-[var(--ui-text-muted)] mt-1">
+                                        Last active {formatDistanceToNowStrict(new Date(session.lastActiveAt), { addSuffix: true })}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => handleRemove(session.id)}
+                                    disabled={removingId === session.id}
+                                    className="flex-shrink-0 p-2 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-danger)] hover:bg-[var(--ui-danger)]/10 disabled:opacity-50 transition-all opacity-0 group-hover:opacity-100"
+                                    title="Remove this device"
+                                >
+                                    {removingId === session.id ? (
+                                        <div className="h-4 w-4 rounded-full border-2 border-[var(--ui-danger)]/30 border-t-[var(--ui-danger)] animate-spin" />
+                                    ) : (
+                                        <X className="h-4 w-4" />
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+
+                    {/* Refresh button */}
+                    <button
+                        onClick={loadSessions}
+                        disabled={loading}
+                        className="flex items-center gap-2 mx-auto mt-2 text-xs text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] transition-colors"
+                    >
+                        <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
+                    </button>
+                </div>
+            )}
         </section>
     );
 }
@@ -754,6 +959,8 @@ export default function SettingsPage() {
                     </section>
 
                     <SecuritySection />
+
+                    <DeviceSessionsSection />
 
                     <CookiePrivacySection />
 

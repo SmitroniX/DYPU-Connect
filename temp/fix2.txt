@@ -1,0 +1,12 @@
+﻿[main 067ae55] fix: add missing popupRef declaration in ProfilePopup
+ 3 files changed, 14 insertions(+)
+ create mode 100644 temp/fix_commit.txt
+ create mode 100644 temp/fix_push.txt
+git : To https://github.com/SmitroniX/DYPU-Connect.git
+At line:1 char:1
++ git push origin main 2>&1 | Out-File "G:\webstorm project\DYPU-Connec ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (To https://gith...YPU-Connect.git:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   b0c2a4e..067ae55  main -> main

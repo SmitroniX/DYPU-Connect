@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { normalizeUserProfile, type UserProfile } from '@/types/profile';
 import { isAutoAdminEmail } from '@/lib/admin';
 import { logActivity } from '@/lib/activityLog';
+import { registerDeviceSession, collectDeviceInfo } from '@/lib/deviceSessions';
 
 interface AuthContextType {
     user: User | null;
@@ -126,6 +127,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         }
 
                         setUserProfile(profile);
+
+                        // Update device session last active time (fire-and-forget)
+                        registerDeviceSession(firebaseUser.uid).catch(() => {});
                     } else {
                         // If no profile exists, they might need to be redirected to profile setup
                         setUserProfile(null);
@@ -219,8 +223,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Non-critical — Drive connection will be saved when profile is created
             }
 
-            // Log sign-in activity (fire-and-forget)
-            logActivity(result.user.uid, 'login', `Signed in with Google (${email})`);
+            // Log sign-in activity with device info (fire-and-forget)
+            const deviceInfo = collectDeviceInfo();
+            logActivity(
+                result.user.uid,
+                'login',
+                `Signed in with Google (${email}) · ${deviceInfo.browser} on ${deviceInfo.os} · ${deviceInfo.device}`,
+            );
+            registerDeviceSession(result.user.uid).catch(() => {});
         } catch (error) {
             if (error instanceof Error && error.message.includes('@dypatil.edu')) {
                 throw error;
