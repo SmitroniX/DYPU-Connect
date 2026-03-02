@@ -60,13 +60,22 @@ The deep links are pre-configured for:
 - `dypu-connect.netlify.app` — your Netlify domain (email link auth)
 - `dypu-connect.firebaseapp.com` — your Firebase auth domain
 
-### 4. Run on device/emulator
+### 4. Firebase Android config (required)
+
+Download `google-services.json` for the Android app from:
+**Firebase Console -> Project Settings -> General -> Your apps -> Android app**
+
+Place it at `android/app/google-services.json`.
+
+This file is intentionally gitignored. Do not commit it; use `android/app/google-services.example.json` only as a shape reference.
+
+### 5. Run on device/emulator
 
 ```
 Run → Run 'app'  (or Shift+F10)
 ```
 
-### 5. For local development
+### 6. For local development
 
 Uncomment this line in `build.gradle.kts` under the `debug` build type:
 
