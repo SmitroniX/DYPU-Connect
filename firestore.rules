@@ -78,6 +78,12 @@ service cloud.firestore {
     match /confessions_public/{docId} {
       allow read, create, update: if signedIn();
       allow delete: if isAdmin();
+
+      // ── Per-user likes (prevent duplicates) ────────
+      match /likes/{likeUserId} {
+        allow read: if signedIn();
+        allow create, delete: if signedIn() && request.auth.uid == likeUserId;
+      }
     }
 
     match /group_messages/{groupId}/messages/{msgId} {
