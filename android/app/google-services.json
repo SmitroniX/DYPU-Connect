@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "110386935080",
+    "project_id": "dypu-connect",
+    "storage_bucket": "dypu-connect.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:110386935080:android:b750e04a0c496ffaf04c1d",
+        "android_client_info": {
+          "package_name": "com.dypu.connect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "110386935080-3guua02botb1hdcfgrgkdd3drqv20t76.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVGDEqcHpQK6KVm_418RMQHd2y3VWDXzc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "110386935080-3guua02botb1hdcfgrgkdd3drqv20t76.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
