@@ -508,6 +508,7 @@ export default function ProfilePage() {
     );
 
     const driveConfigured = isGoogleDriveConfigured();
+    const driveConnected = !!userProfile?.googleDrive;
     // Allow clicking upload buttons always — the upload function shows
     // a clear error message if Drive isn't configured.
     const canUploadToDrive = true;
