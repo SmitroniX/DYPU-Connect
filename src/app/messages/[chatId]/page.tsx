@@ -3,7 +3,7 @@
 import { use, useCallback, useEffect, useRef, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, getDoc, updateDoc, limit } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import type { FirebaseError } from 'firebase/app';
 import { useAuth } from '@/components/AuthProvider';
@@ -12,7 +12,8 @@ import ChannelHeader from '@/components/ChannelHeader';
 import ChatInput, { type ChatInputPayload } from '@/components/ChatInput';
 import { MessageHoverToolbar, MessageReactions } from '@/components/MessageReactions';
 import ProfilePopup from '@/components/ProfilePopup';
-import VideoCall from '@/components/VideoCall';
+import dynamic from 'next/dynamic';
+const VideoCall = dynamic(() => import('@/components/VideoCall'), { ssr: false });
 import { ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { sanitiseInput } from '@/lib/security';
@@ -72,7 +73,8 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 
         const q = query(
             collection(db, 'private_messages', chatId, 'messages'),
-            orderBy('timestamp', 'asc')
+            orderBy('timestamp', 'asc'),
+            limit(150)
         );
 
         const unsubscribe = onSnapshot(

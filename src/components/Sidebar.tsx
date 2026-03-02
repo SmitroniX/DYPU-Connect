@@ -86,7 +86,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                     <button
                         onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
                         className="relative p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
-                        title="Notifications"
+                        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
                     >
                         <Bell className="h-[18px] w-[18px]" />
                         {unreadCount > 0 && (
@@ -100,7 +100,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto px-3 py-1">
+            <nav className="flex-1 overflow-y-auto px-3 py-1" role="navigation" aria-label="Main navigation">
                 {NAV_SECTIONS.map((section, i) => (
                     <div key={section.label ?? i}>
                         {section.label && (

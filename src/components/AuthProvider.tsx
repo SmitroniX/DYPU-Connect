@@ -12,6 +12,7 @@ import { isAutoAdminEmail } from '@/lib/admin';
 import { logActivity } from '@/lib/activityLog';
 import { registerDeviceSession, collectDeviceInfo } from '@/lib/deviceSessions';
 import { startAutoBackupScheduler, stopAutoBackupScheduler } from '@/lib/backup';
+import { loadGoogleIdentityScript, isGoogleDriveConfigured } from '@/lib/googleDrive';
 
 interface AuthContextType {
     user: User | null;
@@ -164,6 +165,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         return () => unsubscribe();
     }, [firebaseReady, setCurrentUser, setUserProfile, setStoreLoading]);
+
+    // Preload Google Identity Services script early so that
+    // requestGoogleDriveAccessToken() doesn't need to await script loading
+    // at click-time (which causes browsers to block the popup).
+    useEffect(() => {
+        if (isGoogleDriveConfigured()) {
+            loadGoogleIdentityScript().catch(() => {});
+        }
+    }, []);
 
     const sendLoginLink = async (email: string) => {
         if (!email.endsWith('@dypatil.edu')) {

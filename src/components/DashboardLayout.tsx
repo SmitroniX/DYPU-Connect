@@ -159,6 +159,7 @@ export default function DashboardLayout({
                         <button
                             onClick={() => setSidebarOpen(true)}
                             className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] transition-colors"
+                            aria-label="Open sidebar navigation"
                         >
                             <Menu className="h-5 w-5" />
                         </button>
@@ -171,7 +172,7 @@ export default function DashboardLayout({
                     <AnnouncementBanner />
 
                     {/* Page content */}
-                    <main className="flex-1 overflow-y-auto">
+                    <main className="flex-1 overflow-y-auto" role="main" aria-label="Page content">
                         {children}
                     </main>
                 </div>

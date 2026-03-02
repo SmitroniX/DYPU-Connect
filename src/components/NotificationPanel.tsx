@@ -162,6 +162,9 @@ export default function NotificationPanel() {
     return (
         <div
             ref={panelRef}
+            role="dialog"
+            aria-label="Notifications"
+            aria-modal="true"
             className="absolute left-full top-0 ml-2 w-[360px] max-h-[calc(100vh-6rem)] bg-[var(--ui-bg-surface)] border border-[var(--ui-divider)] rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-[fade-in-up_0.15s_ease-out]"
         >
             {/* Header */}

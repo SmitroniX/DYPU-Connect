@@ -1,9 +1,7 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, Suspense, lazy } from 'react';
 import { Bold, Code, Image as ImageIcon, Italic, Send, X } from 'lucide-react';
-import EmojiPicker from '@/components/EmojiPicker';
-import GiphyPicker from '@/components/GiphyPicker';
 import type { GiphyGif } from '@/lib/giphy';
 import { useStore } from '@/store/useStore';
 import {
@@ -12,6 +10,10 @@ import {
     uploadImageToGoogleDrive,
 } from '@/lib/googleDrive';
 import toast from 'react-hot-toast';
+
+// Lazy-load heavy picker components — only loaded when the user opens them
+const EmojiPicker = lazy(() => import('@/components/EmojiPicker'));
+const GiphyPicker = lazy(() => import('@/components/GiphyPicker'));
 
 export interface ChatInputPayload {
     text: string;
@@ -244,18 +246,22 @@ export default function ChatInput({
                     {/* Left action buttons */}
                     <div className="flex items-center pl-2 pb-1.5 gap-0.5 shrink-0">
                         {features.emoji && (
-                            <EmojiPicker
-                                disabled={disabled || sending}
-                                onSelect={insertEmoji}
-                                align="left"
-                            />
+                            <Suspense fallback={null}>
+                                <EmojiPicker
+                                    disabled={disabled || sending}
+                                    onSelect={insertEmoji}
+                                    align="left"
+                                />
+                            </Suspense>
                         )}
                         {features.gif && (
-                            <GiphyPicker
-                                disabled={disabled || sending}
-                                onSelect={(gif: GiphyGif) => { setSelectedGifUrl(gif.url); setSelectedImageUrl(''); }}
-                                align="left"
-                            />
+                            <Suspense fallback={null}>
+                                <GiphyPicker
+                                    disabled={disabled || sending}
+                                    onSelect={(gif: GiphyGif) => { setSelectedGifUrl(gif.url); setSelectedImageUrl(''); }}
+                                    align="left"
+                                />
+                            </Suspense>
                         )}
                         {features.image && (
                             <>

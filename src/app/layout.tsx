@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -6,11 +6,31 @@ import { Toaster } from 'react-hot-toast';
 import CookieConsentBanner from "@/components/CookieConsentBanner";
 import SessionGuard from "@/components/SessionGuard";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+    subsets: ["latin"],
+    display: "swap",        // prevent FOIT (flash of invisible text)
+});
+
+export const viewport: Viewport = {
+    width: "device-width",
+    initialScale: 1,
+    themeColor: "#0f0f0f",
+};
 
 export const metadata: Metadata = {
     title: "DYPU Connect",
     description: "Exclusive social platform for DY Patil University",
+    applicationName: "DYPU Connect",
+    icons: {
+        icon: "/favicon.ico",
+        apple: "/logo.png",
+    },
+    manifest: "/manifest.json",
+    openGraph: {
+        title: "DYPU Connect",
+        description: "Exclusive social platform for DY Patil University",
+        type: "website",
+    },
 };
 
 export default function RootLayout({
@@ -20,6 +40,16 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" className="dark" style={{ colorScheme: 'dark' }} suppressHydrationWarning>
+            <head>
+                {/* Preload Google Identity Services script to avoid popup-blocked issues */}
+                {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+                    <link rel="preload" href="https://accounts.google.com/gsi/client" as="script" />
+                )}
+                {/* Preconnect to Firebase and Google APIs for faster first requests */}
+                <link rel="preconnect" href="https://firestore.googleapis.com" />
+                <link rel="preconnect" href="https://identitytoolkit.googleapis.com" />
+                <link rel="preconnect" href="https://lh3.googleusercontent.com" />
+            </head>
             <body className={inter.className} suppressHydrationWarning>
                 <AuthProvider>
                     <SessionGuard />
