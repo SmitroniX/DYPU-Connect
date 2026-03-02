@@ -27,12 +27,13 @@ import {
     panicWipeCookies,
 } from '@/lib/cookieShield';
 import { generateSessionFingerprint } from '@/lib/security';
-import { Shield, Cookie, Lock, Fingerprint, ShieldCheck, ShieldAlert, Trash2, RefreshCw, KeyRound, Activity, Eye, Monitor, Smartphone, Laptop, Globe, X, LogOut } from 'lucide-react';
+import { Shield, Cookie, Lock, Fingerprint, ShieldCheck, ShieldAlert, Trash2, RefreshCw, KeyRound, Activity, Eye, Monitor, Smartphone, Laptop, Globe, X, LogOut, CloudUpload, Clock, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { fetchActivityLog, type ActivityLogEntry } from '@/lib/activityLog';
 import { getOrCreateEncryptionSalt } from '@/lib/encryption';
 import { fetchDeviceSessions, removeDeviceSession, removeAllOtherSessions, type DeviceSession } from '@/lib/deviceSessions';
 import { formatDistanceToNowStrict } from 'date-fns';
+import { type AutoBackupInterval, AUTO_BACKUP_INTERVALS } from '@/types/profile';
 
 interface UserSettings {
     emailNotifications: boolean;
@@ -666,6 +667,198 @@ function CookiePrivacySection() {
     );
 }
 
+/* ── Auto Backup Section ─────────────────────────── */
+
+function AutoBackupSection() {
+    const { user } = useAuth();
+    const { userProfile, setUserProfile, driveAccessToken } = useStore();
+    const [saving, setSaving] = useState(false);
+    const [backingUp, setBackingUp] = useState(false);
+    const [enabled, setEnabled] = useState(userProfile?.autoBackup?.enabled ?? false);
+    const [interval, setInterval] = useState<AutoBackupInterval>(userProfile?.autoBackup?.interval ?? '24h');
+
+    const lastBackupAt = userProfile?.autoBackup?.lastBackupAt;
+    const lastBackupFile = userProfile?.autoBackup?.lastBackupFile;
+    const driveConnected = !!userProfile?.googleDrive;
+
+    const saveSettings = async () => {
+        if (!user || !userProfile || saving) return;
+        setSaving(true);
+        try {
+            const autoBackup = {
+                enabled,
+                interval,
+                lastBackupAt: userProfile.autoBackup?.lastBackupAt ?? undefined,
+                lastBackupFile: userProfile.autoBackup?.lastBackupFile ?? undefined,
+            };
+            await updateDoc(doc(db, 'users', user.uid), { autoBackup });
+            setUserProfile({ ...userProfile, autoBackup });
+            toast.success('Auto-backup settings saved.');
+        } catch {
+            toast.error('Failed to save backup settings.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const runBackupNow = async () => {
+        if (!user || !userProfile || backingUp) return;
+        if (!driveConnected) {
+            toast.error('Connect Google Drive first.');
+            return;
+        }
+        setBackingUp(true);
+        try {
+            const { exportProfileBackup } = await import('@/lib/backup');
+            const fileName = await exportProfileBackup(userProfile, driveAccessToken);
+            const now = Date.now();
+            const autoBackup = { ...userProfile.autoBackup, enabled, interval, lastBackupAt: now, lastBackupFile: fileName };
+            await updateDoc(doc(db, 'users', user.uid), { autoBackup });
+            setUserProfile({ ...userProfile, autoBackup });
+            toast.success(`Backup saved: ${fileName}`);
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Backup failed.');
+        } finally {
+            setBackingUp(false);
+        }
+    };
+
+    const nextBackupMs = (() => {
+        if (!enabled || !lastBackupAt) return null;
+        const intervalMs = AUTO_BACKUP_INTERVALS.find((i) => i.value === interval)?.ms ?? AUTO_BACKUP_INTERVALS[0].ms;
+        return lastBackupAt + intervalMs;
+    })();
+
+    return (
+        <section className="surface p-6">
+            <div className="flex items-center gap-3 mb-1">
+                <CloudUpload className="h-5 w-5 text-[var(--ui-accent)]" />
+                <h2 className="text-lg font-semibold text-[var(--ui-text)]">Auto Backup</h2>
+            </div>
+            <p className="text-sm text-[var(--ui-text-muted)] mb-5">
+                Automatically back up your profile data to your @dypatil.edu Google Drive at regular intervals.
+            </p>
+
+            {!driveConnected && (
+                <div className="mb-4 rounded-lg border border-[var(--ui-warning)]/30 bg-[var(--ui-warning)]/5 px-4 py-3">
+                    <p className="text-xs text-[var(--ui-warning)] font-medium">
+                        ⚠ Connect Google Drive first to enable auto-backup.
+                    </p>
+                </div>
+            )}
+
+            {/* Enable toggle */}
+            <div className="rounded-xl border border-[var(--ui-border)] p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <CloudUpload className="h-4 w-4 text-[var(--ui-accent)]" />
+                        <span className="text-sm font-medium text-[var(--ui-text)]">Enable Auto Backup</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={enabled}
+                            onChange={() => setEnabled(!enabled)}
+                            disabled={!driveConnected}
+                            className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-[var(--ui-bg-elevated)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--ui-accent)]"></div>
+                    </label>
+                </div>
+
+                {/* Interval selector */}
+                <div>
+                    <label className="block text-xs font-semibold text-[var(--ui-text-secondary)] mb-2">
+                        <Clock className="inline h-3.5 w-3.5 mr-1" />
+                        Backup Frequency
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {AUTO_BACKUP_INTERVALS.map((opt) => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => setInterval(opt.value)}
+                                disabled={!driveConnected}
+                                className={`rounded-lg border px-3 py-2.5 text-xs font-medium transition-all ${
+                                    interval === opt.value
+                                        ? 'border-[var(--ui-accent)] bg-[var(--ui-accent-dim)] text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/20'
+                                        : 'border-[var(--ui-border)] text-[var(--ui-text-muted)] hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text-secondary)]'
+                                } disabled:opacity-40 disabled:cursor-not-allowed`}
+                            >
+                                {opt.label}
+                                {opt.value === '24h' && (
+                                    <span className="block text-[9px] font-normal mt-0.5 opacity-60">Default</span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Status panel */}
+                <div className="rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-xs">
+                        <CheckCircle2 className={`h-3.5 w-3.5 ${lastBackupAt ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text-muted)]'}`} />
+                        <span className="text-[var(--ui-text-secondary)] font-medium">Last backup:</span>
+                        <span className="text-[var(--ui-text-muted)]">
+                            {lastBackupAt
+                                ? `${formatDistanceToNowStrict(new Date(lastBackupAt), { addSuffix: true })}`
+                                : 'Never'}
+                        </span>
+                    </div>
+                    {lastBackupFile && (
+                        <p className="text-[10px] text-[var(--ui-text-muted)] font-mono truncate pl-5">
+                            📄 {lastBackupFile}
+                        </p>
+                    )}
+                    {nextBackupMs && enabled && (
+                        <div className="flex items-center gap-2 text-xs pl-5">
+                            <Clock className="h-3 w-3 text-[var(--ui-text-muted)]" />
+                            <span className="text-[var(--ui-text-muted)]">
+                                Next backup: {nextBackupMs > Date.now()
+                                    ? formatDistanceToNowStrict(new Date(nextBackupMs), { addSuffix: true })
+                                    : 'Due now (will run automatically)'}
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                    <button
+                        onClick={saveSettings}
+                        disabled={saving || !driveConnected}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--ui-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                    >
+                        {saving ? (
+                            <div className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                        ) : (
+                            <CloudUpload className="h-3.5 w-3.5" />
+                        )}
+                        {saving ? 'Saving...' : 'Save Settings'}
+                    </button>
+                    <button
+                        onClick={runBackupNow}
+                        disabled={backingUp || !driveConnected}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--ui-border)] px-4 py-2 text-sm font-medium text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] disabled:opacity-50 transition-colors"
+                    >
+                        {backingUp ? (
+                            <div className="h-3.5 w-3.5 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
+                        ) : (
+                            <RefreshCw className="h-3.5 w-3.5" />
+                        )}
+                        {backingUp ? 'Backing up...' : 'Backup Now'}
+                    </button>
+                </div>
+
+                <p className="text-[10px] text-[var(--ui-text-muted)] leading-relaxed">
+                    Backups are saved as JSON files to your connected Google Drive. They include your profile, gallery, highlights, and settings.
+                    Auto-backup runs silently in the background while the app is open.
+                </p>
+            </div>
+        </section>
+    );
+}
+
 export default function SettingsPage() {
     const { user, loading, logout } = useAuth();
     const { userProfile, setUserProfile } = useStore();
@@ -957,6 +1150,8 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </section>
+
+                    <AutoBackupSection />
 
                     <SecuritySection />
 

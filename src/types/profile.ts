@@ -34,6 +34,26 @@ export interface GoogleDriveConnection {
     folderLink?: string;
 }
 
+export type AutoBackupInterval = '24h' | '2d' | '7d' | '28d';
+
+export interface AutoBackupSettings {
+    /** Whether auto-backup is enabled */
+    enabled: boolean;
+    /** Backup frequency */
+    interval: AutoBackupInterval;
+    /** Timestamp (ms) of last successful auto-backup */
+    lastBackupAt?: number;
+    /** Filename of last backup */
+    lastBackupFile?: string;
+}
+
+export const AUTO_BACKUP_INTERVALS: { value: AutoBackupInterval; label: string; ms: number }[] = [
+    { value: '24h', label: 'Every 24 hours', ms: 24 * 60 * 60 * 1000 },
+    { value: '2d',  label: 'Every 2 days',   ms: 2 * 24 * 60 * 60 * 1000 },
+    { value: '7d',  label: 'Every week',      ms: 7 * 24 * 60 * 60 * 1000 },
+    { value: '28d', label: 'Every 28 days',   ms: 28 * 24 * 60 * 60 * 1000 },
+];
+
 export interface SocialLinks {
     instagram?: string;
     linkedin?: string;
@@ -57,6 +77,7 @@ export interface UserProfile {
     stories: ProfileStoryItem[];
     highlights: ProfileHighlightItem[];
     googleDrive?: GoogleDriveConnection;
+    autoBackup?: AutoBackupSettings;
     encryptionSalt?: string;
     encryptionEnabled?: boolean;
     role: UserRole;

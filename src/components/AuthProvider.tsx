@@ -11,6 +11,7 @@ import { normalizeUserProfile, type UserProfile } from '@/types/profile';
 import { isAutoAdminEmail } from '@/lib/admin';
 import { logActivity } from '@/lib/activityLog';
 import { registerDeviceSession, collectDeviceInfo } from '@/lib/deviceSessions';
+import { startAutoBackupScheduler, stopAutoBackupScheduler } from '@/lib/backup';
 
 interface AuthContextType {
     user: User | null;
@@ -131,6 +132,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                         // Update device session last active time (fire-and-forget)
                         registerDeviceSession(firebaseUser.uid).catch(() => {});
+
+                        // Start auto-backup scheduler (checks every 5 min, backs up if due)
+                        startAutoBackupScheduler(
+                            () => useStore.getState().userProfile,
+                            () => useStore.getState().driveAccessToken,
+                            (fileName, lastBackupAt) => {
+                                // Persist last backup timestamp to Firestore
+                                updateDoc(docRef, {
+                                    'autoBackup.lastBackupAt': lastBackupAt,
+                                    'autoBackup.lastBackupFile': fileName,
+                                }).catch(() => {});
+                            },
+                        );
                     } else {
                         // If no profile exists, they might need to be redirected to profile setup
                         setUserProfile(null);
@@ -142,6 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
             } else {
                 setUserProfile(null);
+                stopAutoBackupScheduler();
             }
             setLoading(false);
             setStoreLoading(false);
@@ -235,6 +250,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const logout = async () => {
+        stopAutoBackupScheduler();
         setDriveAccessToken(null);
         await signOut(auth);
         router.push('/login');
