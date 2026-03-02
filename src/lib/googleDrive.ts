@@ -60,7 +60,9 @@ export function isGoogleDriveConfigured(): boolean {
 }
 
 function buildDriveDirectImageUrl(fileId: string): string {
-    return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}`;
+    // Use the Google Drive thumbnail API which works reliably for public files.
+    // The old uc?export=view URL often shows a "can't process this request" page.
+    return `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}=s1600`;
 }
 
 export function extractGoogleDriveFolderId(input: string): string | undefined {

@@ -511,7 +511,7 @@ export default function ProfilePage() {
     const driveConnected = !!userProfile?.googleDrive;
     const canUploadToDrive = driveConfigured && driveConnected;
 
-    const { driveAccessToken } = useStore();
+    const { driveAccessToken, setDriveAccessToken } = useStore();
 
     const uploadImageFileToDrive = async (file: File, target: 'profile' | 'story' | 'highlight' | 'gallery'): Promise<string | null> => {
         if (!userProfile?.googleDrive) { toast.error('Connect Google Drive from Settings first.'); return null; }
@@ -525,12 +525,16 @@ export default function ProfilePage() {
             } else {
                 try { accessToken = await requestGoogleDriveAccessToken(''); }
                 catch { accessToken = await requestGoogleDriveAccessToken('consent'); }
+                // Cache the token for subsequent uploads (avoids repeated popups)
+                setDriveAccessToken(accessToken);
             }
             const uploadResult = await uploadImageToGoogleDrive({ accessToken, file, folderId: userProfile.googleDrive.folderId });
             toast.success('Image uploaded to Google Drive.');
             logActivity(user!.uid, 'drive_upload', `Uploaded ${file.name} for ${target}`);
             return uploadResult.directImageUrl;
         } catch (error) {
+            // If token expired, clear it so next attempt gets a fresh one
+            setDriveAccessToken(null);
             toast.error(error instanceof Error ? error.message : 'Google Drive upload failed.');
             return null;
         } finally { setUploadingTarget(null); }
