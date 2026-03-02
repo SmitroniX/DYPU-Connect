@@ -542,7 +542,7 @@ export default function ProfilePage() {
                 // Cache the token for subsequent uploads (avoids repeated popups)
                 setDriveAccessToken(accessToken);
             }
-            const uploadResult = await uploadImageToGoogleDrive({ accessToken, file, folderId: userProfile.googleDrive.folderId });
+            const uploadResult = await uploadImageToGoogleDrive({ accessToken, file, folderId: userProfile?.googleDrive?.folderId });
             toast.success('Image uploaded to Google Drive.');
             logActivity(user!.uid, 'drive_upload', `Uploaded ${file.name} for ${target}`);
             return uploadResult.directImageUrl;
