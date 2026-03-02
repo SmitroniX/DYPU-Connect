@@ -18,7 +18,6 @@ interface ProfilePopupProps {
 const profileCache = new Map<string, UserProfile>();
 
 export default function ProfilePopup({ userId, anchorRect, onClose }: ProfilePopupProps) {
-    const [profile, setProfile] = useState<UserProfile | null>(profileCache.get(userId) ?? null);
     const cachedProfile = profileCache.get(userId);
     const [profile, setProfile] = useState<UserProfile | null>(cachedProfile ?? null);
     const [loading, setLoading] = useState(!cachedProfile);

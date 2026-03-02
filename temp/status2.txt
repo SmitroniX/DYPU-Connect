@@ -1,0 +1,15 @@
+﻿M  src/app/anonymous-chat/page.tsx
+M  src/app/groups/[groupId]/page.tsx
+M  src/app/messages/[chatId]/page.tsx
+M  src/app/public-chat/page.tsx
+A  src/components/ChatInput.tsx
+A  src/components/EmojiPicker.tsx
+A  src/components/MessageReactions.tsx
+A  src/components/ProfilePopup.tsx
+A  src/components/VideoCall.tsx
+A  src/lib/emojis.ts
+A  src/lib/webrtc.ts
+A  temp/commit_output.txt
+A  temp/diff_stat.txt
+A  temp/push_result.txt
+?? temp/status2.txt

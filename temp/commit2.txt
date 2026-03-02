@@ -1,0 +1,12 @@
+﻿[main 33dae9b] feat: universal chat input, emoji picker, reactions, video calls, profile popup - New ChatInput component (shared across all 4 chat pages)   - Emoji picker (200+ emojis in 8 categories, no external deps)   - GIF picker (existing GiphyPicker integrated)   - Image upload via Google Drive   - Textarea with Enter to send, Shift+Enter for newline   - Markdown toolbar (Bold, Italic, Code) with text wrapping   - Character counter (shows at 80%+ of limit)   - Attachment preview strip (GIF/image with remove button)   - Keyboard hints footer - New EmojiPicker component   - 8 categories with tab navigation   - Outside-click-to-close behavior   - Insertable at cursor position in textarea - New MessageReactions system   - MessageHoverToolbar: appears on hover with quick-react emojis   - MessageReactions: emoji reaction pills with toggle (add/remove)   - Firestore reactions map: { emoji: [uid1, uid2] }   - Applied to all chat types: public, private, anonymous, group - New ProfilePopup component   - Click any avatar/name in chat to see mini profile card   - Shows name, email, bio, field/year/branch, visibility   - Send Message action button   - In-memory profile cache for performance   - Applied to public chat, private chat, group chat   - Skipped for anonymous chat (no identity) - New VideoCall system for private DMs   - WebRTC with Firestore signaling (src/lib/webrtc.ts)   - Voice call, video call, screen sharing   - Full-screen call overlay with local/remote video   - Call controls: mute, camera toggle, screen share, end call   - Call timer display   - Incoming call detection + accept/decline UI   - STUN servers: stun.l.google.com - Markdown rendering in private chat messages   - **bold**, *italic*, \code\ inline formatting - All 4 chat pages updated:   - public-chat: ChatInput + reactions + profile popup   - messages/[chatId]: ChatInput + reactions + profile popup + video call   - anonymous-chat: ChatInput (no image upload) + reactions   - groups/[groupId]: ChatInput + reactions + profile popup
+ 14 files changed, 1758 insertions(+), 355 deletions(-)
+ create mode 100644 src/components/ChatInput.tsx
+ create mode 100644 src/components/EmojiPicker.tsx
+ create mode 100644 src/components/MessageReactions.tsx
+ create mode 100644 src/components/ProfilePopup.tsx
+ create mode 100644 src/components/VideoCall.tsx
+ create mode 100644 src/lib/emojis.ts
+ create mode 100644 src/lib/webrtc.ts
+ create mode 100644 temp/commit_output.txt
+ create mode 100644 temp/diff_stat.txt
+ create mode 100644 temp/push_result.txt
