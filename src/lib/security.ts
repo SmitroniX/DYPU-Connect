@@ -196,29 +196,37 @@ const PROFANITY_REGEX = new RegExp(
 );
 
 /**
- * Partially censor a profane word:
- *   - 1–2 chars → fully star it  ("mc" → "**")
- *   - 3 chars → keep first, star rest ("ass" → "a*s")
- *   - 4+ chars → keep first & last, star 1–2 middle chars
- *     e.g. "fuck" → "f**k", "shit" → "s**t", "bastard" → "b****rd"
+ * Partially censor a profane word — replaces just ONE character
+ * with a single star so the word stays very readable.
  *
- * The goal is you can still read what the word was.
+ *   "fuck"    → "Fu*k"
+ *   "shit"    → "Sh*t"
+ *   "bastard" → "Basta*d"
+ *   "asshole" → "Assho*e"
+ *   "ass"     → "A*s"
+ *   "mc"      → "M*"
+ *
+ * First letter is capitalised to make the censor look intentional.
  */
 function censorWord(word: string): string {
     const len = word.length;
-    if (len <= 2) return '*'.repeat(len);
-    if (len === 3) return word[0] + '*' + word[2];
-    // For 4+ chars: keep first and last, replace middle with stars
-    // Use min(middle.length, 4) stars so it stays readable
-    const middle = Math.min(len - 2, 4);
-    return word[0] + '*'.repeat(middle) + word[len - 1];
+    if (len <= 1) return '*';
+    if (len === 2) return word[0].toUpperCase() + '*';
+    if (len <= 4) {
+        // Short words (3-4 chars): star the second-to-last char → Fu*k, Sh*t, A*s
+        const starPos = len - 2;
+        return word[0].toUpperCase() + word.slice(1, starPos) + '*' + word.slice(starPos + 1);
+    }
+    // Longer words (5+): star the second-to-last char → Basta*d, Assho*e
+    const starPos = len - 2;
+    return word[0].toUpperCase() + word.slice(1, starPos) + '*' + word.slice(starPos + 1);
 }
 
 /**
  * Filter profanity in text — partially censors abusive words
  * so they're still readable but visually moderated.
  *
- * "What the fuck is this bullshit" → "What the f**k is this b*****t"
+ * "What the fuck is this bullshit" → "What the Fu*k is this Bullsh*t"
  */
 export function filterProfanity(text: string): string {
     return text.replace(PROFANITY_REGEX, (match) => censorWord(match));
