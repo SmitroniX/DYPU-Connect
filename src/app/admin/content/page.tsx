@@ -5,6 +5,9 @@ import { db } from '@/lib/firebase';
 import { collection, query, getDocs, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { cacheGet, cacheInvalidate } from '@/lib/cache';
+import { logAdminAction } from '@/lib/auditLog';
+import { useAuth } from '@/components/AuthProvider';
+import { useStore } from '@/store/useStore';
 import { CheckSquare, EyeOff, MessageSquare, MessagesSquare, Search, Square, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
@@ -33,6 +36,8 @@ export default function AdminContentPage() {
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const { user } = useAuth();
+    const { userProfile } = useStore();
 
     const fetchContent = useCallback(async (tab: ContentTab) => {
         setLoading(true);
@@ -95,9 +100,34 @@ export default function AdminContentPage() {
         setDeleting(true);
         try {
             const config = TAB_CONFIG[activeTab];
-            const deletePromises = [...selected].map(id => deleteDoc(doc(db, config.collection, id)));
+            const deletePromises = [...selected].map(async (id) => {
+                // Delete the public doc
+                await deleteDoc(doc(db, config.collection, id));
+                // Also clean up paired private tracking docs
+                if (activeTab === 'confessions') {
+                    await deleteDoc(doc(db, 'confessions_private', id)).catch(() => {});
+                } else if (activeTab === 'anonymous_chat') {
+                    await deleteDoc(doc(db, 'anonymous_public_chat_private', id)).catch(() => {});
+                }
+            });
             await Promise.all(deletePromises);
+
+            // Audit log
+            if (user && userProfile) {
+                logAdminAction({
+                    action: 'bulk_delete_content',
+                    adminUid: user.uid,
+                    adminEmail: user.email ?? '',
+                    adminName: userProfile.name,
+                    targetType: activeTab,
+                    details: `Bulk deleted ${count} ${config.label.toLowerCase()} item(s)`,
+                });
+            }
+
             cacheInvalidate(`admin_content_${activeTab}`);
+            cacheInvalidate('admin_confessions');
+            cacheInvalidate('admin_anon_chat');
+            cacheInvalidate('admin_dashboard');
             setItems(prev => prev.filter(i => !selected.has(i.id)));
             setSelected(new Set());
             toast.success(`${count} item${count > 1 ? 's' : ''} deleted.`);
@@ -214,7 +244,27 @@ export default function AdminContentPage() {
                                             if (!confirm('Delete this item permanently?')) return;
                                             try {
                                                 await deleteDoc(doc(db, TAB_CONFIG[activeTab].collection, item.id));
+                                                // Clean up paired private tracking docs
+                                                if (activeTab === 'confessions') {
+                                                    await deleteDoc(doc(db, 'confessions_private', item.id)).catch(() => {});
+                                                } else if (activeTab === 'anonymous_chat') {
+                                                    await deleteDoc(doc(db, 'anonymous_public_chat_private', item.id)).catch(() => {});
+                                                }
+                                                if (user && userProfile) {
+                                                    logAdminAction({
+                                                        action: 'delete_content',
+                                                        adminUid: user.uid,
+                                                        adminEmail: user.email ?? '',
+                                                        adminName: userProfile.name,
+                                                        targetId: item.id,
+                                                        targetType: activeTab,
+                                                        details: `Deleted ${activeTab} by ${item.author}: "${(item.text || '[GIF]').slice(0, 80)}"`,
+                                                    });
+                                                }
                                                 cacheInvalidate(`admin_content_${activeTab}`);
+                                                cacheInvalidate('admin_confessions');
+                                                cacheInvalidate('admin_anon_chat');
+                                                cacheInvalidate('admin_dashboard');
                                                 setItems(prev => prev.filter(i => i.id !== item.id));
                                                 toast.success('Item deleted.');
                                             } catch { toast.error('Failed to delete.'); }

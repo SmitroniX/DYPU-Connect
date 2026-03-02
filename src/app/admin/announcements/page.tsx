@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, getDocs, orderBy, limit, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { cacheGet, cacheInvalidate } from '@/lib/cache';
+import { logAdminAction } from '@/lib/auditLog';
 import { useStore } from '@/store/useStore';
 import { AlertCircle, Bell, Info, Megaphone, Plus, RefreshCw, Send, Trash2, X, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -95,6 +96,16 @@ export default function AdminAnnouncementsPage() {
             });
 
             cacheInvalidate('admin_announcements');
+            if (currentUser && userProfile) {
+                logAdminAction({
+                    action: 'publish_announcement',
+                    adminUid: currentUser.uid,
+                    adminEmail: userProfile.email,
+                    adminName: userProfile.name,
+                    targetType: 'announcement',
+                    details: `Published "${title.trim()}" (priority: ${priority}, audience: ${targetAudience})`,
+                });
+            }
             setTitle('');
             setBody('');
             setPriority('info');
@@ -113,8 +124,20 @@ export default function AdminAnnouncementsPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Delete this announcement? Students will no longer see it.')) return;
         try {
+            const ann = announcements.find(a => a.id === id);
             await deleteDoc(doc(db, 'announcements', id));
             cacheInvalidate('admin_announcements');
+            if (currentUser && userProfile) {
+                logAdminAction({
+                    action: 'delete_announcement',
+                    adminUid: currentUser.uid,
+                    adminEmail: userProfile.email,
+                    adminName: userProfile.name,
+                    targetId: id,
+                    targetType: 'announcement',
+                    details: `Deleted announcement "${ann?.title || id}"`,
+                });
+            }
             setAnnouncements(prev => prev.filter(a => a.id !== id));
             toast.success('Announcement deleted.');
         } catch {

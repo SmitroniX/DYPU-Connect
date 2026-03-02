@@ -49,22 +49,35 @@ service cloud.firestore {
       match /activity_log/{logId} {
         allow read, create: if owner(userId);
       }
+
+      // ── Device sessions (per-user subcollection) ────────
+      match /sessions/{sessionId} {
+        allow read, create, update: if owner(userId);
+        allow delete: if owner(userId) || isAdmin();
+      }
     }
 
     match /public_chat/{docId} {
       allow read, create: if signedIn();
+      allow update: if signedIn();       // reactions
+      allow delete: if isAdmin();
     }
 
     match /anonymous_public_chat/{docId} {
       allow read, create: if signedIn();
+      allow update: if signedIn();       // reactions
+      allow delete: if isAdmin();
     }
 
     match /confessions_public/{docId} {
       allow read, create, update: if signedIn();
+      allow delete: if isAdmin();
     }
 
     match /group_messages/{groupId}/messages/{msgId} {
       allow read, create: if signedIn();
+      allow update: if signedIn();       // reactions
+      allow delete: if isAdmin();
     }
 
     match /private_chats/{chatId} {
@@ -75,6 +88,17 @@ service cloud.firestore {
 
     match /private_messages/{chatId}/messages/{msgId} {
       allow read, create: if participant(chatId);
+      allow update: if participant(chatId);  // reactions
+      allow delete: if isAdmin();
+    }
+
+    // ── WebRTC call signaling ─────────────────────────────
+    match /calls/{callId} {
+      allow read, write: if signedIn();
+
+      match /candidates/{candidateId} {
+        allow read, write: if signedIn();
+      }
     }
 
     match /anonymous_public_chat_private/{docId} {

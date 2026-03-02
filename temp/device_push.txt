@@ -1,0 +1,8 @@
+﻿git : To https://github.com/SmitroniX/DYPU-Connect.git
+At line:1 char:1
++ git push origin main 2>&1 | Out-File "G:\webstorm project\DYPU-Connec ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (To https://gith...YPU-Connect.git:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   067ae55..8fded91  main -> main

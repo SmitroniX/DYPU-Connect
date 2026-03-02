@@ -5,6 +5,8 @@ import { db } from '@/lib/firebase';
 import { collection, query, getDocs, orderBy, limit, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { cacheGet, cacheInvalidate } from '@/lib/cache';
+import { logAdminAction } from '@/lib/auditLog';
+import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
 import { AlertTriangle, CheckCircle, Clock, Flag, Inbox, Search, ShieldAlert, Trash2, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -49,6 +51,7 @@ export default function AdminReportsPage() {
     const [filterStatus, setFilterStatus] = useState<ReportStatus | 'all'>('all');
     const [filterType, setFilterType] = useState<ContentType | 'all'>('all');
     const { userProfile } = useStore();
+    const { user } = useAuth();
 
     const fetchReports = useCallback(async () => {
         setLoading(true);
@@ -80,6 +83,18 @@ export default function AdminReportsPage() {
                 resolvedAt: serverTimestamp(),
             });
             cacheInvalidate('admin_reports');
+            if (user && userProfile) {
+                const report = reports.find(r => r.id === reportId);
+                logAdminAction({
+                    action: `report_${newStatus}`,
+                    adminUid: user.uid,
+                    adminEmail: user.email ?? '',
+                    adminName: userProfile.name,
+                    targetId: reportId,
+                    targetType: 'report',
+                    details: `Marked report as ${newStatus} (type: ${report?.contentType || 'unknown'}, reason: ${report?.reason?.slice(0, 80) || 'N/A'})`,
+                });
+            }
             setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: newStatus } : r));
             toast.success(`Report ${newStatus}.`);
         } catch {
@@ -89,8 +104,20 @@ export default function AdminReportsPage() {
 
     const deleteReport = async (reportId: string) => {
         try {
+            const report = reports.find(r => r.id === reportId);
             await deleteDoc(doc(db, 'reports', reportId));
             cacheInvalidate('admin_reports');
+            if (user && userProfile) {
+                logAdminAction({
+                    action: 'delete_report',
+                    adminUid: user.uid,
+                    adminEmail: user.email ?? '',
+                    adminName: userProfile.name,
+                    targetId: reportId,
+                    targetType: 'report',
+                    details: `Deleted report (type: ${report?.contentType || 'unknown'}, reason: ${report?.reason?.slice(0, 80) || 'N/A'})`,
+                });
+            }
             setReports(prev => prev.filter(r => r.id !== reportId));
             toast.success('Report deleted.');
         } catch {

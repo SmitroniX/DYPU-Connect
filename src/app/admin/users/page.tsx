@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { resolveProfileImage } from '@/lib/profileImage';
 import { isSuperAdmin } from '@/lib/admin';
+import { logAdminAction } from '@/lib/auditLog';
+import { useAuth } from '@/components/AuthProvider';
 import { cacheGet, cacheInvalidate } from '@/lib/cache';
 import { useStore } from '@/store/useStore';
 
@@ -34,6 +36,7 @@ export default function AdminUsersPage() {
     const [filterStatus, setFilterStatus] = useState('all');
     const [loading, setLoading] = useState(true);
     const { userProfile } = useStore();
+    const { user } = useAuth();
     const currentIsSuperAdmin = isSuperAdmin(userProfile?.email);
 
     useEffect(() => { fetchUsers(); }, []);
@@ -59,6 +62,18 @@ export default function AdminUsersPage() {
         try {
             await updateDoc(doc(db, 'users', userId), { status: newStatus });
             cacheInvalidate('admin_users');
+            const targetUser = users.find(u => u.id === userId);
+            if (user && userProfile) {
+                logAdminAction({
+                    action: newStatus === 'banned' ? 'ban_user' : 'unban_user',
+                    adminUid: user.uid,
+                    adminEmail: user.email ?? '',
+                    adminName: userProfile.name,
+                    targetId: userId,
+                    targetType: 'user',
+                    details: `${newStatus === 'banned' ? 'Banned' : 'Unbanned'} user ${targetUser?.name || 'Unknown'} (${targetUser?.email || userId})`,
+                });
+            }
             setUsers(users.map(u => u.id === userId ? { ...u, status: newStatus } : u));
             toast.success(`User has been ${newStatus === 'banned' ? 'banned' : 'unbanned'}.`);
         } catch {
@@ -75,6 +90,18 @@ export default function AdminUsersPage() {
         try {
             await updateDoc(doc(db, 'users', userId), { role: newRole });
             cacheInvalidate('admin_users');
+            const targetUser = users.find(u => u.id === userId);
+            if (user && userProfile) {
+                logAdminAction({
+                    action: newRole === 'admin' ? 'promote_user' : 'demote_user',
+                    adminUid: user.uid,
+                    adminEmail: user.email ?? '',
+                    adminName: userProfile.name,
+                    targetId: userId,
+                    targetType: 'user',
+                    details: `${newRole === 'admin' ? 'Promoted' : 'Demoted'} user ${targetUser?.name || 'Unknown'} (${targetUser?.email || userId}) to ${newRole}`,
+                });
+            }
             setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
             toast.success(`User role changed to ${newRole}.`);
         } catch {

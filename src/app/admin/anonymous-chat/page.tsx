@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, query, getDocs, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
-import { ImageIcon, Search, Terminal } from 'lucide-react';
-import { cacheGet } from '@/lib/cache';
+import { ImageIcon, Search, Terminal, Trash2 } from 'lucide-react';
+import { cacheGet, cacheInvalidate } from '@/lib/cache';
+import { logAdminAction } from '@/lib/auditLog';
+import { useAuth } from '@/components/AuthProvider';
+import { useStore } from '@/store/useStore';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -24,6 +27,9 @@ export default function AdminAnonChatPage() {
     const [logs, setLogs] = useState<AnonChatLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const { user } = useAuth();
+    const { userProfile } = useStore();
 
     useEffect(() => { fetchLogs(); }, []);
 
@@ -35,9 +41,9 @@ export default function AdminAnonChatPage() {
                 async () => {
                     const q = query(collection(db, 'anonymous_public_chat_private'), orderBy('timestamp', 'desc'), limit(200));
                     const snapshot = await getDocs(q);
-                    return snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...(doc.data() as Omit<AnonChatLog, 'id'>),
+                    return snapshot.docs.map(d => ({
+                        id: d.id,
+                        ...(d.data() as Omit<AnonChatLog, 'id'>),
                     }));
                 },
                 { ttl: 60_000, swr: 300_000 }
@@ -47,6 +53,43 @@ export default function AdminAnonChatPage() {
             toast.error('Failed to load tracking data.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDelete = async (log: AnonChatLog) => {
+        if (!confirm(`Delete this anonymous message by ${log.email || 'Unknown'}?\n\nThis will remove both the public message and the private tracking record.`)) return;
+
+        setDeletingId(log.id);
+        try {
+            // Delete public message (messageId is the doc ID in anonymous_public_chat)
+            // Delete private tracking record
+            await Promise.all([
+                deleteDoc(doc(db, 'anonymous_public_chat', log.messageId)).catch(() => {}),
+                deleteDoc(doc(db, 'anonymous_public_chat_private', log.id)),
+            ]);
+
+            // Audit log
+            if (user && userProfile) {
+                logAdminAction({
+                    action: 'delete_anon_message',
+                    adminUid: user.uid,
+                    adminEmail: user.email ?? '',
+                    adminName: userProfile.name,
+                    targetId: log.messageId,
+                    targetType: 'anonymous_chat',
+                    details: `Deleted anon message by ${log.email || 'Unknown'}: "${(log.text || '[GIF]').slice(0, 100)}"`,
+                });
+            }
+
+            cacheInvalidate('admin_anon_chat');
+            cacheInvalidate('admin_content_anonymous_chat');
+            cacheInvalidate('admin_dashboard');
+            setLogs(prev => prev.filter(l => l.id !== log.id));
+            toast.success('Anonymous message deleted (public + tracking).');
+        } catch {
+            toast.error('Failed to delete message.');
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -111,13 +154,14 @@ export default function AdminAnonChatPage() {
                                     <th className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Target Identity</th>
                                     <th className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Message Content</th>
                                     <th className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Time Intercepted</th>
+                                    <th className="px-5 py-3.5 text-right text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[var(--ui-divider)]">
                                 {filteredLogs.map((log) => (
-                                    <tr key={log.id} className="hover:bg-[var(--ui-bg-hover)] transition-colors">
+                                    <tr key={log.id} className="hover:bg-[var(--ui-bg-hover)] transition-colors group">
                                         <td className="px-5 py-3.5 whitespace-nowrap">
-                                            <span className="text-sm font-bold text-red-400 font-mono tracking-tight">{log.email}</span>
+                                            <span className="text-sm font-bold text-red-400 font-mono tracking-tight">{log.email || 'Unknown'}</span>
                                             <div className="text-[10px] text-[var(--ui-text-muted)] mt-0.5">UID: {log.userId}</div>
                                         </td>
                                         <td className="px-5 py-3.5 text-sm text-[var(--ui-text-secondary)] max-w-xl">
@@ -125,6 +169,7 @@ export default function AdminAnonChatPage() {
                                                 <p className="truncate" title={log.text}>{log.text || '[No text]'}</p>
                                                 {log.gifUrl && (
                                                     <div className="shrink-0 relative">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
                                                         <img
                                                             src={log.gifUrl}
                                                             alt="GIF"
@@ -148,11 +193,26 @@ export default function AdminAnonChatPage() {
                                                 {log.timestamp?.toDate ? log.timestamp.toDate().toLocaleString() : ''}
                                             </p>
                                         </td>
+                                        <td className="px-5 py-3.5 whitespace-nowrap text-right">
+                                            <button
+                                                onClick={() => handleDelete(log)}
+                                                disabled={deletingId === log.id}
+                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50 opacity-0 group-hover:opacity-100"
+                                                title="Delete message (public + tracking)"
+                                            >
+                                                {deletingId === log.id ? (
+                                                    <div className="h-3 w-3 rounded-full border border-red-400/40 border-t-red-400 animate-spin" />
+                                                ) : (
+                                                    <Trash2 className="h-3 w-3" />
+                                                )}
+                                                Delete
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                                 {filteredLogs.length === 0 && (
                                     <tr>
-                                        <td colSpan={3} className="px-6 py-12 text-center">
+                                        <td colSpan={4} className="px-6 py-12 text-center">
                                             <Terminal className="h-10 w-10 text-[var(--ui-text-muted)] mx-auto mb-3" />
                                             <p className="text-sm text-[var(--ui-text-muted)]">No shadow messages intercepted</p>
                                         </td>

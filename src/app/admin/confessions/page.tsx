@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, query, getDocs, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
-import { AlertTriangle, Eye, Search } from 'lucide-react';
-import { cacheGet } from '@/lib/cache';
+import { AlertTriangle, Eye, Search, Trash2 } from 'lucide-react';
+import { cacheGet, cacheInvalidate } from '@/lib/cache';
+import { logAdminAction } from '@/lib/auditLog';
+import { useAuth } from '@/components/AuthProvider';
+import { useStore } from '@/store/useStore';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -24,6 +27,9 @@ export default function AdminConfessionsPage() {
     const [logs, setLogs] = useState<(PrivateConfession & { text: string })[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const { user } = useAuth();
+    const { userProfile } = useStore();
 
     useEffect(() => { fetchLogs(); }, []);
 
@@ -35,12 +41,12 @@ export default function AdminConfessionsPage() {
                 async () => {
                     const q = query(collection(db, 'confessions_private'), orderBy('createdAt', 'desc'), limit(200));
                     const snapshot = await getDocs(q);
-                    const privateData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PrivateConfession[];
+                    const privateData = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as PrivateConfession[];
 
                     const pubQ = query(collection(db, 'confessions_public'), limit(500));
                     const pubSnapshot = await getDocs(pubQ);
-                    const publicDataMap = pubSnapshot.docs.reduce((acc, doc) => {
-                        acc[doc.id] = doc.data().text;
+                    const publicDataMap = pubSnapshot.docs.reduce((acc, d) => {
+                        acc[d.id] = d.data().text;
                         return acc;
                     }, {} as Record<string, string>);
 
@@ -60,113 +66,24 @@ export default function AdminConfessionsPage() {
         }
     };
 
-    const filteredLogs = logs.filter(log => {
-        if (!searchQuery) return true;
-        const q = searchQuery.toLowerCase();
-        return log.realName?.toLowerCase().includes(q) ||
-            log.email?.toLowerCase().includes(q) ||
-            log.anonymousName?.toLowerCase().includes(q) ||
-            log.text?.toLowerCase().includes(q);
-    });
+    const handleDelete = async (log: PrivateConfession & { text: string }) => {
+        if (!confirm(`Delete this confession by ${log.realName || log.email || 'Unknown'}?\n\nThis will remove both the public confession and the private tracking record. This cannot be undone.`)) return;
 
-    return (
-        <div className="max-w-6xl mx-auto pb-12 font-sans animate-[fade-in-up_0.4s_ease-out]">
-            {/* Header */}
-            <div className="mb-6 surface border-[var(--ui-accent)]/20 p-5 flex items-start gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--ui-accent-dim)] ring-1 ring-[var(--ui-accent)]/20 shrink-0">
-                    <Eye className="h-5 w-5 text-[var(--ui-accent)]" />
-                </div>
-                <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold tracking-tight text-[var(--ui-text)]">Confession Tracker</h1>
-                        {!loading && (
-                            <span className="inline-flex items-center rounded-full bg-[var(--ui-accent-dim)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/20">
-                                {filteredLogs.length} records
-                            </span>
-                        )}
-                    </div>
-                    <p className="text-sm text-[var(--ui-accent)]/70 mt-1 flex items-center gap-1.5">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        Highly sensitive. Real identities associated with anonymous confessions are exposed.
-                    </p>
-                </div>
-            </div>
+        setDeletingId(log.id);
+        try {
+            // Delete both public and private docs
+            await Promise.all([
+                deleteDoc(doc(db, 'confessions_public', log.confessionId)).catch(() => {}),
+                deleteDoc(doc(db, 'confessions_private', log.id)),
+            ]);
 
-            {/* Search */}
-            <div className="surface p-4 mb-6">
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <Search className="h-4.5 w-4.5 text-[var(--ui-text-muted)]" />
-                    </div>
-                    <input
-                        type="text"
-                        className="input pl-10"
-                        placeholder="Search by name, email, alias, or confession text..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-            </div>
-
-            {/* Table */}
-            <div className="surface overflow-hidden">
-                {loading ? (
-                    <div className="p-12 flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
-                        <p className="text-sm text-[var(--ui-text-muted)]">Loading tracking logs...</p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-[var(--ui-divider)]">
-                            <thead className="bg-[var(--ui-bg-elevated)]">
-                                <tr>
-                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Real Identity</th>
-                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Anonymous Alias</th>
-                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Confession Content</th>
-                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">Time</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-[var(--ui-divider)]">
-                                {filteredLogs.map((log) => (
-                                    <tr key={log.id} className="hover:bg-[var(--ui-bg-hover)] transition-colors">
-                                        <td className="px-5 py-3.5 whitespace-nowrap">
-                                            <p className="text-sm font-bold text-red-400">{log.realName}</p>
-                                            <p className="text-xs text-[var(--ui-text-muted)]">{log.email}</p>
-                                        </td>
-                                        <td className="px-5 py-3.5 whitespace-nowrap">
-                                            <span className="inline-flex items-center rounded-lg bg-[var(--ui-bg-elevated)] px-2.5 py-1 text-sm text-[var(--ui-text-secondary)] font-mono ring-1 ring-[var(--ui-border)]">
-                                                {log.anonymousName}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3.5 text-sm text-[var(--ui-text-muted)] max-w-md truncate" title={log.text}>
-                                            {log.text}
-                                        </td>
-                                        <td className="px-5 py-3.5 whitespace-nowrap">
-                                            <p className="text-xs text-[var(--ui-text-muted)]">
-                                                {log.createdAt?.toDate
-                                                    ? formatDistanceToNow(log.createdAt.toDate(), { addSuffix: true })
-                                                    : 'N/A'
-                                                }
-                                            </p>
-                                            <p className="text-[10px] text-[var(--ui-text-muted)]">
-                                                {log.createdAt?.toDate ? log.createdAt.toDate().toLocaleString() : ''}
-                                            </p>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {filteredLogs.length === 0 && (
-                                    <tr>
-                                        <td colSpan={4} className="px-6 py-12 text-center">
-                                            <Eye className="h-10 w-10 text-[var(--ui-text-muted)] mx-auto mb-3" />
-                                            <p className="text-sm text-[var(--ui-text-muted)]">No confession logs found</p>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
+            // Audit log
+            if (user && userProfile) {
+                logAdminAction({
+                    action: 'delete_confession',
+                    adminUid: user.uid,
+                    adminEmail: user.email ?? '',
+                    adminName: userProfile.name,
+                    targetId: log.confessionId,
+                    targetType: 'confession',
+                    details: `Deleted confession by ${log.realName || 'Unknown'} (${log.email || 'no email'}): "${log.text.slice(0, 100)}"`,

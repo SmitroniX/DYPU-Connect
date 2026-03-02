@@ -9,35 +9,46 @@ import { Ban, CheckCircle, ClipboardList, RefreshCw, Search, Shield, Trash2, Use
 import toast from 'react-hot-toast';
 import { formatDistanceToNow, format } from 'date-fns';
 
-type AuditAction = 'ban_user' | 'unban_user' | 'promote_admin' | 'demote_admin' | 'delete_content' | 'resolve_report' | 'dismiss_report' | 'delete_report';
-
 interface AuditLogEntry {
     id: string;
-    action: AuditAction;
+    action: string;
+    adminUid?: string;
     adminEmail: string;
     adminName: string;
-    targetId: string;
-    targetLabel: string;
-    details: string;
-    timestamp: Timestamp | null;
+    targetId: string | null;
+    targetType?: string | null;
+    targetLabel?: string;
+    details: string | null;
+    timestamp: Timestamp | number | null;
 }
 
-const ACTION_CONFIG: Record<AuditAction, { label: string; icon: React.ElementType; color: string }> = {
+const ACTION_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
     ban_user: { label: 'Banned User', icon: Ban, color: 'text-red-400 bg-red-500/15' },
     unban_user: { label: 'Unbanned User', icon: CheckCircle, color: 'text-emerald-400 bg-emerald-500/15' },
+    promote_user: { label: 'Promoted to Admin', icon: Shield, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
     promote_admin: { label: 'Promoted to Admin', icon: Shield, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
+    demote_user: { label: 'Demoted from Admin', icon: UserX, color: 'text-amber-400 bg-amber-500/15' },
     demote_admin: { label: 'Demoted from Admin', icon: UserX, color: 'text-amber-400 bg-amber-500/15' },
     delete_content: { label: 'Deleted Content', icon: Trash2, color: 'text-red-400 bg-red-500/15' },
+    bulk_delete_content: { label: 'Bulk Deleted Content', icon: Trash2, color: 'text-red-400 bg-red-500/15' },
+    delete_confession: { label: 'Deleted Confession', icon: Trash2, color: 'text-red-400 bg-red-500/15' },
+    delete_anon_message: { label: 'Deleted Anon Message', icon: Trash2, color: 'text-red-400 bg-red-500/15' },
+    report_resolved: { label: 'Resolved Report', icon: CheckCircle, color: 'text-emerald-400 bg-emerald-500/15' },
+    report_dismissed: { label: 'Dismissed Report', icon: CheckCircle, color: 'text-zinc-400 bg-zinc-500/15' },
     resolve_report: { label: 'Resolved Report', icon: CheckCircle, color: 'text-emerald-400 bg-emerald-500/15' },
     dismiss_report: { label: 'Dismissed Report', icon: CheckCircle, color: 'text-zinc-400 bg-zinc-500/15' },
     delete_report: { label: 'Deleted Report', icon: Trash2, color: 'text-red-400 bg-red-500/15' },
+    publish_announcement: { label: 'Published Announcement', icon: Shield, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
+    delete_announcement: { label: 'Deleted Announcement', icon: Trash2, color: 'text-red-400 bg-red-500/15' },
 };
+
+const FALLBACK_CONFIG = { label: 'Admin Action', icon: ClipboardList, color: 'text-[var(--ui-text-muted)] bg-[var(--ui-bg-elevated)]' };
 
 export default function AdminAuditLogPage() {
     const [logs, setLogs] = useState<AuditLogEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterAction, setFilterAction] = useState<AuditAction | 'all'>('all');
+    const [filterAction, setFilterAction] = useState<string>('all');
 
     const fetchLogs = useCallback(async (isRefresh = false) => {
         if (isRefresh) cacheInvalidate('admin_audit_log');
@@ -101,7 +112,7 @@ export default function AdminAuditLogPage() {
                 </div>
                 <select
                     value={filterAction}
-                    onChange={(e) => setFilterAction(e.target.value as AuditAction | 'all')}
+                    onChange={(e) => setFilterAction(e.target.value)}
                     className="rounded-lg bg-[var(--ui-bg-input)] border-none px-3 py-2 text-sm text-[var(--ui-text)] focus:outline-none appearance-none"
                 >
                     <option value="all">All Actions</option>
@@ -130,9 +141,12 @@ export default function AdminAuditLogPage() {
                     </div>
                 ) : (
                     filteredLogs.map((entry) => {
-                        const config = ACTION_CONFIG[entry.action] || ACTION_CONFIG.delete_content;
+                        const config = ACTION_CONFIG[entry.action] || FALLBACK_CONFIG;
                         const ActionIcon = config.icon;
-                        const ts = entry.timestamp?.toDate?.();
+                        const ts = typeof entry.timestamp === 'number'
+                            ? new Date(entry.timestamp)
+                            : (entry.timestamp as Timestamp | null)?.toDate?.() ?? null;
+                        const targetDisplay = entry.targetLabel || entry.targetId || '';
                         return (
                             <div key={entry.id} className="flex items-start gap-4 px-5 py-4 hover:bg-[var(--ui-bg-hover)] transition-colors">
                                 <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${config.color}`}>
@@ -144,11 +158,16 @@ export default function AdminAuditLogPage() {
                                         <span className="text-xs text-[var(--ui-text-muted)]">by</span>
                                         <span className="text-xs font-medium text-[var(--ui-accent)]">{entry.adminEmail || entry.adminName}</span>
                                     </div>
-                                    <p className="text-sm text-[var(--ui-text-secondary)]">
-                                        Target: <span className="font-medium text-[var(--ui-text)]">{entry.targetLabel}</span>
-                                    </p>
+                                    {targetDisplay && (
+                                        <p className="text-sm text-[var(--ui-text-secondary)]">
+                                            Target: <span className="font-medium text-[var(--ui-text)]">{targetDisplay}</span>
+                                            {entry.targetType && (
+                                                <span className="text-xs text-[var(--ui-text-muted)] ml-1">({entry.targetType})</span>
+                                            )}
+                                        </p>
+                                    )}
                                     {entry.details && (
-                                        <p className="text-xs text-[var(--ui-text-muted)] mt-0.5">{entry.details}</p>
+                                        <p className="text-xs text-[var(--ui-text-muted)] mt-0.5 line-clamp-2">{entry.details}</p>
                                     )}
                                 </div>
                                 <div className="text-right shrink-0">
