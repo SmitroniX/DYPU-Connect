@@ -4,8 +4,9 @@ import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, ChevronRight } from 'lucide-react';
+import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, ChevronRight, Bell } from 'lucide-react';
 import clsx from 'clsx';
+import NotificationPanel from '@/components/NotificationPanel';
 
 interface SidebarProps {
     onNavigate?: () => void;
@@ -44,7 +45,7 @@ const NAV_SECTIONS = [
 
 export default function Sidebar({ onNavigate }: SidebarProps) {
     const { logout } = useAuth();
-    const { userProfile } = useStore();
+    const { userProfile, unreadCount, notificationPanelOpen, setNotificationPanelOpen } = useStore();
     const pathname = usePathname();
 
     const adminItem = userProfile?.role === 'admin'
@@ -76,10 +77,26 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     return (
         <div className="flex h-full flex-col bg-[var(--ui-bg-surface)] border-r border-[var(--ui-divider)]">
             {/* App header */}
-            <div className="flex h-14 shrink-0 items-center px-5">
+            <div className="flex h-14 shrink-0 items-center justify-between px-5">
                 <h1 className="text-base font-semibold text-[var(--ui-text)] tracking-tight">
                     <span className="text-[var(--ui-accent)]">✦</span> DYPU Connect
                 </h1>
+                {/* Notification bell */}
+                <div className="relative">
+                    <button
+                        onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
+                        className="relative p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                        title="Notifications"
+                    >
+                        <Bell className="h-[18px] w-[18px]" />
+                        {unreadCount > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-[var(--ui-bg-surface)]">
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                        )}
+                    </button>
+                    <NotificationPanel />
+                </div>
             </div>
 
             {/* Navigation */}

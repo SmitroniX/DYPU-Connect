@@ -19,6 +19,7 @@ import { sanitiseInput } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { createNotification } from '@/lib/notifications';
 
 interface Message {
     id: string;
@@ -125,7 +126,24 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
             lastMessage: cleanMessage || (payload.imageUrl ? '📷 Photo' : 'GIF'),
             updatedAt: serverTimestamp(),
         });
-    }, [chatId, user]);
+
+        // Fire-and-forget: notify the other participant
+        if (chatInfo) {
+            const otherUid = chatInfo.participants.find((p) => p !== user.uid);
+            if (otherUid) {
+                const senderName = chatInfo.participantNames?.[user.uid] || 'Someone';
+                const senderImage = chatInfo.participantImages?.[user.uid];
+                createNotification(otherUid, {
+                    type: 'message',
+                    title: senderName,
+                    body: cleanMessage || (payload.imageUrl ? '📷 Photo' : '🎞 GIF'),
+                    link: `/messages/${chatId}`,
+                    senderName,
+                    senderImage,
+                });
+            }
+        }
+    }, [chatId, user, chatInfo]);
 
     const handleReact = useCallback((messageId: string, emoji: string) => {
         if (!user) return;

@@ -55,6 +55,12 @@ service cloud.firestore {
         allow read, create, update: if owner(userId);
         allow delete: if owner(userId) || isAdmin();
       }
+
+      // ── Notifications (per-user subcollection) ──────────
+      match /notifications/{notifId} {
+        allow read, update, delete: if owner(userId);
+        allow create: if signedIn();
+      }
     }
 
     match /public_chat/{docId} {

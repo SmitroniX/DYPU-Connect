@@ -671,7 +671,7 @@ function CookiePrivacySection() {
 
 function AutoBackupSection() {
     const { user } = useAuth();
-    const { userProfile, setUserProfile, driveAccessToken } = useStore();
+    const { userProfile, setUserProfile, driveAccessToken, setDriveAccessToken } = useStore();
     const [saving, setSaving] = useState(false);
     const [backingUp, setBackingUp] = useState(false);
     const [enabled, setEnabled] = useState(userProfile?.autoBackup?.enabled ?? false);
@@ -710,13 +710,24 @@ function AutoBackupSection() {
         setBackingUp(true);
         try {
             const { exportProfileBackup } = await import('@/lib/backup');
-            const fileName = await exportProfileBackup(userProfile, driveAccessToken);
+
+            let fileName: string;
+            try {
+                fileName = await exportProfileBackup(userProfile, driveAccessToken);
+            } catch {
+                // Token may be expired — clear it and retry with a fresh one
+                setDriveAccessToken(null);
+                fileName = await exportProfileBackup(userProfile, null);
+            }
+
             const now = Date.now();
             const autoBackup = { ...userProfile.autoBackup, enabled, interval, lastBackupAt: now, lastBackupFile: fileName };
             await updateDoc(doc(db, 'users', user.uid), { autoBackup });
             setUserProfile({ ...userProfile, autoBackup });
             toast.success(`Backup saved: ${fileName}`);
         } catch (err) {
+            // Clear stale token on any failure
+            setDriveAccessToken(null);
             toast.error(err instanceof Error ? err.message : 'Backup failed.');
         } finally {
             setBackingUp(false);
@@ -949,7 +960,9 @@ export default function SettingsPage() {
 
         setDriveBusy(true);
         try {
-            const token = await requestGoogleDriveAccessToken('consent');
+            let token: string;
+            try { token = await requestGoogleDriveAccessToken(''); }
+            catch { token = await requestGoogleDriveAccessToken('consent'); }
             const googleEmail = await fetchGoogleUserEmail(token);
 
             const connection = buildDriveConnection(

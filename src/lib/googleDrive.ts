@@ -11,12 +11,17 @@ interface GoogleTokenClient {
     requestAccessToken: (options?: { prompt?: string }) => void;
 }
 
+interface GoogleOAuthErrorResponse {
+    type?: string;
+    message?: string;
+}
+
 interface GoogleAccountsOauth2 {
     initTokenClient: (config: {
         client_id: string;
         scope: string;
         callback: (response: GoogleTokenResponse) => void;
-        error_callback?: () => void;
+        error_callback?: (error: GoogleOAuthErrorResponse) => void;
     }) => GoogleTokenClient;
 }
 
@@ -157,7 +162,16 @@ export async function requestGoogleDriveAccessToken(prompt: 'consent' | '' = 'co
 
                 resolve(response.access_token);
             },
-            error_callback: () => reject(new Error('Google sign-in failed.')),
+            error_callback: (err) => {
+                const errType = err?.type ?? 'unknown';
+                if (errType === 'popup_closed') {
+                    reject(new Error('Google sign-in was cancelled.'));
+                } else if (errType === 'popup_failed_to_open') {
+                    reject(new Error('Google sign-in popup was blocked by the browser. Please allow popups for this site.'));
+                } else {
+                    reject(new Error(err?.message || `Google sign-in failed (${errType}).`));
+                }
+            },
         });
 
         tokenClient.requestAccessToken({ prompt });
@@ -245,7 +259,12 @@ async function _multipartUpload(options: {
     });
 
     if (!uploadResponse.ok) {
-        throw new Error('Google Drive upload failed.');
+        let detail = `HTTP ${uploadResponse.status}`;
+        try {
+            const errBody = await uploadResponse.json() as { error?: { message?: string; code?: number } };
+            if (errBody?.error?.message) detail = errBody.error.message;
+        } catch { /* ignore parse errors */ }
+        throw new Error(`Google Drive upload failed: ${detail}`);
     }
 
     const payload = (await uploadResponse.json()) as GoogleDriveUploadResponse;
@@ -265,7 +284,12 @@ async function _multipartUpload(options: {
         });
 
         if (!permissionResponse.ok) {
-            throw new Error('Uploaded file permission update failed.');
+            let detail = `HTTP ${permissionResponse.status}`;
+            try {
+                const errBody = await permissionResponse.json() as { error?: { message?: string } };
+                if (errBody?.error?.message) detail = errBody.error.message;
+            } catch { /* ignore */ }
+            throw new Error(`Failed to make file public: ${detail}`);
         }
     }
 
@@ -329,7 +353,12 @@ export async function listDriveFiles(accessToken: string, folderId?: string, mim
     });
 
     if (!response.ok) {
-        throw new Error('Failed to list Google Drive files.');
+        let detail = `HTTP ${response.status}`;
+        try {
+            const errBody = await response.json() as { error?: { message?: string } };
+            if (errBody?.error?.message) detail = errBody.error.message;
+        } catch { /* ignore */ }
+        throw new Error(`Failed to list Google Drive files: ${detail}`);
     }
 
     const data = (await response.json()) as { files?: GoogleDriveListFile[] };

@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AlertCircle, Info, Menu, X, Zap } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { db } from '@/lib/firebase';
 import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
+import { subscribeToNotifications } from '@/lib/notifications';
+import { useAuth } from '@/components/AuthProvider';
+import toast from 'react-hot-toast';
 
 interface ActiveAnnouncement {
     id: string;
@@ -80,6 +83,45 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const { user } = useAuth();
+    const { setNotifications } = useStore();
+    const prevUnreadRef = useRef<number>(0);
+
+    // Real-time notification listener
+    useEffect(() => {
+        if (!user?.uid) {
+            setNotifications([]);
+            return;
+        }
+
+        const unsub = subscribeToNotifications(user.uid, (notifs) => {
+            const newUnread = notifs.filter((n) => !n.read).length;
+
+            // Show toast for NEW unread notifications (only when count increases)
+            if (newUnread > prevUnreadRef.current && prevUnreadRef.current >= 0) {
+                const latest = notifs.find((n) => !n.read);
+                if (latest) {
+                    toast(latest.title, {
+                        icon: '🔔',
+                        duration: 4000,
+                        style: {
+                            background: 'var(--ui-bg-elevated)',
+                            color: 'var(--ui-text)',
+                            border: '1px solid var(--ui-divider)',
+                        },
+                    });
+                }
+            }
+
+            prevUnreadRef.current = newUnread;
+            setNotifications(notifs);
+        });
+
+        return () => {
+            unsub();
+            prevUnreadRef.current = 0;
+        };
+    }, [user?.uid, setNotifications]);
 
     return (
         <ProtectedRoute>
