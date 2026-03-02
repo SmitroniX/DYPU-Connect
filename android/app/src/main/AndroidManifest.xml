@@ -58,6 +58,28 @@
                     android:pathPrefix="/verify-email" />
             </intent-filter>
 
+            <!-- ── Deep Link: Return from Google OAuth (login page) ── -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="dypu-connect.netlify.app"
+                    android:pathPrefix="/login" />
+            </intent-filter>
+
+            <!-- ── Deep Link: Catch-all for the app domain ── -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="dypu-connect.netlify.app"
+                    android:pathPrefix="/" />
+            </intent-filter>
+
             <!-- Also handle the Firebase auth domain links -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

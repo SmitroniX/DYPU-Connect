@@ -1,2 +1,0 @@
-﻿Need to install the following packages:
-netlify@24.0.1

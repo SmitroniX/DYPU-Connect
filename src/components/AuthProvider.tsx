@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, signInWithPopup, deleteUser } from 'firebase/auth';
+import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, deleteUser } from 'firebase/auth';
 import type { FirebaseError } from 'firebase/app';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -57,6 +57,15 @@ function mapAuthError(error: unknown): Error {
         default:
             return error instanceof Error ? error : new Error('Authentication failed.');
     }
+}
+
+/** Detect if we're running inside an Android WebView (our native app wrapper) */
+function isAndroidWebView(): boolean {
+    if (typeof window === 'undefined') return false;
+    const ua = navigator.userAgent || '';
+    // Our Android app appends "DYPUConnect/1.0" to the user-agent
+    // Also detect generic Android WebView signatures
+    return ua.includes('DYPUConnect') || (ua.includes('Android') && (ua.includes('wv') || ua.includes('; wv)')));
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -175,6 +184,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
+    // Handle Google sign-in redirect result (used by Android WebView flow)
+    useEffect(() => {
+        if (!firebaseReady) return;
+
+        getRedirectResult(auth)
+            .then(async (result) => {
+                if (!result) return;
+                const email = result.user.email;
+
+                // Enforce @dypatil.edu restriction
+                if (!email || !email.endsWith('@dypatil.edu')) {
+                    await deleteUser(result.user).catch(() => {});
+                    await signOut(auth);
+                    return;
+                }
+
+                // Auto-connect Google Drive
+                try {
+                    const docRef = doc(db, 'users', result.user.uid);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const existing = docSnap.data() as UserProfile;
+                        if (!existing.googleDrive) {
+                            await updateDoc(docRef, {
+                                googleDrive: {
+                                    email: email,
+                                    connectedAt: Date.now(),
+                                },
+                            });
+                        }
+                    }
+                } catch {
+                    // Non-critical
+                }
+
+                // Log sign-in activity
+                const deviceInfo = collectDeviceInfo();
+                logActivity(
+                    result.user.uid,
+                    'login',
+                    `Signed in with Google (${email}) · ${deviceInfo.browser} on ${deviceInfo.os} · ${deviceInfo.device}`,
+                );
+                registerDeviceSession(result.user.uid).catch(() => {});
+                router.push('/');
+            })
+            .catch(() => {
+                // Redirect result not available — normal for non-redirect flows
+            });
+    }, [firebaseReady, router]);
+
     const sendLoginLink = async (email: string) => {
         if (!email.endsWith('@dypatil.edu')) {
             throw new Error('Only @dypatil.edu emails are allowed.');
@@ -214,6 +273,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         provider.setCustomParameters({ hd: 'dypatil.edu', prompt: 'select_account' });
 
         try {
+            // Android WebView blocks OAuth popups — use redirect flow instead
+            if (isAndroidWebView()) {
+                await signInWithRedirect(auth, provider);
+                return; // Page will redirect, result handled by getRedirectResult on reload
+            }
+
             const result = await signInWithPopup(auth, provider);
             const email = result.user.email;
 

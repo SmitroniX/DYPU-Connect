@@ -303,6 +303,16 @@ class MainActivity : AppCompatActivity() {
                 ): Boolean {
                     val url = request?.url?.toString() ?: return false
 
+                    // Google blocks OAuth inside WebViews — open Google sign-in
+                    // in the system browser (Chrome). After auth, Firebase redirects
+                    // back to our domain which the deep link intent-filter catches.
+                    if (isGoogleAuthUrl(url)) {
+                        try {
+                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                        } catch (_: ActivityNotFoundException) { }
+                        return true
+                    }
+
                     // Keep navigation inside WebView for our domain
                     if (isInternalUrl(url)) return false
 
@@ -631,11 +641,21 @@ class MainActivity : AppCompatActivity() {
         return urlHost == webHost
                 || urlHost.endsWith(".firebaseapp.com")
                 || urlHost.endsWith(".firebaseio.com")
-                || urlHost == "accounts.google.com"
                 || urlHost.endsWith(".googleapis.com")
                 // Local development
                 || urlHost == "localhost"
                 || urlHost == "10.0.2.2"
+    }
+
+    /** Detect Google OAuth / sign-in URLs that must open in system browser */
+    private fun isGoogleAuthUrl(url: String): Boolean {
+        val uri = Uri.parse(url)
+        val host = uri.host ?: return false
+        // accounts.google.com/o/oauth2, accounts.google.com/signin, etc.
+        if (host == "accounts.google.com") return true
+        // Firebase auth handler redirect (__/auth/handler)
+        if (host.endsWith(".firebaseapp.com") && url.contains("__/auth/handler")) return true
+        return false
     }
 
     // ──────────────────────────────────────────────────────────
