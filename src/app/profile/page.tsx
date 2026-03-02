@@ -25,6 +25,7 @@ import type {
     ProfileStoryItem,
     ProfileVisibility,
     UserProfile,
+    SocialLinks,
 } from '@/types/profile';
 import {
     getProfileBranchOptions,
@@ -37,33 +38,58 @@ import {
 } from '@/types/profile';
 import { resolveProfileImage } from '@/lib/profileImage';
 import {
+    Award,
     Camera,
     ChevronUp,
     Clock,
     Download,
     Edit3,
+    ExternalLink,
     Eye,
     EyeOff,
     GalleryHorizontalEnd,
+    Github,
     Globe,
     Grid3X3,
     HardDriveUpload,
     ImagePlus,
+    Instagram,
+    Linkedin,
     Lock,
     Mail,
     Plus,
     Save,
     ScrollText,
+    Shield,
+    ShieldCheck,
     Sparkles,
     Star,
     Trash2,
     Upload,
     User,
     X,
+    Zap,
 } from 'lucide-react';
 
 interface EditableProfileData extends ProfileFormData {
     profileImage: string;
+}
+
+/* ── Profile completion calculator ── */
+function computeProfileCompletion(profile: UserProfile): number {
+    let score = 0;
+    const total = 10;
+    if (profile.name?.trim()) score++;
+    if (profile.bio?.trim()) score++;
+    if (profile.profileImage && !profile.profileImage.includes('dicebear') && !profile.profileImage.includes('ui-avatars')) score++;
+    if (profile.field) score++;
+    if (profile.year) score++;
+    if (profile.branch) score++;
+    if (profile.socialLinks?.instagram || profile.socialLinks?.linkedin || profile.socialLinks?.github) score++;
+    if (profile.gallery.length > 0) score++;
+    if (profile.googleDrive) score++;
+    if (profile.highlights.length > 0) score++;
+    return Math.round((score / total) * 100);
 }
 
 interface GalleryDraft {
@@ -242,6 +268,8 @@ export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<ProfileTab>('edit');
     const [formData, setFormData] = useState<EditableProfileData>({
         name: '',
+        bio: '',
+        socialLinks: {},
         field: 'Engineering',
         year: 'First Year',
         division: 'A',
@@ -283,6 +311,8 @@ export default function ProfilePage() {
         formInitialized.current = true;
         setFormData({
             name: userProfile.name,
+            bio: userProfile.bio ?? '',
+            socialLinks: userProfile.socialLinks ?? {},
             field: userProfile.field,
             year: userProfile.year,
             division: userProfile.division,
@@ -353,6 +383,12 @@ export default function ProfilePage() {
         try {
             const profileUpdates = {
                 name: cleanName,
+                bio: formData.bio.trim(),
+                socialLinks: {
+                    instagram: formData.socialLinks.instagram?.trim() || undefined,
+                    linkedin: formData.socialLinks.linkedin?.trim() || undefined,
+                    github: formData.socialLinks.github?.trim() || undefined,
+                },
                 field: formData.field,
                 year: formData.year,
                 division: formData.division,
@@ -597,6 +633,7 @@ export default function ProfilePage() {
     const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
         e.currentTarget.src = fallbackSrc;
     };
+    const profileCompletion = computeProfileCompletion(userProfile);
 
     return (
         <DashboardLayout>
@@ -608,12 +645,18 @@ export default function ProfilePage() {
                     <div className="h-36 sm:h-44 bg-linear-to-br from-[var(--ui-accent)]/40 via-[var(--ui-bg-surface)] to-[var(--ui-bg-elevated)] relative">
                         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE4YzEuNjU3IDAgMyAxLjM0MyAzIDNzLTEuMzQzIDMtMyAzLTMtMS4zNDMtMy0zIDEuMzQzLTMgMy0zek0yNCAzNmMxLjY1NyAwIDMgMS4zNDMgMyAzcy0xLjM0MyAzLTMgMy0zLTEuMzQzLTMtMyAxLjM0My0zIDMtM3oiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-50" />
                         <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-[var(--ui-bg-base)] to-transparent" />
+                        {/* Encryption badge on banner */}
+                        {userProfile.encryptionEnabled && (
+                            <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-[var(--ui-accent-dim)] px-2.5 py-1 text-[10px] font-bold text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/30">
+                                <ShieldCheck className="h-3 w-3" /> Encrypted
+                            </div>
+                        )}
                     </div>
 
                     {/* Profile Info Overlay */}
                     <div className="relative -mt-16 sm:-mt-20 px-4 sm:px-6 pb-6">
                         <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6">
-                            {/* Avatar */}
+                            {/* Avatar with completion ring */}
                             <div className="relative group">
                                 <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-2xl ring-4 ring-[var(--ui-bg-base)] overflow-hidden bg-[var(--ui-bg-elevated)] shadow-2xl">
                                     <img
@@ -622,6 +665,12 @@ export default function ProfilePage() {
                                         onError={handleImgError}
                                         className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                                     />
+                                </div>
+                                {/* Completion indicator */}
+                                <div className="absolute -top-1 -left-1 h-7 w-7 rounded-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] flex items-center justify-center shadow-lg">
+                                    <span className={`text-[9px] font-bold ${profileCompletion >= 80 ? 'text-[var(--ui-success)]' : profileCompletion >= 50 ? 'text-[var(--ui-warning)]' : 'text-[var(--ui-text-muted)]'}`}>
+                                        {profileCompletion}%
+                                    </span>
                                 </div>
                                 <button
                                     onClick={() => { setActiveTab('edit'); profilePhotoFileInputRef.current?.click(); }}
@@ -649,6 +698,13 @@ export default function ProfilePage() {
                                     )}
                                 </div>
 
+                                {/* Bio */}
+                                {userProfile.bio && (
+                                    <p className="text-sm text-[var(--ui-text-secondary)] max-w-lg italic">
+                                        &ldquo;{userProfile.bio}&rdquo;
+                                    </p>
+                                )}
+
                                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-sm text-[var(--ui-text-muted)]">
                                     <span className="flex items-center gap-1">
                                         <Mail className="h-3.5 w-3.5" /> {userProfile.email}
@@ -664,6 +720,30 @@ export default function ProfilePage() {
                                     <Badge>{userProfile.year}</Badge>
                                     <Badge>Div {userProfile.division}</Badge>
                                 </div>
+
+                                {/* Social Links */}
+                                {(userProfile.socialLinks?.instagram || userProfile.socialLinks?.linkedin || userProfile.socialLinks?.github) && (
+                                    <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
+                                        {userProfile.socialLinks.instagram && (
+                                            <a href={`https://instagram.com/${userProfile.socialLinks.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer"
+                                               className="flex items-center gap-1 rounded-lg bg-[var(--ui-bg-elevated)] px-2.5 py-1.5 text-[11px] text-[var(--ui-text-secondary)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors">
+                                                <Instagram className="h-3.5 w-3.5" /> {userProfile.socialLinks.instagram}
+                                            </a>
+                                        )}
+                                        {userProfile.socialLinks.linkedin && (
+                                            <a href={userProfile.socialLinks.linkedin.startsWith('http') ? userProfile.socialLinks.linkedin : `https://linkedin.com/in/${userProfile.socialLinks.linkedin}`} target="_blank" rel="noopener noreferrer"
+                                               className="flex items-center gap-1 rounded-lg bg-[var(--ui-bg-elevated)] px-2.5 py-1.5 text-[11px] text-[var(--ui-text-secondary)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors">
+                                                <Linkedin className="h-3.5 w-3.5" /> LinkedIn <ExternalLink className="h-2.5 w-2.5" />
+                                            </a>
+                                        )}
+                                        {userProfile.socialLinks.github && (
+                                            <a href={userProfile.socialLinks.github.startsWith('http') ? userProfile.socialLinks.github : `https://github.com/${userProfile.socialLinks.github}`} target="_blank" rel="noopener noreferrer"
+                                               className="flex items-center gap-1 rounded-lg bg-[var(--ui-bg-elevated)] px-2.5 py-1.5 text-[11px] text-[var(--ui-text-secondary)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors">
+                                                <Github className="h-3.5 w-3.5" /> {userProfile.socialLinks.github}
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Stats */}
@@ -683,7 +763,52 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
-                        <p className="text-xs text-[var(--ui-text-muted)] mt-4 text-center sm:text-left">
+                        {/* Achievement Badges */}
+                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-4">
+                            {profileCompletion >= 80 && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-success)]/10 px-2.5 py-1 text-[10px] font-bold text-[var(--ui-success)] ring-1 ring-[var(--ui-success)]/20">
+                                    <Award className="h-3 w-3" /> Profile Pro
+                                </span>
+                            )}
+                            {userProfile.googleDrive && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-accent-dim)] px-2.5 py-1 text-[10px] font-bold text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/20">
+                                    <HardDriveUpload className="h-3 w-3" /> Drive Connected
+                                </span>
+                            )}
+                            {userProfile.encryptionEnabled && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-accent-dim)] px-2.5 py-1 text-[10px] font-bold text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/20">
+                                    <Shield className="h-3 w-3" /> Encrypted
+                                </span>
+                            )}
+                            {userProfile.gallery.length >= 5 && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-warning)]/10 px-2.5 py-1 text-[10px] font-bold text-[var(--ui-warning)] ring-1 ring-[var(--ui-warning)]/20">
+                                    <Zap className="h-3 w-3" /> Shutterbug
+                                </span>
+                            )}
+                            {(new Date().getTime() - userProfile.createdAt) > 30 * 24 * 60 * 60 * 1000 && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-info)]/10 px-2.5 py-1 text-[10px] font-bold text-[var(--ui-info)] ring-1 ring-[var(--ui-info)]/20">
+                                    <Sparkles className="h-3 w-3" /> Veteran
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Profile Completion Bar */}
+                        <div className="mt-3">
+                            <div className="flex items-center justify-between mb-1">
+                                <span className="text-[10px] text-[var(--ui-text-muted)] uppercase tracking-wide">Profile Completion</span>
+                                <span className={`text-[10px] font-bold ${profileCompletion >= 80 ? 'text-[var(--ui-success)]' : profileCompletion >= 50 ? 'text-[var(--ui-warning)]' : 'text-[var(--ui-text-muted)]'}`}>
+                                    {profileCompletion}%
+                                </span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-[var(--ui-bg-elevated)] overflow-hidden">
+                                <div
+                                    className={`h-full rounded-full transition-all duration-700 ease-out ${profileCompletion >= 80 ? 'bg-[var(--ui-success)]' : profileCompletion >= 50 ? 'bg-[var(--ui-warning)]' : 'bg-[var(--ui-accent)]'}`}
+                                    style={{ width: `${profileCompletion}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        <p className="text-xs text-[var(--ui-text-muted)] mt-3 text-center sm:text-left">
                             Member since {createdOn}
                         </p>
                     </div>
@@ -741,6 +866,55 @@ export default function ProfilePage() {
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             />
+
+                            {/* Bio */}
+                            <div>
+                                <label htmlFor="bio" className="block text-xs font-medium text-[var(--ui-text-muted)] mb-1.5">Bio / About Me</label>
+                                <textarea
+                                    id="bio"
+                                    rows={3}
+                                    maxLength={250}
+                                    className="input resize-none"
+                                    placeholder="Tell the campus about yourself..."
+                                    value={formData.bio}
+                                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                                />
+                                <p className="text-[10px] text-[var(--ui-text-muted)] mt-1 text-right">{formData.bio.length}/250</p>
+                            </div>
+
+                            {/* Social Links */}
+                            <div>
+                                <p className="text-xs font-medium text-[var(--ui-text-muted)] mb-3">Social Links</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <Instagram className="h-4 w-4 text-[var(--ui-text-muted)] shrink-0" />
+                                        <input
+                                            className="input"
+                                            placeholder="@username"
+                                            value={formData.socialLinks.instagram ?? ''}
+                                            onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, instagram: e.target.value } })}
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Linkedin className="h-4 w-4 text-[var(--ui-text-muted)] shrink-0" />
+                                        <input
+                                            className="input"
+                                            placeholder="linkedin.com/in/..."
+                                            value={formData.socialLinks.linkedin ?? ''}
+                                            onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, linkedin: e.target.value } })}
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Github className="h-4 w-4 text-[var(--ui-text-muted)] shrink-0" />
+                                        <input
+                                            className="input"
+                                            placeholder="github.com/..."
+                                            value={formData.socialLinks.github ?? ''}
+                                            onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, github: e.target.value } })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
 
                             {/* Academic Info Grid */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

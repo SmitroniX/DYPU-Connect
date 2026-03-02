@@ -34,11 +34,19 @@ export interface GoogleDriveConnection {
     folderLink?: string;
 }
 
+export interface SocialLinks {
+    instagram?: string;
+    linkedin?: string;
+    github?: string;
+}
+
 export interface UserProfile {
     userId: string;
     name: string;
     email: string;
     profileImage: string;
+    bio?: string;
+    socialLinks?: SocialLinks;
     field: string;
     year: string;
     division: string;
@@ -49,6 +57,8 @@ export interface UserProfile {
     stories: ProfileStoryItem[];
     highlights: ProfileHighlightItem[];
     googleDrive?: GoogleDriveConnection;
+    encryptionSalt?: string;
+    encryptionEnabled?: boolean;
     role: UserRole;
     status: UserStatus;
     createdAt: number;
@@ -56,6 +66,8 @@ export interface UserProfile {
 
 export interface ProfileFormData {
     name: string;
+    bio: string;
+    socialLinks: SocialLinks;
     field: string;
     year: string;
     division: string;
@@ -230,11 +242,19 @@ export function normalizeUserProfile(profile: UserProfile): UserProfile {
     const raw = profile as Partial<UserProfile>;
     return {
         ...profile,
+        bio: typeof raw.bio === 'string' ? raw.bio : '',
+        socialLinks: raw.socialLinks && typeof raw.socialLinks === 'object' ? {
+            instagram: typeof raw.socialLinks.instagram === 'string' ? raw.socialLinks.instagram : undefined,
+            linkedin: typeof raw.socialLinks.linkedin === 'string' ? raw.socialLinks.linkedin : undefined,
+            github: typeof raw.socialLinks.github === 'string' ? raw.socialLinks.github : undefined,
+        } : {},
         gender: isGender(raw.gender) ? raw.gender : 'other',
         accountVisibility: isVisibility(raw.accountVisibility) ? raw.accountVisibility : 'public',
         gallery: normalizeGallery(raw.gallery),
         stories: normalizeStories(raw.stories),
         highlights: normalizeHighlights(raw.highlights),
         googleDrive: normalizeGoogleDriveConnection(raw.googleDrive),
+        encryptionSalt: typeof raw.encryptionSalt === 'string' ? raw.encryptionSalt : undefined,
+        encryptionEnabled: typeof raw.encryptionEnabled === 'boolean' ? raw.encryptionEnabled : false,
     };
 }

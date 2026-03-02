@@ -27,8 +27,11 @@ import {
     panicWipeCookies,
 } from '@/lib/cookieShield';
 import { generateSessionFingerprint } from '@/lib/security';
-import { Shield, Cookie, Lock, Fingerprint, ShieldCheck, ShieldAlert, Trash2, RefreshCw } from 'lucide-react';
+import { Shield, Cookie, Lock, Fingerprint, ShieldCheck, ShieldAlert, Trash2, RefreshCw, KeyRound, Activity, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { fetchActivityLog, type ActivityLogEntry } from '@/lib/activityLog';
+import { getOrCreateEncryptionSalt } from '@/lib/encryption';
+import { formatDistanceToNowStrict } from 'date-fns';
 
 interface UserSettings {
     emailNotifications: boolean;
@@ -43,6 +46,159 @@ const DEFAULT_SETTINGS: UserSettings = {
 };
 
 const SETTINGS_STORAGE_KEY = 'dypu_settings_v1';
+
+/* ── Security Section ───────────────────────────── */
+
+function SecuritySection() {
+    const { user } = useAuth();
+    const { userProfile, setUserProfile } = useStore();
+    const [loginLogs, setLoginLogs] = useState<ActivityLogEntry[]>([]);
+    const [loadingLogs, setLoadingLogs] = useState(true);
+    const [toggling, setToggling] = useState(false);
+
+    useEffect(() => {
+        if (!user) return;
+        setLoadingLogs(true);
+        fetchActivityLog(user.uid, 20)
+            .then((logs) => setLoginLogs(logs.filter((l) => l.action === 'login')))
+            .catch(() => {})
+            .finally(() => setLoadingLogs(false));
+    }, [user]);
+
+    const toggleEncryption = async () => {
+        if (!user || !userProfile || toggling) return;
+        setToggling(true);
+        try {
+            const newState = !userProfile.encryptionEnabled;
+            const updates: Record<string, unknown> = { encryptionEnabled: newState };
+
+            if (newState && !userProfile.encryptionSalt) {
+                const salt = await getOrCreateEncryptionSalt(user.uid);
+                updates.encryptionSalt = salt;
+            }
+
+            const { updateDoc, doc } = await import('firebase/firestore');
+            const { db } = await import('@/lib/firebase');
+            await updateDoc(doc(db, 'users', user.uid), updates);
+            setUserProfile({ ...userProfile, ...updates as Partial<typeof userProfile> });
+            toast.success(newState ? 'Drive encryption enabled. New uploads will be encrypted.' : 'Drive encryption disabled.');
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to toggle encryption.');
+        } finally {
+            setToggling(false);
+        }
+    };
+
+    const fingerprint = generateSessionFingerprint();
+
+    return (
+        <section className="surface p-6">
+            <div className="flex items-center gap-3 mb-1">
+                <KeyRound className="h-5 w-5 text-[var(--ui-accent)]" />
+                <h2 className="text-lg font-semibold text-[var(--ui-text)]">Security</h2>
+            </div>
+            <p className="text-sm text-[var(--ui-text-muted)] mb-5">
+                Manage encryption, review login activity, and monitor your session.
+            </p>
+
+            {/* ── Drive Encryption Toggle ── */}
+            <div className="mb-5 rounded-xl border border-[var(--ui-accent)]/15 bg-[var(--ui-accent-dim)] p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <ShieldCheck className="h-5 w-5 text-[var(--ui-accent)]" />
+                        <h3 className="text-sm font-bold text-[var(--ui-text)]">Drive Encryption (AES-256-GCM)</h3>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={!!userProfile?.encryptionEnabled}
+                            onChange={toggleEncryption}
+                            disabled={toggling || !userProfile?.googleDrive}
+                            className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-[var(--ui-bg-elevated)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--ui-accent)]"></div>
+                    </label>
+                </div>
+                <p className="text-[11px] text-[var(--ui-text-muted)]">
+                    When enabled, new uploads to Google Drive are encrypted client-side with AES-256-GCM before leaving your browser.
+                    Your encryption key is derived from your account and never leaves the device.
+                </p>
+                {!userProfile?.googleDrive && (
+                    <p className="text-[11px] text-[var(--ui-warning)]">Connect Google Drive first to enable encryption.</p>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] px-3 py-2">
+                        <Lock className="h-3.5 w-3.5 text-[var(--ui-accent)] shrink-0" />
+                        <div>
+                            <p className="text-[10px] font-semibold text-[var(--ui-text-secondary)]">Algorithm</p>
+                            <p className="text-[9px] text-[var(--ui-accent)]">AES-256-GCM + PBKDF2 key derivation</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] px-3 py-2">
+                        <Shield className="h-3.5 w-3.5 text-[var(--ui-accent)] shrink-0" />
+                        <div>
+                            <p className="text-[10px] font-semibold text-[var(--ui-text-secondary)]">Status</p>
+                            <p className={`text-[9px] ${userProfile?.encryptionEnabled ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text-muted)]'}`}>
+                                {userProfile?.encryptionEnabled ? '🔒 Active — new uploads encrypted' : '🔓 Disabled — uploads in plaintext'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Active Session ── */}
+            <div className="mb-5 rounded-xl border border-[var(--ui-border)] p-4 space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                    <Activity className="h-4 w-4 text-[var(--ui-accent)]" />
+                    <h3 className="text-sm font-semibold text-[var(--ui-text)]">Current Session</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] px-3 py-2">
+                        <Fingerprint className="h-3.5 w-3.5 text-[var(--ui-accent)] shrink-0" />
+                        <div>
+                            <p className="text-[10px] font-semibold text-[var(--ui-text-secondary)]">Session Fingerprint</p>
+                            <p className="text-[9px] text-[var(--ui-accent)] font-mono">{fingerprint || '—'}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] px-3 py-2">
+                        <Eye className="h-3.5 w-3.5 text-[var(--ui-accent)] shrink-0" />
+                        <div>
+                            <p className="text-[10px] font-semibold text-[var(--ui-text-secondary)]">Browser</p>
+                            <p className="text-[9px] text-[var(--ui-accent)]">{typeof navigator !== 'undefined' ? navigator.userAgent.split(' ').slice(-2).join(' ') : '—'}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Login Activity ── */}
+            <div className="rounded-xl border border-[var(--ui-border)] p-4">
+                <div className="flex items-center gap-2 mb-3">
+                    <Activity className="h-4 w-4 text-[var(--ui-accent)]" />
+                    <h3 className="text-sm font-semibold text-[var(--ui-text)]">Recent Logins</h3>
+                </div>
+                {loadingLogs ? (
+                    <div className="flex items-center justify-center py-6">
+                        <div className="h-5 w-5 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
+                    </div>
+                ) : loginLogs.length === 0 ? (
+                    <p className="text-xs text-[var(--ui-text-muted)] py-4 text-center">No login activity recorded yet.</p>
+                ) : (
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                        {loginLogs.map((log) => (
+                            <div key={log.id} className="flex items-center justify-between rounded-lg bg-[var(--ui-bg-elevated)] px-3 py-2 text-[11px]">
+                                <span className="text-[var(--ui-text-secondary)]">{log.details}</span>
+                                <span className="text-[var(--ui-text-muted)] shrink-0 ml-2">
+                                    {formatDistanceToNowStrict(new Date(log.timestamp), { addSuffix: true })}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+}
 
 /* ── Cookie & Privacy Management Section ─────────── */
 
@@ -596,6 +752,8 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </section>
+
+                    <SecuritySection />
 
                     <CookiePrivacySection />
 

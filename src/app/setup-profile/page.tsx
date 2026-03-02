@@ -31,13 +31,15 @@ import {
 
 export default function SetupProfilePage() {
     const { user } = useAuth();
-    const { userProfile, setUserProfile, driveAccessToken } = useStore();
+    const { userProfile, setUserProfile } = useStore();
     const router = useRouter();
 
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<ProfileFormData & { profilePhotoSource: string }>({
         name: user?.displayName || '',
+        bio: '',
+        socialLinks: {},
         field: 'Engineering',
         year: 'First Year',
         division: 'A',
@@ -101,7 +103,7 @@ export default function SetupProfilePage() {
                 stories: [],
                 highlights: [],
                 // Auto-connect Google Drive if user signed in via Google
-                ...(user.providerData.some(p => p.providerId === 'google.com') && driveAccessToken
+                ...(user.providerData.some(p => p.providerId === 'google.com')
                     ? {
                         googleDrive: {
                             email: user.email as string,
