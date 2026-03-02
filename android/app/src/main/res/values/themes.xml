@@ -18,7 +18,7 @@
     <!-- ── Splash Screen Theme ────────────────────────────── -->
     <style name="Theme.DYPUConnect.Splash" parent="Theme.DYPUConnect">
         <item name="android:windowSplashScreenBackground">@color/splash_background</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
     </style>
 
 </resources>
