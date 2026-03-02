@@ -381,14 +381,16 @@ export default function ProfilePage() {
         if (!cleanName) { toast.error('Please enter your full name.'); return; }
         setSaving(true);
         try {
+            // Build socialLinks without undefined values (Firestore rejects undefined)
+            const socialLinks: Record<string, string> = {};
+            if (formData.socialLinks.instagram?.trim()) socialLinks.instagram = formData.socialLinks.instagram.trim();
+            if (formData.socialLinks.linkedin?.trim()) socialLinks.linkedin = formData.socialLinks.linkedin.trim();
+            if (formData.socialLinks.github?.trim()) socialLinks.github = formData.socialLinks.github.trim();
+
             const profileUpdates = {
                 name: cleanName,
                 bio: formData.bio.trim(),
-                socialLinks: {
-                    instagram: formData.socialLinks.instagram?.trim() || undefined,
-                    linkedin: formData.socialLinks.linkedin?.trim() || undefined,
-                    github: formData.socialLinks.github?.trim() || undefined,
-                },
+                socialLinks,
                 field: formData.field,
                 year: formData.year,
                 division: formData.division,

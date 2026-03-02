@@ -93,6 +93,10 @@ export default function SetupProfilePage() {
                 name: cleanName,
                 email: user.email as string,
                 profileImage,
+                bio: formData.bio?.trim() || '',
+                socialLinks: Object.fromEntries(
+                    Object.entries(formData.socialLinks || {}).filter(([, v]) => v?.trim())
+                ),
                 field: formData.field,
                 year: formData.year,
                 division: formData.division,
