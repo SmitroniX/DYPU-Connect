@@ -533,7 +533,7 @@ export default function SettingsPage() {
                     <section className="surface p-6">
                         <h2 className="text-lg font-semibold text-[var(--ui-text)]">Google Drive</h2>
                         <p className="mt-1 text-sm text-[var(--ui-text-muted)]">
-                            Connect your Google account to upload profile media to your own Drive storage.
+                            Your Google Drive is used to store profile media (photos, stories, gallery). It auto-connects when you sign in with Google.
                         </p>
 
                         <div className="mt-4 rounded-lg border border-[var(--ui-border)] p-4">
@@ -546,7 +546,12 @@ export default function SettingsPage() {
                                         </span>
                                     </p>
                                     {userProfile.googleDrive?.email && (
-                                        <p className="text-xs text-[var(--ui-text-muted)] mt-1">{userProfile.googleDrive.email}</p>
+                                        <p className="text-xs text-[var(--ui-text-muted)] mt-1">
+                                            {userProfile.googleDrive.email}
+                                            <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[var(--ui-accent-dim)] px-2 py-0.5 text-[10px] font-semibold text-[var(--ui-accent)]">
+                                                ✓ Auto-connected via Google Sign-In
+                                            </span>
+                                        </p>
                                     )}
                                 </div>
                                 <div className="flex gap-2">

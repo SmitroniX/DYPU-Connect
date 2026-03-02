@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, signInWithPopup, OAuthProvider, deleteUser } from 'firebase/auth';
+import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, signInWithPopup, deleteUser } from 'firebase/auth';
 import type { FirebaseError } from 'firebase/app';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -9,6 +9,7 @@ import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
 import { normalizeUserProfile, type UserProfile } from '@/types/profile';
 import { isAutoAdminEmail } from '@/lib/admin';
+import { logActivity } from '@/lib/activityLog';
 
 interface AuthContextType {
     user: User | null;
@@ -178,11 +179,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signInWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
-        // Request Drive file-level access + profile info in one consent screen
-        provider.addScope('https://www.googleapis.com/auth/drive.file');
+        // Only request basic profile scopes — Drive access is handled
+        // separately via the GSI token client (googleDrive.ts) to avoid
+        // "Access blocked: This app's request is invalid" errors caused by
+        // requesting sensitive scopes through Firebase Auth's popup flow.
         provider.addScope('email');
         provider.addScope('profile');
-        provider.setCustomParameters({ hd: 'dypatil.edu', prompt: 'consent' });
+        provider.setCustomParameters({ hd: 'dypatil.edu', prompt: 'select_account' });
 
         try {
             const result = await signInWithPopup(auth, provider);
@@ -196,34 +199,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 throw new Error('Only @dypatil.edu Google accounts are allowed. Please use your university email.');
             }
 
-            // Extract the Google OAuth access token (includes Drive scope)
-            const credential = OAuthProvider.credentialFromResult(result);
-            const accessToken = (credential as unknown as { accessToken?: string })?.accessToken
-                || (result as unknown as { _tokenResponse?: { oauthAccessToken?: string } })?._tokenResponse?.oauthAccessToken
-                || null;
-
-            if (accessToken) {
-                setDriveAccessToken(accessToken);
-
-                // Auto-connect Google Drive on the user's Firestore profile (if it exists)
-                try {
-                    const docRef = doc(db, 'users', result.user.uid);
-                    const docSnap = await getDoc(docRef);
-                    if (docSnap.exists()) {
-                        const existing = docSnap.data() as UserProfile;
-                        if (!existing.googleDrive) {
-                            await updateDoc(docRef, {
-                                googleDrive: {
-                                    email: email,
-                                    connectedAt: Date.now(),
-                                },
-                            });
-                        }
+            // Mark Google Drive as available (actual Drive token will be
+            // obtained lazily via GSI when the user uploads a file)
+            try {
+                const docRef = doc(db, 'users', result.user.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const existing = docSnap.data() as UserProfile;
+                    if (!existing.googleDrive) {
+                        await updateDoc(docRef, {
+                            googleDrive: {
+                                email: email,
+                                connectedAt: Date.now(),
+                            },
+                        });
                     }
-                } catch {
-                    // Non-critical — Drive connection will be saved when profile is created
                 }
+            } catch {
+                // Non-critical — Drive connection will be saved when profile is created
             }
+
+            // Log sign-in activity (fire-and-forget)
+            logActivity(result.user.uid, 'login', `Signed in with Google (${email})`);
         } catch (error) {
             if (error instanceof Error && error.message.includes('@dypatil.edu')) {
                 throw error;

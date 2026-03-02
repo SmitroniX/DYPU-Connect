@@ -249,3 +249,106 @@ export async function uploadImageToGoogleDrive(options: {
         directImageUrl,
     };
 }
+
+/* ── Generic file upload (any MIME type, e.g. JSON backups) ── */
+
+export interface GoogleDriveFileUploadResult {
+    fileId: string;
+    fileName: string;
+    viewUrl: string;
+}
+
+export async function uploadFileToDrive(options: {
+    accessToken: string;
+    file: File;
+    folderId?: string;
+}): Promise<GoogleDriveFileUploadResult> {
+    const { accessToken, file, folderId } = options;
+
+    const metadata: Record<string, unknown> = {
+        name: file.name,
+        mimeType: file.type || 'application/octet-stream',
+    };
+
+    if (folderId) {
+        metadata.parents = [folderId];
+    }
+
+    const boundary = `dypu-boundary-${Math.random().toString(36).slice(2, 11)}`;
+    const multipartBody = new Blob([
+        `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`,
+        `--${boundary}\r\nContent-Type: ${file.type || 'application/octet-stream'}\r\n\r\n`,
+        file,
+        `\r\n--${boundary}--`,
+    ]);
+
+    const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': `multipart/related; boundary=${boundary}`,
+        },
+        body: multipartBody,
+    });
+
+    if (!uploadResponse.ok) {
+        throw new Error('Google Drive upload failed.');
+    }
+
+    const payload = (await uploadResponse.json()) as GoogleDriveUploadResponse;
+    const fileId = payload.id;
+    if (!fileId) {
+        throw new Error('Google Drive upload completed without a file ID.');
+    }
+
+    return {
+        fileId,
+        fileName: payload.name || file.name,
+        viewUrl: payload.webViewLink || `https://drive.google.com/file/d/${fileId}/view`,
+    };
+}
+
+/* ── List files from a Drive folder ── */
+
+export interface GoogleDriveListFile {
+    id: string;
+    name: string;
+    mimeType: string;
+    modifiedTime: string;
+}
+
+export async function listDriveFiles(accessToken: string, folderId?: string, mimeType?: string): Promise<GoogleDriveListFile[]> {
+    const qParts: string[] = ['trashed=false'];
+    if (folderId) qParts.push(`'${folderId}' in parents`);
+    if (mimeType) qParts.push(`mimeType='${mimeType}'`);
+
+    const qStr = encodeURIComponent(qParts.join(' and '));
+    const url = `https://www.googleapis.com/drive/v3/files?q=${qStr}&fields=files(id,name,mimeType,modifiedTime)&orderBy=modifiedTime desc&pageSize=20`;
+
+    const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to list Google Drive files.');
+    }
+
+    const data = (await response.json()) as { files?: GoogleDriveListFile[] };
+    return data.files ?? [];
+}
+
+/* ── Download file content from Drive ── */
+
+export async function downloadDriveFileContent(accessToken: string, fileId: string): Promise<string> {
+    const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`;
+    const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to download file from Google Drive.');
+    }
+
+    return response.text();
+}
+

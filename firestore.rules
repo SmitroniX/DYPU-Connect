@@ -44,6 +44,11 @@ service cloud.firestore {
         && request.resource.data.status == resource.data.status
       ) || isAdmin();
       allow delete: if isAdmin();
+
+      // ── User activity log (per-user subcollection) ──────
+      match /activity_log/{logId} {
+        allow read, create: if owner(userId);
+      }
     }
 
     match /public_chat/{docId} {

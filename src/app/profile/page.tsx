@@ -15,6 +15,9 @@ import {
     requestGoogleDriveAccessToken,
     uploadImageToGoogleDrive,
 } from '@/lib/googleDrive';
+import { logActivity, fetchActivityLog, type ActivityLogEntry } from '@/lib/activityLog';
+import { exportProfileBackup, listBackups, importProfileBackup } from '@/lib/backup';
+import type { GoogleDriveListFile } from '@/lib/googleDrive';
 import type {
     ProfileFormData,
     ProfileGalleryItem,
@@ -37,17 +40,20 @@ import {
     Camera,
     ChevronUp,
     Clock,
+    Download,
     Edit3,
     Eye,
     EyeOff,
     GalleryHorizontalEnd,
     Globe,
     Grid3X3,
+    HardDriveUpload,
     ImagePlus,
     Lock,
     Mail,
     Plus,
     Save,
+    ScrollText,
     Sparkles,
     Star,
     Trash2,
@@ -86,18 +92,6 @@ function createClientId(prefix: string): string {
 
 function visibilityLabel(visibility: ProfileVisibility): string {
     return visibility === 'public' ? 'Public' : 'Private';
-}
-
-function getValidHttpUrl(value: string): string | null {
-    const trimmed = value.trim();
-    if (!trimmed) return null;
-    try {
-        const parsed = new URL(trimmed);
-        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
-        return parsed.toString();
-    } catch {
-        return null;
-    }
 }
 
 /* ── Tiny reusable UI pieces ─────────────────────── */
@@ -190,7 +184,7 @@ function SecondaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTML
 
 /* ── Tab selector ───────────────────────────────── */
 
-type ProfileTab = 'edit' | 'stories' | 'highlights' | 'gallery';
+type ProfileTab = 'edit' | 'stories' | 'highlights' | 'gallery' | 'activity';
 
 function TabBar({ activeTab, setActiveTab, storiesCount, highlightsCount, galleryCount }: {
     activeTab: ProfileTab;
@@ -204,15 +198,16 @@ function TabBar({ activeTab, setActiveTab, storiesCount, highlightsCount, galler
         { key: 'stories', label: 'Stories', icon: Clock, count: storiesCount },
         { key: 'highlights', label: 'Highlights', icon: Star, count: highlightsCount },
         { key: 'gallery', label: 'Gallery', icon: Grid3X3, count: galleryCount },
+        { key: 'activity', label: 'Activity', icon: ScrollText },
     ];
 
     return (
-        <div className="flex gap-1 p-1 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)]">
+        <div className="flex gap-1 p-1 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] overflow-x-auto">
             {tabs.map(({ key, label, icon: TabIcon, count }) => (
                 <button
                     key={key}
                     onClick={() => setActiveTab(key)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2.5 text-xs sm:text-sm font-medium transition-colors duration-200 ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2.5 text-xs sm:text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
                         activeTab === key
                             ? 'bg-[var(--ui-accent)] text-[var(--ui-bg-elevated)]'
                             : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)]'
@@ -267,6 +262,15 @@ export default function ProfilePage() {
     const [galleryPreview, setGalleryPreview] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
 
+    // Activity log state
+    const [activityLogs, setActivityLogs] = useState<ActivityLogEntry[]>([]);
+    const [loadingLogs, setLoadingLogs] = useState(false);
+
+    // Backup state
+    const [backupBusy, setBackupBusy] = useState(false);
+    const [backupFiles, setBackupFiles] = useState<GoogleDriveListFile[]>([]);
+    const [showBackups, setShowBackups] = useState(false);
+
     // Only populate form from profile on first load (not on every profile change)
     const formInitialized = useRef(false);
     const prevFieldRef = useRef(formData.field);
@@ -296,7 +300,6 @@ export default function ProfilePage() {
 
     const branchOptions = getProfileBranchOptions(formData.field);
 
-    // Only reset branch when the field actually changes, not on every render
     useEffect(() => {
         if (formData.field !== prevFieldRef.current) {
             prevFieldRef.current = formData.field;
@@ -306,7 +309,7 @@ export default function ProfilePage() {
         }
     }, [branchOptions, formData.branch, formData.field]);
 
-    // Clean up expired stories — run only once per page load, not on every tick
+    // Clean up expired stories
     useEffect(() => {
         if (!user || !userProfile || storiesCleanedRef.current) return;
         const activeStories = userProfile.stories.filter((s) => s.expiresAt > Date.now());
@@ -321,7 +324,16 @@ export default function ProfilePage() {
         void syncStories();
     }, [user, userProfile, setUserProfile]);
 
-    // Use fresh store state to avoid stale closure bugs when overlapping async ops
+    // Load activity logs when tab is selected
+    useEffect(() => {
+        if (activeTab !== 'activity' || !user) return;
+        setLoadingLogs(true);
+        fetchActivityLog(user.uid, 50)
+            .then(setActivityLogs)
+            .catch(() => toast.error('Failed to load activity log.'))
+            .finally(() => setLoadingLogs(false));
+    }, [activeTab, user]);
+
     const applyProfileUpdates = async (updates: Partial<UserProfile>, successMessage?: string) => {
         if (!user) return false;
         const freshProfile = useStore.getState().userProfile;
@@ -350,6 +362,7 @@ export default function ProfilePage() {
                 profileImage: resolveProfileImage(formData.profileImage.trim(), userProfile.email, cleanName),
             };
             await applyProfileUpdates(profileUpdates, 'Profile updated successfully.');
+            logActivity(user.uid, 'profile_update', `Updated profile: ${cleanName}`);
         } catch (error: unknown) {
             const firebaseError = error as FirebaseError | undefined;
             if (firebaseError?.code === 'permission-denied') toast.error('Permission denied by Firestore Rules for profile update.');
@@ -361,13 +374,13 @@ export default function ProfilePage() {
     const addGalleryItem = async (e: React.FormEvent) => {
         e.preventDefault();
         if (busy) return;
-        const imageUrl = getValidHttpUrl(galleryDraft.imageSource);
-        if (!userProfile || !imageUrl) { toast.error('Add a valid image URL for the gallery photo.'); return; }
-        const item: ProfileGalleryItem = { id: createClientId('gallery'), imageUrl, caption: galleryDraft.caption.trim(), visibility: galleryDraft.visibility, createdAt: Date.now() };
+        if (!userProfile || !galleryDraft.imageSource) { toast.error('Upload an image first using the button below.'); return; }
+        const item: ProfileGalleryItem = { id: createClientId('gallery'), imageUrl: galleryDraft.imageSource, caption: galleryDraft.caption.trim(), visibility: galleryDraft.visibility, createdAt: Date.now() };
         setBusy(true);
         try {
             const freshProfile = useStore.getState().userProfile;
             await applyProfileUpdates({ gallery: [item, ...(freshProfile?.gallery ?? [])] }, 'Gallery updated.');
+            logActivity(user!.uid, 'gallery_add', `Added gallery photo`);
             setGalleryDraft({ imageSource: '', caption: '', visibility: 'public' });
             setShowAddGallery(false);
         } catch (error: unknown) {
@@ -383,6 +396,7 @@ export default function ProfilePage() {
         try {
             const freshProfile = useStore.getState().userProfile;
             await applyProfileUpdates({ gallery: (freshProfile?.gallery ?? []).filter((i) => i.id !== itemId) }, 'Photo removed.');
+            logActivity(user!.uid, 'gallery_remove', 'Removed gallery photo');
             if (galleryPreview === itemId) setGalleryPreview(null);
         } catch { toast.error('Failed to remove gallery photo.'); }
         finally { setBusy(false); }
@@ -391,14 +405,14 @@ export default function ProfilePage() {
     const addStory = async (e: React.FormEvent) => {
         e.preventDefault();
         if (busy) return;
-        const imageUrl = getValidHttpUrl(storyDraft.imageSource);
-        if (!userProfile || !imageUrl) { toast.error('Add a valid image URL for your story.'); return; }
+        if (!userProfile || !storyDraft.imageSource) { toast.error('Upload an image first using the button below.'); return; }
         const createdAt = Date.now();
-        const story: ProfileStoryItem = { id: createClientId('story'), imageUrl, visibility: storyDraft.visibility, createdAt, expiresAt: createdAt + STORY_TTL_MS };
+        const story: ProfileStoryItem = { id: createClientId('story'), imageUrl: storyDraft.imageSource, visibility: storyDraft.visibility, createdAt, expiresAt: createdAt + STORY_TTL_MS };
         setBusy(true);
         try {
             const freshProfile = useStore.getState().userProfile;
             await applyProfileUpdates({ stories: [story, ...(freshProfile?.stories ?? [])] }, 'Story uploaded.');
+            logActivity(user!.uid, 'story_add', 'Uploaded a new story');
             setStoryDraft({ imageSource: '', visibility: 'public' });
             setShowAddStory(false);
         } catch (error: unknown) {
@@ -414,6 +428,7 @@ export default function ProfilePage() {
         try {
             const freshProfile = useStore.getState().userProfile;
             await applyProfileUpdates({ stories: (freshProfile?.stories ?? []).filter((s) => s.id !== storyId) }, 'Story removed.');
+            logActivity(user!.uid, 'story_remove', 'Removed a story');
         } catch { toast.error('Failed to remove story.'); }
         finally { setBusy(false); }
     };
@@ -422,13 +437,13 @@ export default function ProfilePage() {
         e.preventDefault();
         if (!userProfile || busy) return;
         const cleanTitle = highlightDraft.title.trim();
-        const cleanCover = getValidHttpUrl(highlightDraft.coverSource);
-        if (!cleanTitle || !cleanCover) { toast.error('Add a highlight title and a valid image URL.'); return; }
-        const highlight: ProfileHighlightItem = { id: createClientId('highlight'), title: cleanTitle, coverImageUrl: cleanCover, visibility: highlightDraft.visibility, createdAt: Date.now() };
+        if (!cleanTitle || !highlightDraft.coverSource) { toast.error('Add a title and upload a cover image.'); return; }
+        const highlight: ProfileHighlightItem = { id: createClientId('highlight'), title: cleanTitle, coverImageUrl: highlightDraft.coverSource, visibility: highlightDraft.visibility, createdAt: Date.now() };
         setBusy(true);
         try {
             const freshProfile = useStore.getState().userProfile;
             await applyProfileUpdates({ highlights: [highlight, ...(freshProfile?.highlights ?? [])] }, 'Highlight added.');
+            logActivity(user!.uid, 'highlight_add', `Added highlight: ${cleanTitle}`);
             setHighlightDraft({ title: '', coverSource: '', visibility: 'public' });
             setShowAddHighlight(false);
         } catch (error: unknown) {
@@ -444,6 +459,7 @@ export default function ProfilePage() {
         try {
             const freshProfile = useStore.getState().userProfile;
             await applyProfileUpdates({ highlights: (freshProfile?.highlights ?? []).filter((h) => h.id !== highlightId) }, 'Highlight removed.');
+            logActivity(user!.uid, 'highlight_remove', 'Removed a highlight');
         } catch { toast.error('Failed to remove highlight.'); }
         finally { setBusy(false); }
     };
@@ -461,11 +477,10 @@ export default function ProfilePage() {
 
     const uploadImageFileToDrive = async (file: File, target: 'profile' | 'story' | 'highlight' | 'gallery'): Promise<string | null> => {
         if (!userProfile?.googleDrive) { toast.error('Connect Google Drive from Settings first.'); return null; }
-        if (!driveConfigured) { toast.error('Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID in .env.local'); return null; }
+        if (!driveConfigured) { toast.error('Google Drive is not configured.'); return null; }
         if (!file.type.startsWith('image/')) { toast.error('Please choose an image file.'); return null; }
         setUploadingTarget(target);
         try {
-            // Prefer the in-memory token from Google sign-in, fallback to GIS popup
             let accessToken: string;
             if (driveAccessToken) {
                 accessToken = driveAccessToken;
@@ -475,6 +490,7 @@ export default function ProfilePage() {
             }
             const uploadResult = await uploadImageToGoogleDrive({ accessToken, file, folderId: userProfile.googleDrive.folderId });
             toast.success('Image uploaded to Google Drive.');
+            logActivity(user!.uid, 'drive_upload', `Uploaded ${file.name} for ${target}`);
             return uploadResult.directImageUrl;
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Google Drive upload failed.');
@@ -501,6 +517,62 @@ export default function ProfilePage() {
         const file = event.target.files?.[0]; event.target.value = ''; if (!file) return;
         const uploadedUrl = await uploadImageFileToDrive(file, 'gallery');
         if (uploadedUrl) setGalleryDraft((prev) => ({ ...prev, imageSource: uploadedUrl }));
+    };
+
+    /* ── Backup handlers ─────────────────────────── */
+    const handleExportBackup = async () => {
+        if (!userProfile || backupBusy) return;
+        setBackupBusy(true);
+        try {
+            const fileName = await exportProfileBackup(userProfile, driveAccessToken);
+            toast.success(`Backup saved: ${fileName}`);
+            logActivity(user!.uid, 'backup_export', `Exported backup: ${fileName}`);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Backup export failed.');
+        } finally { setBackupBusy(false); }
+    };
+
+    const handleListBackups = async () => {
+        if (backupBusy) return;
+        setBackupBusy(true);
+        setShowBackups(true);
+        try {
+            const files = await listBackups(driveAccessToken, userProfile?.googleDrive?.folderId);
+            setBackupFiles(files);
+            if (files.length === 0) toast('No backups found on your Drive.', { icon: 'ℹ️' });
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to list backups.');
+        } finally { setBackupBusy(false); }
+    };
+
+    const handleImportBackup = async (fileId: string, fileName: string) => {
+        if (!user || !userProfile || backupBusy) return;
+        if (!confirm(`Restore from "${fileName}"? This will overwrite your current profile data.`)) return;
+        setBackupBusy(true);
+        try {
+            const restoredProfile = await importProfileBackup(driveAccessToken, fileId);
+            // Preserve current userId, email, role, status, and googleDrive connection
+            const merged: Partial<UserProfile> = {
+                name: restoredProfile.name,
+                profileImage: restoredProfile.profileImage,
+                field: restoredProfile.field,
+                year: restoredProfile.year,
+                division: restoredProfile.division,
+                branch: restoredProfile.branch,
+                gender: restoredProfile.gender,
+                accountVisibility: restoredProfile.accountVisibility,
+                gallery: restoredProfile.gallery ?? [],
+                stories: restoredProfile.stories ?? [],
+                highlights: restoredProfile.highlights ?? [],
+            };
+            await updateDoc(doc(db, 'users', user.uid), merged);
+            setUserProfile({ ...userProfile, ...merged });
+            logActivity(user.uid, 'backup_import', `Restored from: ${fileName}`);
+            toast.success('Profile restored from backup!');
+            setShowBackups(false);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Backup import failed.');
+        } finally { setBackupBusy(false); }
     };
 
     /* ── Loading state ───────────────────────────── */
@@ -552,9 +624,9 @@ export default function ProfilePage() {
                                     />
                                 </div>
                                 <button
-                                    onClick={() => setActiveTab('edit')}
+                                    onClick={() => { setActiveTab('edit'); profilePhotoFileInputRef.current?.click(); }}
                                     className="absolute -bottom-1 -right-1 h-8 w-8 rounded-xl bg-[var(--ui-accent)] flex items-center justify-center shadow-lg hover:bg-[var(--ui-accent-hover)] transition-colors"
-                                    title="Edit profile photo"
+                                    title="Upload profile photo"
                                 >
                                     <Camera className="h-4 w-4 text-[var(--ui-bg-elevated)]" />
                                 </button>
@@ -636,7 +708,7 @@ export default function ProfilePage() {
                         />
 
                         <form className="mt-6 space-y-5" onSubmit={handleSave}>
-                            {/* Profile Photo Section */}
+                            {/* Profile Photo Section — Drive upload only */}
                             <div className="flex items-center gap-4 p-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)]">
                                 <img
                                     src={resolvedPreviewImage}
@@ -645,26 +717,18 @@ export default function ProfilePage() {
                                     className="h-16 w-16 rounded-xl object-cover object-center ring-2 ring-[var(--ui-border)]"
                                 />
                                 <div className="flex-1 min-w-0 space-y-2">
-                                    <InputField
-                                        label="Profile Photo URL or Email"
-                                        id="profileImage"
-                                        value={formData.profileImage}
-                                        onChange={(e) => setFormData({ ...formData, profileImage: e.target.value })}
-                                        placeholder="https://... or you@dypatil.edu"
-                                    />
-                                    <div className="flex items-center gap-2">
-                                        <SecondaryButton
-                                            type="button"
-                                            disabled={!canUploadToDrive || !!uploadingTarget}
-                                            onClick={() => profilePhotoFileInputRef.current?.click()}
-                                        >
-                                            <Upload className="h-3.5 w-3.5" />
-                                            {uploadingTarget === 'profile' ? 'Uploading...' : 'Upload to Drive'}
-                                        </SecondaryButton>
-                                        {!driveConnected && (
-                                            <p className="text-[11px] text-[var(--ui-text-muted)]">Connect Google Drive in Settings</p>
-                                        )}
-                                    </div>
+                                    <p className="text-xs font-medium text-[var(--ui-text-muted)]">Profile Photo</p>
+                                    <PrimaryButton
+                                        type="button"
+                                        disabled={!canUploadToDrive || !!uploadingTarget}
+                                        onClick={() => profilePhotoFileInputRef.current?.click()}
+                                    >
+                                        <Upload className="h-3.5 w-3.5" />
+                                        {uploadingTarget === 'profile' ? 'Uploading...' : 'Upload Photo'}
+                                    </PrimaryButton>
+                                    {!driveConnected && (
+                                        <p className="text-[11px] text-[var(--ui-text-muted)]">Connect Google Drive in Settings to upload photos</p>
+                                    )}
                                 </div>
                                 <input ref={profilePhotoFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoFileChange} />
                             </div>
@@ -710,6 +774,49 @@ export default function ProfilePage() {
                                 </PrimaryButton>
                             </div>
                         </form>
+
+                        {/* ── Backup & Restore ─────────────────── */}
+                        {canUploadToDrive && (
+                            <div className="mt-6 pt-6 border-t border-[var(--ui-border)]">
+                                <SectionHeader
+                                    icon={HardDriveUpload}
+                                    title="Backup & Restore"
+                                    subtitle="Export your profile to Google Drive or restore from a backup"
+                                />
+                                <div className="mt-4 flex flex-wrap gap-3">
+                                    <PrimaryButton onClick={handleExportBackup} disabled={backupBusy}>
+                                        <Upload className="h-4 w-4" /> {backupBusy ? 'Working...' : 'Export to Drive'}
+                                    </PrimaryButton>
+                                    <SecondaryButton onClick={handleListBackups} disabled={backupBusy}>
+                                        <Download className="h-4 w-4" /> {backupBusy ? 'Loading...' : 'Restore from Drive'}
+                                    </SecondaryButton>
+                                </div>
+
+                                {showBackups && (
+                                    <div className="mt-4 space-y-2 animate-[fade-in-up_0.2s_ease-out]">
+                                        {backupFiles.length === 0 && !backupBusy && (
+                                            <p className="text-sm text-[var(--ui-text-muted)]">No backup files found on your Google Drive.</p>
+                                        )}
+                                        {backupFiles.map((file) => (
+                                            <div key={file.id} className="flex items-center justify-between gap-3 rounded-lg border border-[var(--ui-border)] p-3">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm text-[var(--ui-text)] truncate">{file.name}</p>
+                                                    <p className="text-[10px] text-[var(--ui-text-muted)] mt-0.5">
+                                                        {new Date(file.modifiedTime).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <SecondaryButton
+                                                    onClick={() => handleImportBackup(file.id, file.name)}
+                                                    disabled={backupBusy}
+                                                >
+                                                    <Download className="h-3.5 w-3.5" /> Restore
+                                                </SecondaryButton>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </GlassCard>
                 )}
 
@@ -728,29 +835,39 @@ export default function ProfilePage() {
                             }
                         />
 
-                        {/* Add Story Form */}
+                        {/* Add Story Form — Drive upload only */}
                         {showAddStory && (
                             <form className="mt-5 p-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addStory}>
-                                <InputField
-                                    label="Story Image URL"
-                                    id="storyUrl"
-                                    value={storyDraft.imageSource}
-                                    onChange={(e) => setStoryDraft((prev) => ({ ...prev, imageSource: e.target.value }))}
-                                    placeholder="https://your-story-image-url"
-                                />
+                                {storyDraft.imageSource && (
+                                    <div className="relative w-24 h-32 rounded-lg overflow-hidden border border-[var(--ui-border)]">
+                                        <img src={storyDraft.imageSource} alt="Story preview" className="h-full w-full object-cover" onError={handleImgError} />
+                                        <button type="button" onClick={() => setStoryDraft((p) => ({ ...p, imageSource: '' }))} className="absolute top-1 right-1 h-5 w-5 rounded bg-black/60 flex items-center justify-center">
+                                            <X className="h-3 w-3 text-white" />
+                                        </button>
+                                    </div>
+                                )}
                                 <div className="flex flex-wrap gap-3 items-end">
                                     <SelectField label="Visibility" id="storyVisibility" value={storyDraft.visibility} onChange={(e) => setStoryDraft((prev) => ({ ...prev, visibility: e.target.value as ProfileVisibility }))}>
                                         {PROFILE_VISIBILITY_OPTIONS.map((v) => <option key={v} value={v}>{visibilityLabel(v)}</option>)}
                                     </SelectField>
                                     <div className="flex items-end gap-2">
-                                        <PrimaryButton type="submit" disabled={busy}>
-                                            <ImagePlus className="h-4 w-4" /> {busy ? 'Uploading...' : 'Upload Story'}
+                                        <PrimaryButton
+                                            type="button"
+                                            disabled={!canUploadToDrive || !!uploadingTarget}
+                                            onClick={() => storyFileInputRef.current?.click()}
+                                        >
+                                            <ImagePlus className="h-4 w-4" /> {uploadingTarget === 'story' ? 'Uploading...' : 'Pick Image'}
                                         </PrimaryButton>
-                                        <SecondaryButton type="button" disabled={!canUploadToDrive || !!uploadingTarget} onClick={() => storyFileInputRef.current?.click()}>
-                                            <Upload className="h-4 w-4" /> {uploadingTarget === 'story' ? 'Uploading...' : 'Pick File'}
-                                        </SecondaryButton>
+                                        {storyDraft.imageSource && (
+                                            <SecondaryButton type="submit" disabled={busy}>
+                                                <Upload className="h-4 w-4" /> {busy ? 'Saving...' : 'Upload Story'}
+                                            </SecondaryButton>
+                                        )}
                                     </div>
                                 </div>
+                                {!driveConnected && (
+                                    <p className="text-[11px] text-[var(--ui-text-muted)]">Connect Google Drive in Settings to upload</p>
+                                )}
                                 <input ref={storyFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleStoryFileChange} />
                             </form>
                         )}
@@ -820,33 +937,41 @@ export default function ProfilePage() {
 
                         {showAddHighlight && (
                             <form className="mt-5 p-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addHighlight}>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <InputField
-                                        label="Title"
-                                        id="highlightTitle"
-                                        value={highlightDraft.title}
-                                        onChange={(e) => setHighlightDraft((prev) => ({ ...prev, title: e.target.value }))}
-                                        placeholder="e.g. College Fest 2026"
-                                    />
-                                    <InputField
-                                        label="Cover Image URL"
-                                        id="highlightCover"
-                                        value={highlightDraft.coverSource}
-                                        onChange={(e) => setHighlightDraft((prev) => ({ ...prev, coverSource: e.target.value }))}
-                                        placeholder="https://your-cover-url"
-                                    />
-                                </div>
+                                <InputField
+                                    label="Title"
+                                    id="highlightTitle"
+                                    value={highlightDraft.title}
+                                    onChange={(e) => setHighlightDraft((prev) => ({ ...prev, title: e.target.value }))}
+                                    placeholder="e.g. College Fest 2026"
+                                />
+                                {highlightDraft.coverSource && (
+                                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-[var(--ui-border)]">
+                                        <img src={highlightDraft.coverSource} alt="Cover preview" className="h-full w-full object-cover" onError={handleImgError} />
+                                        <button type="button" onClick={() => setHighlightDraft((p) => ({ ...p, coverSource: '' }))} className="absolute top-1 right-1 h-5 w-5 rounded bg-black/60 flex items-center justify-center">
+                                            <X className="h-3 w-3 text-white" />
+                                        </button>
+                                    </div>
+                                )}
                                 <div className="flex flex-wrap gap-3 items-end">
                                     <SelectField label="Visibility" id="highlightVisibility" value={highlightDraft.visibility} onChange={(e) => setHighlightDraft((prev) => ({ ...prev, visibility: e.target.value as ProfileVisibility }))}>
                                         {PROFILE_VISIBILITY_OPTIONS.map((v) => <option key={v} value={v}>{visibilityLabel(v)}</option>)}
                                     </SelectField>
-                                    <PrimaryButton type="submit" disabled={busy}>
-                                        <Plus className="h-4 w-4" /> {busy ? 'Adding...' : 'Add Highlight'}
+                                    <PrimaryButton
+                                        type="button"
+                                        disabled={!canUploadToDrive || !!uploadingTarget}
+                                        onClick={() => highlightFileInputRef.current?.click()}
+                                    >
+                                        <ImagePlus className="h-4 w-4" /> {uploadingTarget === 'highlight' ? 'Uploading...' : 'Pick Cover Image'}
                                     </PrimaryButton>
-                                    <SecondaryButton type="button" disabled={!canUploadToDrive || !!uploadingTarget} onClick={() => highlightFileInputRef.current?.click()}>
-                                        <Upload className="h-4 w-4" /> {uploadingTarget === 'highlight' ? 'Uploading...' : 'Pick File'}
-                                    </SecondaryButton>
+                                    {highlightDraft.coverSource && (
+                                        <SecondaryButton type="submit" disabled={busy}>
+                                            <Plus className="h-4 w-4" /> {busy ? 'Adding...' : 'Add Highlight'}
+                                        </SecondaryButton>
+                                    )}
                                 </div>
+                                {!driveConnected && (
+                                    <p className="text-[11px] text-[var(--ui-text-muted)]">Connect Google Drive in Settings to upload</p>
+                                )}
                                 <input ref={highlightFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleHighlightFileChange} />
                             </form>
                         )}
@@ -912,35 +1037,42 @@ export default function ProfilePage() {
 
                         {showAddGallery && (
                             <form className="mt-5 p-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addGalleryItem}>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <InputField
-                                        label="Image URL"
-                                        id="galleryUrl"
-                                        value={galleryDraft.imageSource}
-                                        onChange={(e) => setGalleryDraft((prev) => ({ ...prev, imageSource: e.target.value }))
-                                        }
-                                        placeholder="https://your-photo-url"
-                                    />
-                                    <InputField
-                                        label="Caption (optional)"
-                                        id="galleryCaption"
-                                        value={galleryDraft.caption}
-                                        onChange={(e) => setGalleryDraft((prev) => ({ ...prev, caption: e.target.value }))
-                                        }
-                                        placeholder="A moment to remember..."
-                                    />
-                                </div>
+                                {galleryDraft.imageSource && (
+                                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-[var(--ui-border)]">
+                                        <img src={galleryDraft.imageSource} alt="Gallery preview" className="h-full w-full object-cover" onError={handleImgError} />
+                                        <button type="button" onClick={() => setGalleryDraft((p) => ({ ...p, imageSource: '' }))} className="absolute top-1 right-1 h-5 w-5 rounded bg-black/60 flex items-center justify-center">
+                                            <X className="h-3 w-3 text-white" />
+                                        </button>
+                                    </div>
+                                )}
+                                <InputField
+                                    label="Caption (optional)"
+                                    id="galleryCaption"
+                                    value={galleryDraft.caption}
+                                    onChange={(e) => setGalleryDraft((prev) => ({ ...prev, caption: e.target.value }))
+                                    }
+                                    placeholder="A moment to remember..."
+                                />
                                 <div className="flex flex-wrap gap-3 items-end">
                                     <SelectField label="Visibility" id="galleryVisibility" value={galleryDraft.visibility} onChange={(e) => setGalleryDraft((prev) => ({ ...prev, visibility: e.target.value as ProfileVisibility }))}>
                                         {PROFILE_VISIBILITY_OPTIONS.map((v) => <option key={v} value={v}>{visibilityLabel(v)}</option>)}
                                     </SelectField>
-                                    <PrimaryButton type="submit" disabled={busy}>
-                                        <ImagePlus className="h-4 w-4" /> {busy ? 'Adding...' : 'Add Photo'}
+                                    <PrimaryButton
+                                        type="button"
+                                        disabled={!canUploadToDrive || !!uploadingTarget}
+                                        onClick={() => galleryFileInputRef.current?.click()}
+                                    >
+                                        <ImagePlus className="h-4 w-4" /> {uploadingTarget === 'gallery' ? 'Uploading...' : 'Pick Image'}
                                     </PrimaryButton>
-                                    <SecondaryButton type="button" disabled={!canUploadToDrive || !!uploadingTarget} onClick={() => galleryFileInputRef.current?.click()}>
-                                        <Upload className="h-4 w-4" /> {uploadingTarget === 'gallery' ? 'Uploading...' : 'Pick File'}
-                                    </SecondaryButton>
+                                    {galleryDraft.imageSource && (
+                                        <SecondaryButton type="submit" disabled={busy}>
+                                            <Plus className="h-4 w-4" /> {busy ? 'Adding...' : 'Add Photo'}
+                                        </SecondaryButton>
+                                    )}
                                 </div>
+                                {!driveConnected && (
+                                    <p className="text-[11px] text-[var(--ui-text-muted)]">Connect Google Drive in Settings to upload</p>
+                                )}
                                 <input ref={galleryFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleGalleryFileChange} />
                             </form>
                         )}
@@ -972,7 +1104,6 @@ export default function ProfilePage() {
                                                 />
                                                 <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                                                {/* Overlay info on hover */}
                                                 <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                                                     {item.caption && (
                                                         <p className="text-sm text-white font-medium truncate">{item.caption}</p>
@@ -999,18 +1130,70 @@ export default function ProfilePage() {
                     </GlassCard>
                 )}
 
-                {/* ═══════════ FIRESTORE INDEX TIP ═══════════ */}
-                <div className="surface p-4">
-                    <div className="flex items-start gap-3">
-                        <div className="h-8 w-8 shrink-0 rounded-lg bg-[var(--ui-bg-elevated)] flex items-center justify-center">
-                            <Sparkles className="h-4 w-4 text-[var(--ui-text-muted)]" />
+                {/* ═══════════ ACTIVITY LOG TAB ═══════════ */}
+                {activeTab === 'activity' && (
+                    <GlassCard>
+                        <SectionHeader
+                            icon={ScrollText}
+                            title="Activity Log"
+                            subtitle="Your recent actions and changes"
+                        />
+
+                        <div className="mt-5">
+                            {loadingLogs ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <div className="h-8 w-8 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
+                                </div>
+                            ) : activityLogs.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-12 text-center">
+                                    <div className="h-16 w-16 rounded-2xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
+                                        <ScrollText className="h-8 w-8 text-[var(--ui-text-muted)]" />
+                                    </div>
+                                    <p className="text-sm text-[var(--ui-text-muted)]">No activity yet</p>
+                                    <p className="text-xs text-[var(--ui-text-muted)] mt-1">Your actions will appear here</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {activityLogs.map((log) => (
+                                        <div key={log.id} className="flex items-start gap-3 rounded-lg border border-[var(--ui-border)] p-3 hover:bg-[var(--ui-bg-hover)] transition-colors">
+                                            <div className="h-8 w-8 shrink-0 rounded-lg bg-[var(--ui-accent-dim)] flex items-center justify-center mt-0.5">
+                                                <ActivityIcon action={log.action} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm text-[var(--ui-text)]">{log.details}</p>
+                                                <p className="text-[10px] text-[var(--ui-text-muted)] mt-0.5">
+                                                    {formatDistanceToNowStrict(new Date(log.timestamp), { addSuffix: true })}
+                                                </p>
+                                            </div>
+                                            <Badge>{log.action.replace(/_/g, ' ')}</Badge>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                        <p className="text-xs text-[var(--ui-text-muted)]">
-                            If you see Firestore index errors in the console, click the link in the error to create the required composite index in the Firebase Console.
-                        </p>
-                    </div>
-                </div>
+                    </GlassCard>
+                )}
+
             </div>
         </DashboardLayout>
     );
+}
+
+/* ── Activity icon mapper ── */
+function ActivityIcon({ action }: { action: string }) {
+    const className = "h-4 w-4 text-[var(--ui-accent)]";
+    switch (action) {
+        case 'profile_update': return <Edit3 className={className} />;
+        case 'gallery_add': return <ImagePlus className={className} />;
+        case 'gallery_remove': return <Trash2 className={className} />;
+        case 'story_add': return <Clock className={className} />;
+        case 'story_remove': return <Trash2 className={className} />;
+        case 'highlight_add': return <Star className={className} />;
+        case 'highlight_remove': return <Trash2 className={className} />;
+        case 'drive_upload': return <Upload className={className} />;
+        case 'backup_export': return <HardDriveUpload className={className} />;
+        case 'backup_import': return <Download className={className} />;
+        case 'login': return <User className={className} />;
+        default: return <Sparkles className={className} />;
+    }
 }
