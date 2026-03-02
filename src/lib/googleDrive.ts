@@ -110,7 +110,7 @@ export function loadGoogleIdentityScript(): Promise<void> {
         const existing = document.querySelector<HTMLScriptElement>(`script[src="${GSI_CLIENT_SCRIPT}"]`);
         if (existing) {
             existing.addEventListener('load', () => resolve(), { once: true });
-            existing.addEventListener('error', () => reject(new Error('Failed to load Google Identity script.')), { once: true });
+            existing.addEventListener('error', () => { scriptLoadPromise = null; reject(new Error('Failed to load Google Identity script.')); }, { once: true });
             return;
         }
 
@@ -119,7 +119,7 @@ export function loadGoogleIdentityScript(): Promise<void> {
         script.async = true;
         script.defer = true;
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load Google Identity script.'));
+        script.onerror = () => { scriptLoadPromise = null; reject(new Error('Failed to load Google Identity script.')); };
         document.head.appendChild(script);
     });
 
@@ -165,7 +165,7 @@ export async function requestGoogleDriveAccessToken(prompt: 'consent' | '' = 'co
 }
 
 export async function fetchGoogleUserEmail(accessToken: string): Promise<string> {
-    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+    const response = await fetchWithRetry('https://www.googleapis.com/oauth2/v2/userinfo', {
         headers: {
             Authorization: `Bearer ${accessToken}`,
         },
@@ -184,88 +184,39 @@ export async function fetchGoogleUserEmail(accessToken: string): Promise<string>
     return email;
 }
 
-export async function uploadImageToGoogleDrive(options: {
-    accessToken: string;
-    file: File;
-    folderId?: string;
-}): Promise<GoogleDriveUploadResult> {
-    const { accessToken, file, folderId } = options;
+/* ── Retry helper for transient network / 5xx errors ── */
 
-    const metadata: Record<string, unknown> = {
-        name: file.name,
-        mimeType: file.type || 'image/jpeg',
-    };
-
-    if (folderId) {
-        metadata.parents = [folderId];
+async function fetchWithRetry(input: RequestInfo, init?: RequestInit, retries = 2): Promise<Response> {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            const response = await fetch(input, init);
+            if (response.status >= 500 && attempt < retries) {
+                await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+                continue;
+            }
+            return response;
+        } catch (err) {
+            if (attempt >= retries) throw err;
+            await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+        }
     }
-
-    const boundary = `dypu-boundary-${Math.random().toString(36).slice(2, 11)}`;
-    const multipartBody = new Blob([
-        `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`,
-        `--${boundary}\r\nContent-Type: ${file.type || 'application/octet-stream'}\r\n\r\n`,
-        file,
-        `\r\n--${boundary}--`,
-    ]);
-
-    const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': `multipart/related; boundary=${boundary}`,
-        },
-        body: multipartBody,
-    });
-
-    if (!uploadResponse.ok) {
-        throw new Error('Google Drive upload failed.');
-    }
-
-    const payload = (await uploadResponse.json()) as GoogleDriveUploadResponse;
-    const fileId = payload.id;
-    if (!fileId) {
-        throw new Error('Google Drive upload completed without a file ID.');
-    }
-
-    const permissionResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}/permissions`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            role: 'reader',
-            type: 'anyone',
-        }),
-    });
-
-    if (!permissionResponse.ok) {
-        throw new Error('Uploaded file permission update failed.');
-    }
-
-    const directImageUrl = buildDriveDirectImageUrl(fileId);
-    return {
-        fileId,
-        fileName: payload.name || file.name,
-        viewUrl: payload.webViewLink || directImageUrl,
-        directImageUrl,
-    };
 }
 
-/* ── Generic file upload (any MIME type, e.g. JSON backups) ── */
+/* ── Shared multipart upload helper ── */
 
-export interface GoogleDriveFileUploadResult {
+interface MultipartUploadResult {
     fileId: string;
     fileName: string;
     viewUrl: string;
 }
 
-export async function uploadFileToDrive(options: {
+async function _multipartUpload(options: {
     accessToken: string;
     file: File;
     folderId?: string;
-}): Promise<GoogleDriveFileUploadResult> {
-    const { accessToken, file, folderId } = options;
+    makePublic?: boolean;
+}): Promise<MultipartUploadResult> {
+    const { accessToken, file, folderId, makePublic } = options;
 
     const metadata: Record<string, unknown> = {
         name: file.name,
@@ -284,7 +235,7 @@ export async function uploadFileToDrive(options: {
         `\r\n--${boundary}--`,
     ]);
 
-    const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
+    const uploadResponse = await fetchWithRetry('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
         method: 'POST',
         headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -303,11 +254,57 @@ export async function uploadFileToDrive(options: {
         throw new Error('Google Drive upload completed without a file ID.');
     }
 
+    if (makePublic) {
+        const permissionResponse = await fetchWithRetry(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}/permissions`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ role: 'reader', type: 'anyone' }),
+        });
+
+        if (!permissionResponse.ok) {
+            throw new Error('Uploaded file permission update failed.');
+        }
+    }
+
     return {
         fileId,
         fileName: payload.name || file.name,
         viewUrl: payload.webViewLink || `https://drive.google.com/file/d/${fileId}/view`,
     };
+}
+
+export async function uploadImageToGoogleDrive(options: {
+    accessToken: string;
+    file: File;
+    folderId?: string;
+}): Promise<GoogleDriveUploadResult> {
+    const result = await _multipartUpload({ ...options, makePublic: true });
+    const directImageUrl = buildDriveDirectImageUrl(result.fileId);
+    return {
+        fileId: result.fileId,
+        fileName: result.fileName,
+        viewUrl: result.viewUrl,
+        directImageUrl,
+    };
+}
+
+/* ── Generic file upload (any MIME type, e.g. JSON backups) ── */
+
+export interface GoogleDriveFileUploadResult {
+    fileId: string;
+    fileName: string;
+    viewUrl: string;
+}
+
+export async function uploadFileToDrive(options: {
+    accessToken: string;
+    file: File;
+    folderId?: string;
+}): Promise<GoogleDriveFileUploadResult> {
+    return _multipartUpload({ ...options, makePublic: false });
 }
 
 /* ── List files from a Drive folder ── */
@@ -327,7 +324,7 @@ export async function listDriveFiles(accessToken: string, folderId?: string, mim
     const qStr = encodeURIComponent(qParts.join(' and '));
     const url = `https://www.googleapis.com/drive/v3/files?q=${qStr}&fields=files(id,name,mimeType,modifiedTime)&orderBy=modifiedTime desc&pageSize=20`;
 
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
         headers: { Authorization: `Bearer ${accessToken}` },
     });
 
@@ -343,7 +340,7 @@ export async function listDriveFiles(accessToken: string, folderId?: string, mim
 
 export async function downloadDriveFileContent(accessToken: string, fileId: string): Promise<string> {
     const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
         headers: { Authorization: `Bearer ${accessToken}` },
     });
 

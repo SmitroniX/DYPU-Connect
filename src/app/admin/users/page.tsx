@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, getDocs, doc, updateDoc, orderBy } from 'firebase/firestore';
+import { collection, query, getDocs, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
 import { Ban, CheckCircle, Search, Shield, UserCheck, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
@@ -45,7 +45,7 @@ export default function AdminUsersPage() {
         setLoading(true);
         try {
             const data = await cacheGet<UserData[]>('admin_users', async () => {
-                const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+                const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(500));
                 const snapshot = await getDocs(q);
                 return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as UserData[];
             }, { ttl: 60_000, swr: 300_000 });

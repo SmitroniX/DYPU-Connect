@@ -65,15 +65,19 @@ export const RATE_LIMITS = {
 /* ── Input sanitisation ───────────────────────────── */
 
 const DANGEROUS_PATTERNS = [
-    /<script\b/i,
-    /javascript:/i,
-    /on\w+\s*=/i,       // onclick=, onerror=, etc.
-    /data:\s*text\/html/i,
-    /<iframe\b/i,
-    /<object\b/i,
-    /<embed\b/i,
-    /eval\s*\(/i,
-    /expression\s*\(/i,
+    /<script\b[^>]*>?/gi,
+    /<\/script>/gi,
+    /javascript:/gi,
+    /vbscript:/gi,
+    /on\w+\s*=/gi,       // onclick=, onerror=, etc.
+    /data:\s*text\/html/gi,
+    /<iframe\b[^>]*>?/gi,
+    /<object\b[^>]*>?/gi,
+    /<embed\b[^>]*>?/gi,
+    /<svg\b[^>]*>?/gi,
+    /<math\b[^>]*>?/gi,
+    /eval\s*\(/gi,
+    /expression\s*\(/gi,
 ];
 
 /**

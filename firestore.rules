@@ -94,10 +94,18 @@ service cloud.firestore {
 
     // ── WebRTC call signaling ─────────────────────────────
     match /calls/{callId} {
-      allow read, write: if signedIn();
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update: if signedIn()
+        && (resource.data.callerId == request.auth.uid
+            || resource.data.calleeId == request.auth.uid);
+      allow delete: if signedIn()
+        && (resource.data.callerId == request.auth.uid
+            || resource.data.calleeId == request.auth.uid);
 
       match /candidates/{candidateId} {
-        allow read, write: if signedIn();
+        allow read: if signedIn();
+        allow write: if signedIn();
       }
     }
 
