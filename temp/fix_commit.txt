@@ -1,0 +1,5 @@
+﻿[main b0c2a4e] fix: remove duplicate profile state declaration in ProfilePopup (build error)
+ 4 files changed, 35 insertions(+), 1 deletion(-)
+ create mode 100644 temp/commit2.txt
+ create mode 100644 temp/push2.txt
+ create mode 100644 temp/status2.txt

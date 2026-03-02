@@ -21,6 +21,7 @@ export default function ProfilePopup({ userId, anchorRect, onClose }: ProfilePop
     const cachedProfile = profileCache.get(userId);
     const [profile, setProfile] = useState<UserProfile | null>(cachedProfile ?? null);
     const [loading, setLoading] = useState(!cachedProfile);
+    const popupRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (profileCache.has(userId)) {
