@@ -12,7 +12,7 @@ import type { Timestamp } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
 import { generateAnonymousName } from '@/lib/utils';
-import { sanitiseInput, hasDangerousContent } from '@/lib/security';
+import { sanitiseInput, hasDangerousContent, filterProfanity } from '@/lib/security';
 import {
     Send, Heart, MessageCircle, Flame, Sparkles, Ghost,
     Clock, TrendingUp, Filter, ChevronDown, X, Share2,
@@ -88,7 +88,8 @@ function ConfessionCard({
         : 'Just now';
 
     const handleShare = async () => {
-        const text = `"${confession.text.slice(0, 200)}${confession.text.length > 200 ? '…' : ''}" — Anonymous on DYPU Connect`;
+        const filtered = filterProfanity(confession.text);
+        const text = `"${filtered.slice(0, 200)}${filtered.length > 200 ? '…' : ''}" — Anonymous on DYPU Connect`;
         if (navigator.share) {
             try { await navigator.share({ text }); } catch { /* cancelled */ }
         } else {
@@ -130,7 +131,7 @@ function ConfessionCard({
 
                 {/* Confession text */}
                 <p className="text-[15px] sm:text-base leading-relaxed text-[var(--ui-text)] whitespace-pre-wrap break-words min-h-[3rem]">
-                    {confession.text}
+                    {filterProfanity(confession.text)}
                 </p>
 
                 {/* Anonymous identity */}

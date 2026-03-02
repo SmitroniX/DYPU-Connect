@@ -129,3 +129,105 @@ export function generateSessionFingerprint(): string {
     return (hash >>> 0).toString(16);
 }
 
+/* ── Profanity filter (partial censor) ────────────── */
+
+/**
+ * List of abusive / profane words to partially censor.
+ * Words are stored lowercase. Matching is case-insensitive and
+ * whole-word-boundary aware so "class" won't match "ass".
+ */
+const PROFANITY_LIST: string[] = [
+    // English
+    'fuck', 'fucking', 'fucker', 'fucked', 'fucks',
+    'shit', 'shitty', 'bullshit', 'shitting',
+    'ass', 'asshole', 'arsehole', 'arse',
+    'bitch', 'bitches', 'bitchy',
+    'damn', 'damned', 'dammit',
+    'dick', 'dickhead',
+    'cunt', 'cunts',
+    'bastard', 'bastards',
+    'whore', 'slut', 'sluts',
+    'crap', 'crappy',
+    'piss', 'pissed', 'pissing',
+    'cock', 'cocks',
+    'wanker', 'wankers',
+    'twat', 'twats',
+    'motherfucker', 'motherfucking', 'mofo',
+    'nigger', 'nigga',
+    'retard', 'retarded',
+    'stfu', 'gtfo', 'lmfao',
+    // Hindi / Hinglish
+    'madarchod', 'madarc**d', 'mc', 'behenchod', 'bc',
+    'chutiya', 'chutiye', 'chut',
+    'bhosdike', 'bhosdi', 'bhosdiwale',
+    'gaand', 'gandu', 'gand',
+    'lauda', 'lund', 'lavde', 'lavda',
+    'randi', 'raand',
+    'harami', 'haramkhor',
+    'saala', 'saale', 'sala', 'sale',
+    'kamina', 'kamine', 'kamini',
+    'tatti', 'tatte',
+    'jhatu', 'jhaatu',
+    'ullu', 'gadha',
+    'bakchod', 'bakchodi',
+    'chodu', 'chodna',
+    // Marathi
+    'zavadya', 'zavnya',
+    'aai zhavadya',
+    'bhikarchot',
+    'bokachoda',
+    'ghalat',
+    // Common text-speak evasions
+    'f*ck', 'sh*t', 'b*tch', 'a**hole', 'd*ck', 'f**k', 'a$$',
+];
+
+/**
+ * Build a regex that matches any profane word at word boundaries.
+ * Sorted longest-first so "motherfucker" matches before "fucker".
+ */
+const PROFANITY_REGEX = new RegExp(
+    '\\b(' +
+    [...PROFANITY_LIST]
+        .sort((a, b) => b.length - a.length)
+        .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join('|') +
+    ')\\b',
+    'gi',
+);
+
+/**
+ * Partially censor a profane word:
+ *   - 1–2 chars → fully star it  ("mc" → "**")
+ *   - 3 chars → keep first, star rest ("ass" → "a*s")
+ *   - 4+ chars → keep first & last, star 1–2 middle chars
+ *     e.g. "fuck" → "f**k", "shit" → "s**t", "bastard" → "b****rd"
+ *
+ * The goal is you can still read what the word was.
+ */
+function censorWord(word: string): string {
+    const len = word.length;
+    if (len <= 2) return '*'.repeat(len);
+    if (len === 3) return word[0] + '*' + word[2];
+    // For 4+ chars: keep first and last, replace middle with stars
+    // Use min(middle.length, 4) stars so it stays readable
+    const middle = Math.min(len - 2, 4);
+    return word[0] + '*'.repeat(middle) + word[len - 1];
+}
+
+/**
+ * Filter profanity in text — partially censors abusive words
+ * so they're still readable but visually moderated.
+ *
+ * "What the fuck is this bullshit" → "What the f**k is this b*****t"
+ */
+export function filterProfanity(text: string): string {
+    return text.replace(PROFANITY_REGEX, (match) => censorWord(match));
+}
+
+/**
+ * Check if text contains profanity.
+ */
+export function containsProfanity(text: string): boolean {
+    return PROFANITY_REGEX.test(text);
+}
+

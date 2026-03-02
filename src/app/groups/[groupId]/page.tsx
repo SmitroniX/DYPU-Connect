@@ -15,7 +15,7 @@ import { MessageHoverToolbar, MessageReactions } from '@/components/MessageReact
 import ProfilePopup from '@/components/ProfilePopup';
 import { ArrowLeft, Users, ShieldAlert } from 'lucide-react';
 import { format } from 'date-fns';
-import { sanitiseInput } from '@/lib/security';
+import { sanitiseInput, filterProfanity } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -250,7 +250,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                             )}
                                             {msg.text && (
                                                 <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
-                                                    {msg.text}
+                                                    {filterProfanity(msg.text)}
                                                 </p>
                                             )}
                                             <MessageReactions

@@ -16,7 +16,7 @@ import dynamic from 'next/dynamic';
 const VideoCall = dynamic(() => import('@/components/VideoCall'), { ssr: false });
 import { ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
-import { sanitiseInput } from '@/lib/security';
+import { sanitiseInput, filterProfanity } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -277,7 +277,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                             )}
                                             {msg.text && (
                                                 <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
-                                                    {renderMarkdown(msg.text)}
+                                                    {renderMarkdown(filterProfanity(msg.text))}
                                                 </p>
                                             )}
                                             <MessageReactions

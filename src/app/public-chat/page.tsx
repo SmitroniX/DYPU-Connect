@@ -12,7 +12,7 @@ import ChatInput, { type ChatInputPayload } from '@/components/ChatInput';
 import { MessageHoverToolbar, MessageReactions } from '@/components/MessageReactions';
 import ProfilePopup from '@/components/ProfilePopup';
 import { resolveProfileImage } from '@/lib/profileImage';
-import { sanitiseInput } from '@/lib/security';
+import { sanitiseInput, filterProfanity } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
 import { Users } from 'lucide-react';
 import { format } from 'date-fns';
@@ -172,7 +172,7 @@ export default function PublicChatPage() {
                                             )}
                                             {msg.text && (
                                                 <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
-                                                    {msg.text}
+                                                    {filterProfanity(msg.text)}
                                                 </p>
                                             )}
                                             <MessageReactions

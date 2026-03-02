@@ -13,7 +13,7 @@ import { MessageHoverToolbar, MessageReactions } from '@/components/MessageReact
 import { EyeOff } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { generateAnonymousName } from '@/lib/utils';
-import { sanitiseInput } from '@/lib/security';
+import { sanitiseInput, filterProfanity } from '@/lib/security';
 import toast from 'react-hot-toast';
 
 interface Message {
@@ -188,7 +188,7 @@ export default function AnonymousChatPage() {
                                             )}
                                             {msg.text && (
                                                 <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
-                                                    {msg.text}
+                                                    {filterProfanity(msg.text)}
                                                 </p>
                                             )}
                                             <MessageReactions
