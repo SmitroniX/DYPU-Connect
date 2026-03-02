@@ -508,15 +508,29 @@ export default function ProfilePage() {
     );
 
     const driveConfigured = isGoogleDriveConfigured();
-    const driveConnected = !!userProfile?.googleDrive;
-    const canUploadToDrive = driveConfigured && driveConnected;
+    // Allow clicking upload buttons always — the upload function shows
+    // a clear error message if Drive isn't configured.
+    const canUploadToDrive = true;
 
     const { driveAccessToken, setDriveAccessToken } = useStore();
 
     const uploadImageFileToDrive = async (file: File, target: 'profile' | 'story' | 'highlight' | 'gallery'): Promise<string | null> => {
-        if (!userProfile?.googleDrive) { toast.error('Connect Google Drive from Settings first.'); return null; }
-        if (!driveConfigured) { toast.error('Google Drive is not configured.'); return null; }
+        if (!driveConfigured) {
+            toast.error('Google Drive upload is not available. The site admin needs to add NEXT_PUBLIC_GOOGLE_CLIENT_ID.');
+            return null;
+        }
         if (!file.type.startsWith('image/')) { toast.error('Please choose an image file.'); return null; }
+
+        // Auto-fix: if profile is missing googleDrive field, set it now
+        if (!userProfile?.googleDrive && user?.email) {
+            try {
+                await updateDoc(doc(db, 'users', user.uid), {
+                    googleDrive: { email: user.email, connectedAt: Date.now() },
+                });
+                setUserProfile({ ...userProfile!, googleDrive: { email: user.email, connectedAt: Date.now() } });
+            } catch { /* non-critical */ }
+        }
+
         setUploadingTarget(target);
         try {
             let accessToken: string;
@@ -857,9 +871,6 @@ export default function ProfilePage() {
                                         <Upload className="h-3.5 w-3.5" />
                                         {uploadingTarget === 'profile' ? 'Uploading...' : 'Upload Photo'}
                                     </PrimaryButton>
-                                    {!driveConnected && (
-                                        <p className="text-[11px] text-[var(--ui-text-muted)]">Connect Google Drive in Settings to upload photos</p>
-                                    )}
                                 </div>
                                 <input ref={profilePhotoFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoFileChange} />
                             </div>
@@ -1045,9 +1056,6 @@ export default function ProfilePage() {
                                         )}
                                     </div>
                                 </div>
-                                {!driveConnected && (
-                                    <p className="text-[11px] text-[var(--ui-text-muted)]">Connect Google Drive in Settings to upload</p>
-                                )}
                                 <input ref={storyFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleStoryFileChange} />
                             </form>
                         )}
