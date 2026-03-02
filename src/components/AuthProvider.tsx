@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, signInWithRedirect, getRedirectResult, deleteUser } from 'firebase/auth';
+import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, signInWithPopup, deleteUser } from 'firebase/auth';
 import type { FirebaseError } from 'firebase/app';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -76,50 +76,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return () => cancelAnimationFrame(id);
         }
 
-        // Handle redirect result from Google sign-in (runs once on page load)
-        getRedirectResult(auth).then(async (result) => {
-            if (!result) return; // No redirect result (normal page load)
-            const email = result.user.email;
-
-            // Enforce @dypatil.edu restriction
-            if (!email || !email.endsWith('@dypatil.edu')) {
-                await deleteUser(result.user).catch(() => {});
-                await signOut(auth);
-                // Store error message so login page can show it
-                sessionStorage.setItem('auth_error', 'Only @dypatil.edu Google accounts are allowed. Please use your university email.');
-                return;
-            }
-
-            // Auto-connect Google Drive on sign-in
-            try {
-                const docRef = doc(db, 'users', result.user.uid);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const existing = docSnap.data() as UserProfile;
-                    if (!existing.googleDrive) {
-                        await updateDoc(docRef, {
-                            googleDrive: {
-                                email: email,
-                                connectedAt: Date.now(),
-                            },
-                        });
-                    }
-                }
-            } catch {
-                // Non-critical — Drive connection will be saved when profile is created
-            }
-
-            // Log sign-in activity with device info (fire-and-forget)
-            const deviceInfo = collectDeviceInfo();
-            logActivity(
-                result.user.uid,
-                'login',
-                `Signed in with Google (${email}) · ${deviceInfo.browser} on ${deviceInfo.os} · ${deviceInfo.device}`,
-            );
-            registerDeviceSession(result.user.uid).catch(() => {});
-        }).catch(() => {
-            // Redirect result errors are non-fatal — user can try again
-        });
 
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             setUser(firebaseUser);
@@ -233,11 +189,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         provider.setCustomParameters({ hd: 'dypatil.edu', prompt: 'select_account' });
 
         try {
-            // Use redirect flow — the browser navigates to accounts.google.com
-            // directly, so no Firebase auth URL is ever visible to the user.
-            // The result is handled by getRedirectResult() on page reload.
-            await signInWithRedirect(auth, provider);
+            const result = await signInWithPopup(auth, provider);
+            const email = result.user.email;
+
+            // Enforce @dypatil.edu restriction
+            if (!email || !email.endsWith('@dypatil.edu')) {
+                await deleteUser(result.user).catch(() => {});
+                await signOut(auth);
+                throw new Error('Only @dypatil.edu Google accounts are allowed. Please use your university email.');
+            }
+
+            // Auto-connect Google Drive
+            try {
+                const docRef = doc(db, 'users', result.user.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const existing = docSnap.data() as UserProfile;
+                    if (!existing.googleDrive) {
+                        await updateDoc(docRef, {
+                            googleDrive: {
+                                email: email,
+                                connectedAt: Date.now(),
+                            },
+                        });
+                    }
+                }
+            } catch {
+                // Non-critical — Drive connection saved when profile is created
+            }
+
+            // Log sign-in activity with device info (fire-and-forget)
+            const deviceInfo = collectDeviceInfo();
+            logActivity(
+                result.user.uid,
+                'login',
+                `Signed in with Google (${email}) · ${deviceInfo.browser} on ${deviceInfo.os} · ${deviceInfo.device}`,
+            );
+            registerDeviceSession(result.user.uid).catch(() => {});
         } catch (error) {
+            if (error instanceof Error && error.message.includes('@dypatil.edu')) {
+                throw error;
+            }
             throw mapAuthError(error);
         }
     };
