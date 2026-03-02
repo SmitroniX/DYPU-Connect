@@ -5,6 +5,7 @@ import ChannelHeader from '@/components/ChannelHeader';
 import { useStore } from '@/store/useStore';
 import Link from 'next/link';
 import { BookOpen, GraduationCap, Building, Hash, ArrowRight } from 'lucide-react';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function GroupsPage() {
     const { userProfile } = useStore();
@@ -12,13 +13,7 @@ export default function GroupsPage() {
     if (!userProfile) {
         return (
             <DashboardLayout>
-                <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">
-                    <div className="flex gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--ui-accent)] animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--ui-accent)] animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--ui-accent)] animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                </div>
+                <LoadingSpinner variant="full" message="Loading groups…" />
             </DashboardLayout>
         );
     }

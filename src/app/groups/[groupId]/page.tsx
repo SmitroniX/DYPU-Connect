@@ -19,6 +19,7 @@ import { sanitiseInput, filterProfanity } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface Message {
     id: string;
@@ -145,13 +146,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
     if (!userProfile) {
         return (
             <DashboardLayout>
-                <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">
-                    <div className="flex gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--ui-accent)] animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--ui-accent)] animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--ui-accent)] animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                </div>
+                <LoadingSpinner variant="full" message="Loading group chat…" />
             </DashboardLayout>
         );
     }

@@ -6,6 +6,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ShieldAlert, ShieldX, Zap } from 'lucide-react';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { userProfile, isLoading } = useStore();
@@ -50,8 +51,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div className="absolute inset-0 rounded-full bg-[var(--ui-accent)]/20 blur-xl animate-pulse" />
                         <ShieldAlert className="relative w-14 h-14 text-[var(--ui-accent)] animate-pulse" />
                     </div>
-                    <h2 className="text-xl font-bold text-[var(--ui-text)]">Verifying Admin Access...</h2>
-                    <p className="text-sm text-[var(--ui-text-muted)]">Checking authorization credentials</p>
+                    <h2 className="text-xl font-bold text-[var(--ui-text)]">Verifying Admin Access</h2>
+                    <LoadingSpinner variant="inline" message="Checking authorization credentials" />
                 </div>
             </DashboardLayout>
         );
