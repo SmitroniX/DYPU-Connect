@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0f0f0f"
+    android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
     <!-- Swipe-to-refresh wrapper -->

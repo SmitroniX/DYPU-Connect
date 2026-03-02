@@ -139,7 +139,8 @@ class MainActivity : AppCompatActivity() {
 
     @Suppress("DEPRECATION")
     private fun setupSystemBars() {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Let the system fit content within the safe area (below status bar, above nav bar)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
         window.statusBarColor = Color.parseColor("#0f0f0f")
         window.navigationBarColor = Color.parseColor("#0f0f0f")
 
@@ -443,8 +444,8 @@ class MainActivity : AppCompatActivity() {
                     fullscreenCallback?.onCustomViewHidden()
                     fullscreenCallback = null
 
-                    // Restore system bars
-                    WindowCompat.setDecorFitsSystemWindows(window, false)
+                    // Restore system bars and safe area fitting
+                    WindowCompat.setDecorFitsSystemWindows(window, true)
                     val controller = WindowInsetsControllerCompat(window, window.decorView)
                     controller.show(androidx.core.view.WindowInsetsCompat.Type.systemBars())
                 }
