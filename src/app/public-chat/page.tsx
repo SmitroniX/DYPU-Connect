@@ -1,20 +1,22 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import ChannelHeader from '@/components/ChannelHeader';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
-import GiphyPicker from '@/components/GiphyPicker';
-import type { GiphyGif } from '@/lib/giphy';
+import ChatInput, { type ChatInputPayload } from '@/components/ChatInput';
+import { MessageHoverToolbar, MessageReactions } from '@/components/MessageReactions';
+import ProfilePopup from '@/components/ProfilePopup';
 import { resolveProfileImage } from '@/lib/profileImage';
 import { sanitiseInput } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
-import { PlusCircle, Send, X, Users } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { format } from 'date-fns';
+import toast from 'react-hot-toast';
 
 interface Message {
     id: string;
@@ -23,14 +25,14 @@ interface Message {
     senderName: string;
     senderProfileImage: string;
     gifUrl?: string;
+    imageUrl?: string;
+    reactions?: Record<string, string[]>;
     timestamp?: Timestamp | null;
 }
 
 export default function PublicChatPage() {
     const [messages, setMessages] = useState<Message[]>([]);
-    const [newMessage, setNewMessage] = useState('');
-    const [selectedGifUrl, setSelectedGifUrl] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [profilePopup, setProfilePopup] = useState<{ userId: string; rect: DOMRect } | null>(null);
     const { user } = useAuth();
     const { userProfile } = useStore();
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -61,29 +63,39 @@ export default function PublicChatPage() {
 
     useEffect(() => { scrollToBottom(); }, [messages]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const cleanMessage = sanitiseInput(newMessage);
-        if ((!cleanMessage && !selectedGifUrl) || !userProfile || !user) return;
+    const handleSend = useCallback(async (payload: ChatInputPayload) => {
+        const cleanMessage = sanitiseInput(payload.text);
+        if ((!cleanMessage && !payload.gifUrl && !payload.imageUrl) || !userProfile || !user) return;
 
-        setLoading(true);
-        try {
-            const payload: Record<string, unknown> = {
-                text: cleanMessage,
-                senderId: user.uid,
-                senderName: userProfile.name,
-                senderProfileImage: userProfile.profileImage,
-                timestamp: serverTimestamp(),
-            };
-            if (selectedGifUrl) payload.gifUrl = selectedGifUrl;
-            await addDoc(collection(db, 'public_chat'), { ...payload });
-            setNewMessage('');
-            setSelectedGifUrl('');
-        } catch (error) {
-            console.error('Failed to send message:', error);
-        } finally {
-            setLoading(false);
-        }
+        const msgPayload: Record<string, unknown> = {
+            text: cleanMessage,
+            senderId: user.uid,
+            senderName: userProfile.name,
+            senderProfileImage: userProfile.profileImage,
+            timestamp: serverTimestamp(),
+        };
+        if (payload.gifUrl) msgPayload.gifUrl = payload.gifUrl;
+        if (payload.imageUrl) msgPayload.imageUrl = payload.imageUrl;
+        await addDoc(collection(db, 'public_chat'), msgPayload);
+    }, [user, userProfile]);
+
+    const handleReact = useCallback((messageId: string, emoji: string) => {
+        if (!user) return;
+        const msgRef = doc(db, 'public_chat', messageId);
+        const msg = messages.find((m) => m.id === messageId);
+        const reactions = msg?.reactions ?? {};
+        const current = reactions[emoji] ?? [];
+        const hasReacted = current.includes(user.uid);
+        const updated = hasReacted ? current.filter((uid) => uid !== user.uid) : [...current, user.uid];
+        const newReactions = { ...reactions };
+        if (updated.length === 0) delete newReactions[emoji];
+        else newReactions[emoji] = updated;
+        updateDoc(msgRef, { reactions: newReactions }).catch(() => toast.error('Failed to react.'));
+    }, [messages, user]);
+
+    const handleAvatarClick = (userId: string, event: React.MouseEvent) => {
+        const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+        setProfilePopup({ userId, rect });
     };
 
     return (
@@ -113,20 +125,23 @@ export default function PublicChatPage() {
                                 prev?.timestamp?.toDate?.() ?? null
                             );
                             const ts = msg.timestamp?.toDate?.();
+                            const msgRef = doc(db, 'public_chat', msg.id);
 
                             return (
                                 <div
                                     key={msg.id}
-                                    className={`message-row group ${showHeader ? 'mt-4' : 'mt-0'}`}
+                                    className={`message-row group relative ${showHeader ? 'mt-4' : 'mt-0'}`}
                                 >
+                                    <MessageHoverToolbar onReact={(emoji) => handleReact(msg.id, emoji)} />
+
                                     <div className="flex gap-4">
-                                        {/* Avatar or spacer */}
                                         <div className="w-10 shrink-0 flex items-start pt-0.5">
                                             {showHeader ? (
                                                 <img
                                                     src={resolveProfileImage(msg.senderProfileImage, undefined, msg.senderName)}
                                                     alt=""
-                                                    className="w-10 h-10 rounded-full object-cover"
+                                                    className="w-10 h-10 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-[var(--ui-accent)]/40 transition-all"
+                                                    onClick={(e) => handleAvatarClick(msg.senderId, e)}
                                                 />
                                             ) : (
                                                 <span className="text-[10px] text-[var(--ui-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity w-full text-center pt-1">
@@ -135,11 +150,13 @@ export default function PublicChatPage() {
                                             )}
                                         </div>
 
-                                        {/* Content */}
                                         <div className="flex-1 min-w-0">
                                             {showHeader && (
                                                 <div className="flex items-baseline gap-2 mb-0.5">
-                                                    <span className="font-medium text-[var(--ui-text)] text-[15px] hover:underline cursor-pointer">
+                                                    <span
+                                                        className="font-medium text-[var(--ui-text)] text-[15px] hover:underline cursor-pointer"
+                                                        onClick={(e) => handleAvatarClick(msg.senderId, e)}
+                                                    >
                                                         {msg.senderName}
                                                     </span>
                                                     <span className="text-xs text-[var(--ui-text-muted)]">
@@ -150,11 +167,19 @@ export default function PublicChatPage() {
                                             {msg.gifUrl && (
                                                 <img src={msg.gifUrl} alt="GIF" className="max-w-[300px] rounded-lg mt-1 object-cover" />
                                             )}
+                                            {msg.imageUrl && (
+                                                <img src={msg.imageUrl} alt="Photo" className="max-w-[300px] rounded-lg mt-1 object-cover border border-[var(--ui-border)]" />
+                                            )}
                                             {msg.text && (
                                                 <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
                                                     {msg.text}
                                                 </p>
                                             )}
+                                            <MessageReactions
+                                                messageRef={msgRef}
+                                                reactions={msg.reactions ?? {}}
+                                                currentUserId={user?.uid ?? ''}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -164,50 +189,20 @@ export default function PublicChatPage() {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Typing indicator area */}
-                <div className="h-6 px-4 flex items-center">
-                    {/* Placeholder for future typing indicators */}
-                </div>
+                {/* Chat input */}
+                <ChatInput
+                    onSend={handleSend}
+                    placeholder="Message #campus-plaza"
+                />
 
-                {/* Discord-style input bar */}
-                <div className="px-4 pb-4 shrink-0">
-                    {selectedGifUrl && (
-                        <div className="mb-2 rounded-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] p-2 flex items-center gap-3">
-                            <img src={selectedGifUrl} alt="GIF" className="h-14 w-14 rounded object-cover" />
-                            <div className="flex-1">
-                                <p className="text-xs text-[var(--ui-text-muted)]">GIF attached</p>
-                            </div>
-                            <button onClick={() => setSelectedGifUrl('')} className="p-1 text-[var(--ui-text-muted)] hover:text-[var(--ui-danger)]">
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                    )}
-                    <form className="flex items-center gap-0 bg-[var(--ui-bg-input)] rounded-lg" onSubmit={handleSubmit}>
-                        <div className="flex items-center pl-3 gap-1 shrink-0">
-                            <GiphyPicker
-                                disabled={loading}
-                                onSelect={(gif: GiphyGif) => setSelectedGifUrl(gif.url)}
-                                align="left"
-                            />
-                            <PlusCircle className="h-5 w-5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] cursor-pointer transition-colors" />
-                        </div>
-                        <input
-                            type="text"
-                            className="input bg-transparent"
-                            placeholder="Message #campus-plaza"
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            disabled={loading}
-                        />
-                        <button
-                            type="submit"
-                            disabled={loading || (!newMessage.trim() && !selectedGifUrl)}
-                            className="p-2.5 pr-3 text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] disabled:opacity-30 transition-colors shrink-0"
-                        >
-                            <Send className="w-5 h-5" />
-                        </button>
-                    </form>
-                </div>
+                {/* Profile popup */}
+                {profilePopup && (
+                    <ProfilePopup
+                        userId={profilePopup.userId}
+                        anchorRect={profilePopup.rect}
+                        onClose={() => setProfilePopup(null)}
+                    />
+                )}
             </div>
         </DashboardLayout>
     );
