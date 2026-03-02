@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck } from 'lucide-react';
@@ -8,18 +8,32 @@ import toast from 'react-hot-toast';
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(false);
-    const { signInWithGoogle } = useAuth();
+    const { signInWithGoogle, user, loading: authLoading } = useAuth();
     const router = useRouter();
+
+    // If user is already signed in (redirect result processed), go to home
+    useEffect(() => {
+        if (!authLoading && user) {
+            router.push('/');
+        }
+    }, [authLoading, user, router]);
+
+    // Check for auth error from redirect flow (stored in sessionStorage)
+    useEffect(() => {
+        const error = sessionStorage.getItem('auth_error');
+        if (error) {
+            sessionStorage.removeItem('auth_error');
+            toast.error(error);
+        }
+    }, []);
 
     const handleGoogleSignIn = async () => {
         setLoading(true);
         try {
             await signInWithGoogle();
-            toast.success('Signed in successfully!');
-            router.push('/');
+            // signInWithRedirect navigates away — no code runs after this
         } catch (error: unknown) {
             toast.error(error instanceof Error ? error.message : 'Google sign-in failed');
-        } finally {
             setLoading(false);
         }
     };
@@ -58,7 +72,7 @@ export default function LoginPage() {
                     {loading ? (
                         <span className="flex items-center gap-2">
                             <span className="w-4 h-4 border-2 border-zinc-300 border-t-zinc-600 rounded-full animate-spin" />
-                            Connecting...
+                            Redirecting to Google...
                         </span>
                     ) : (
                         <>

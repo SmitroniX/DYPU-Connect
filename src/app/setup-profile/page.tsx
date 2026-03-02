@@ -106,15 +106,11 @@ export default function SetupProfilePage() {
                 gallery: [],
                 stories: [],
                 highlights: [],
-                // Auto-connect Google Drive if user signed in via Google
-                ...(user.providerData.some(p => p.providerId === 'google.com')
-                    ? {
-                        googleDrive: {
-                            email: user.email as string,
-                            connectedAt: Date.now(),
-                        },
-                    }
-                    : {}),
+                // Google Drive is always connected — all users sign in via Google
+                googleDrive: {
+                    email: user.email as string,
+                    connectedAt: Date.now(),
+                },
                 role: isAutoAdminEmail(user.email) ? 'admin' : 'user',
                 status: 'active' as const,
                 createdAt: Date.now()
