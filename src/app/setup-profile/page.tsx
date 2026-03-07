@@ -142,7 +142,7 @@ export default function SetupProfilePage() {
     const totalSteps = 3;
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--ui-bg-elevated)] py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-[var(--ui-bg-elevated)] py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(2rem+env(safe-area-inset-bottom))] pl-[calc(1rem+env(safe-area-inset-left))] pr-[calc(1rem+env(safe-area-inset-right))]">
             {/* Background decoration */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-[var(--ui-accent)]/5 blur-3xl" />

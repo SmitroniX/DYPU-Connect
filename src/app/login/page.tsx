@@ -32,7 +32,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--ui-bg-base)] relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-[var(--ui-bg-base)] relative overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
             {/* Background decoration */}
             <div
                 className="absolute inset-0 bg-linear-to-br from-[var(--ui-accent)]/8 via-[var(--ui-bg-base)] to-[var(--ui-accent)]/5 animate-[gradient-shift_6s_ease_infinite]"

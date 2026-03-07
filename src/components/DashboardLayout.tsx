@@ -133,8 +133,8 @@ export default function DashboardLayout({
                             className="fixed inset-0 bg-[var(--ui-bg-overlay)]"
                             onClick={() => setSidebarOpen(false)}
                         />
-                        <div className="fixed inset-y-0 left-0 z-50 w-[260px] shadow-2xl">
-                            <div className="absolute right-2 top-2 z-10">
+                        <div className="fixed inset-y-0 left-0 z-50 w-[260px] shadow-2xl pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-[var(--ui-bg-base)]">
+                            <div className="absolute right-2 top-2 z-10 pt-[env(safe-area-inset-top)]">
                                 <button
                                     onClick={() => setSidebarOpen(false)}
                                     className="p-1.5 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
@@ -148,14 +148,14 @@ export default function DashboardLayout({
                 )}
 
                 {/* Desktop sidebar */}
-                <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-[260px] lg:flex-col">
+                <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-[260px] lg:flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
                     <Sidebar />
                 </div>
 
                 {/* Main content area */}
-                <div className="flex-1 flex flex-col lg:pl-[260px] h-screen overflow-hidden">
+                <div className="flex-1 flex flex-col lg:pl-[260px] h-screen overflow-hidden pb-[env(safe-area-inset-bottom)]">
                     {/* Mobile header bar */}
-                    <div className="lg:hidden flex items-center h-14 bg-[var(--ui-bg-base)] border-b border-[var(--ui-divider)] px-4 shrink-0">
+                    <div className="lg:hidden flex items-center min-h-[3.5rem] pt-[env(safe-area-inset-top)] bg-[var(--ui-bg-base)] border-b border-[var(--ui-divider)] px-4 shrink-0">
                         <button
                             onClick={() => setSidebarOpen(true)}
                             className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] transition-colors"

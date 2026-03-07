@@ -14,7 +14,7 @@ export default function GlobalError({
     }, [error]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--ui-bg-base)] px-6">
+        <div className="min-h-screen flex items-center justify-center bg-[var(--ui-bg-base)] px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))] pl-[calc(1.5rem+env(safe-area-inset-left))] pr-[calc(1.5rem+env(safe-area-inset-right))]">
             <div className="max-w-md w-full text-center space-y-6">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10">
                     <span className="text-3xl">⚠️</span>
