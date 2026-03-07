@@ -42,7 +42,16 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
         run: |
+          if [ -n "$GOOGLE_SERVICES_JSON_BASE64" ]; then
+            echo "Decoding google-services.json from Secrets..."
+            # Some base64 strings from secrets might have spaces instead of newlines, so we clean it up if necessary, but standard base64 --decode handles it.
+            echo $GOOGLE_SERVICES_JSON_BASE64 | base64 --decode > app/google-services.json
+          else
+            echo "Warning: GOOGLE_SERVICES_JSON_BASE64 secret is missing. The build will likely fail."
+          fi
+
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "Decoding Keystore from Secrets..."
             echo $KEYSTORE_BASE64 | base64 --decode > app/release.keystore
