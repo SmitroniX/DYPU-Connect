@@ -16,12 +16,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup React Native node_modules cache
+      - name: Setup Gradle cache
         uses: actions/cache@v4
         with:
           path: |
-            mobile-app/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('mobile-app/package-lock.json') }}
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -34,22 +35,16 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install Dependencies
-        working-directory: mobile-app
-        run: npm ci
-
-      - name: Prebuild Android
-        working-directory: mobile-app
-        run: npx expo prebuild --platform android --clean
-
       - name: Build APK
-        working-directory: mobile-app/android
-        run: ./gradlew assembleRelease
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: mobile-app/android/app/build/outputs/apk/release/app-release.apk
+          files: android/app/build/outputs/apk/release/app-release.apk
           tag_name: build-${{ github.run_number }}
           name: Automated APK Release #${{ github.run_number }}
           body: "Auto-generated APK for DYPU Connect Mobile app. Download the `app-release.apk` asset below to install on Android."
