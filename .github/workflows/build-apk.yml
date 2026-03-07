@@ -37,14 +37,27 @@ jobs:
 
       - name: Build APK
         working-directory: android
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Decoding Keystore from Secrets..."
+            echo $KEYSTORE_BASE64 | base64 --decode > app/release.keystore
+            export KEYSTORE_FILE="${{ github.workspace }}/android/app/release.keystore"
+          else
+            echo "No KEYSTORE_BASE64 secret found. Will build unsigned or fallback to default."
+          fi
+          
           chmod +x ./gradlew
           ./gradlew assembleRelease
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: android/app/build/outputs/apk/release/app-release.apk
+          files: android/app/build/outputs/apk/release/*.apk
           tag_name: build-${{ github.run_number }}
-          name: Automated APK Release #${{ github.run_number }}
-          body: "Auto-generated APK for DYPU Connect Mobile app. Download the `app-release.apk` asset below to install on Android."
+          name: DYPU Connect APK Release #${{ github.run_number }}
+          body: "DYPU Connect Mobile app. Download the `DYPU-Connect.apk` asset below to install on Android."

@@ -26,11 +26,22 @@ android {
 
     signingConfigs {
         create("release") {
-            // Configure these for release builds:
-            // storeFile = file("keystore/release.keystore")
-            // storePassword = "your-store-password"
-            // keyAlias = "your-key-alias"
-            // keyPassword = "your-key-password"
+            val keystoreFile = System.getenv("KEYSTORE_FILE")
+            if (keystoreFile != null) {
+                storeFile = file(keystoreFile)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            } else {
+                // Fallback for local development if keystore is present
+                val localKeystore = file("keystore/release.keystore")
+                if (localKeystore.exists()) {
+                    storeFile = localKeystore
+                    storePassword = "your-store-password" // Replace locally if desired
+                    keyAlias = "dypu-connect" 
+                    keyPassword = "your-key-password"
+                }
+            }
         }
     }
 
@@ -42,7 +53,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isDebuggable = true
