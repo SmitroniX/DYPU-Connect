@@ -169,7 +169,7 @@ export default function AdminAnonChatPage() {
                                                 <p className="truncate" title={log.text}>{log.text || '[No text]'}</p>
                                                 {log.gifUrl && (
                                                     <div className="shrink-0 relative">
-                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        { }
                                                         <img
                                                             src={log.gifUrl}
                                                             alt="GIF"

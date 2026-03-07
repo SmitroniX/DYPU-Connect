@@ -103,10 +103,7 @@ function generateNonce(): string {
     return Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-function getCurrentNonce(): string {
-    const raw = getCookie(SESSION_NONCE_COOKIE);
-    return typeof raw === 'string' ? raw : '';
-}
+
 
 function rotateNonce(): string {
     const nonce = generateNonce();

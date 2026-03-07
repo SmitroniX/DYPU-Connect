@@ -37,6 +37,10 @@ export default function PublicChatPage() {
     const { userProfile } = useStore();
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
     useEffect(() => {
         const q = query(
             collection(db, 'public_chat'),
@@ -57,9 +61,7 @@ export default function PublicChatPage() {
         return () => unsubscribe();
     }, []);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+
 
     useEffect(() => { scrollToBottom(); }, [messages]);
 

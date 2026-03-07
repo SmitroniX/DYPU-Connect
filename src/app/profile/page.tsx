@@ -25,7 +25,6 @@ import type {
     ProfileStoryItem,
     ProfileVisibility,
     UserProfile,
-    SocialLinks,
 } from '@/types/profile';
 import {
     getProfileBranchOptions,

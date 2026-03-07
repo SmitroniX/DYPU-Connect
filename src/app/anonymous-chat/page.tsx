@@ -40,15 +40,19 @@ export default function AnonymousChatPage() {
 
     useEffect(() => {
         if (!sessionIdentity) {
-            setSessionIdentity(generateAnonymousName());
+            queueMicrotask(() => setSessionIdentity(generateAnonymousName()));
         }
     }, [sessionIdentity]);
 
     useEffect(() => {
         if (!sessionId) {
-            setSessionId(`${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
+            queueMicrotask(() => setSessionId(`${Date.now()}-${Math.random().toString(36).slice(2, 10)}`));
         }
     }, [sessionId]);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     useEffect(() => {
         const q = query(
@@ -75,9 +79,7 @@ export default function AnonymousChatPage() {
         return () => unsubscribe();
     }, []);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+
 
     useEffect(() => {
         scrollToBottom();

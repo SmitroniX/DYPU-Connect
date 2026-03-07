@@ -29,7 +29,9 @@ export default function ProfilePopup({ userId, anchorRect, onClose }: ProfilePop
         }
 
         let cancelled = false;
-        setLoading(true);
+        queueMicrotask(() => {
+            if (!cancelled) setLoading(true);
+        });
         getDoc(doc(db, 'users', userId))
             .then((snap) => {
                 if (cancelled) return;
