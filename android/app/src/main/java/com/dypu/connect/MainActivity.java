@@ -43,9 +43,12 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.splashscreen.SplashScreen;
+
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -670,6 +673,47 @@ public class MainActivity extends AppCompatActivity {
             // Web app is fully loaded and ready to receive events
             mActivity.runOnUiThread(() -> {
                 mActivity.emitToWeb("app_connected", "Native bridge is active");
+            });
+        }
+
+        @JavascriptInterface
+        public boolean isBiometricAvailable() {
+            BiometricManager biometricManager = BiometricManager.from(mActivity);
+            int status = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.DEVICE_CREDENTIAL);
+            return status == BiometricManager.BIOMETRIC_SUCCESS;
+        }
+
+        @JavascriptInterface
+        public void authenticateBiometric(String title, String subtitle) {
+            mActivity.runOnUiThread(() -> {
+                java.util.concurrent.Executor executor = ContextCompat.getMainExecutor(mActivity);
+                BiometricPrompt biometricPrompt = new BiometricPrompt(mActivity, executor, new BiometricPrompt.AuthenticationCallback() {
+                    @Override
+                    public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
+                        super.onAuthenticationError(errorCode, errString);
+                        mActivity.emitToWeb("biometric_auth_result", "error:" + errString);
+                    }
+
+                    @Override
+                    public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
+                        super.onAuthenticationSucceeded(result);
+                        mActivity.emitToWeb("biometric_auth_result", "success");
+                    }
+
+                    @Override
+                    public void onAuthenticationFailed() {
+                        super.onAuthenticationFailed();
+                        mActivity.emitToWeb("biometric_auth_result", "failed");
+                    }
+                });
+
+                BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                        .setTitle(title)
+                        .setSubtitle(subtitle)
+                        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+                        .build();
+
+                biometricPrompt.authenticate(promptInfo);
             });
         }
     }

@@ -14,6 +14,7 @@ import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
 import { generateAnonymousName } from '@/lib/utils';
 import { sanitiseInput, hasDangerousContent, filterProfanity } from '@/lib/security';
+import { moderateTextAI } from '@/lib/moderation';
 import {
     Send, Heart, MessageCircle, Flame, Sparkles, Ghost,
     Clock, TrendingUp, Filter, ChevronDown, X, Share2,
@@ -316,6 +317,14 @@ export default function ConfessionsPage() {
 
         setLoading(true);
         try {
+            // AI Moderation Check
+            const modResult = await moderateTextAI(safeText);
+            if (!modResult.isSafe) {
+                toast.error(modResult.reason || 'Your confession was flagged for moderation.');
+                setLoading(false);
+                return;
+            }
+
             const anonName = generateAnonymousName();
 
             const docRef = await addDoc(collection(db, 'confessions_public'), {

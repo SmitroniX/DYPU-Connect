@@ -36,6 +36,7 @@ import { getOrCreateEncryptionSalt } from '@/lib/encryption';
 import { fetchDeviceSessions, removeDeviceSession, removeAllOtherSessions, type DeviceSession } from '@/lib/deviceSessions';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { type AutoBackupInterval, AUTO_BACKUP_INTERVALS } from '@/types/profile';
+import { isAndroidApp, isBiometricAvailable, authenticateBiometric, registerAndroidEventListener, showToast } from '@/lib/android';
 
 interface UserSettings {
     emailNotifications: boolean;
@@ -51,14 +52,50 @@ const DEFAULT_SETTINGS: UserSettings = {
 
 const SETTINGS_STORAGE_KEY = 'dypu_settings_v1';
 
-/* ── Security Section ───────────────────────────── */
-
 function SecuritySection() {
     const { user } = useAuth();
     const { userProfile, setUserProfile } = useStore();
     const [loginLogs, setLoginLogs] = useState<ActivityLogEntry[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(true);
     const [toggling, setToggling] = useState(false);
+    const [biometricEnabled, setBiometricEnabled] = useState(false);
+
+    useEffect(() => {
+        const stored = localStorage.getItem('dypu_biometric_lock');
+        setBiometricEnabled(stored === 'true');
+
+        if (isAndroidApp()) {
+            registerAndroidEventListener((event, data) => {
+                if (event === 'biometric_auth_result') {
+                    if (data === 'success') {
+                        toast.success('Biometric lock confirmed');
+                    } else {
+                        setBiometricEnabled(false);
+                        localStorage.setItem('dypu_biometric_lock', 'false');
+                        toast.error('Authentication failed');
+                    }
+                }
+            });
+        }
+    }, []);
+
+    const toggleBiometric = () => {
+        if (!isBiometricAvailable()) {
+            toast.error('Biometric authentication not available on this device');
+            return;
+        }
+
+        const next = !biometricEnabled;
+        if (next) {
+            authenticateBiometric('Enable App Lock', 'Confirm your identity to enable biometric lock');
+            setBiometricEnabled(true);
+            localStorage.setItem('dypu_biometric_lock', 'true');
+        } else {
+            setBiometricEnabled(false);
+            localStorage.setItem('dypu_biometric_lock', 'false');
+            toast.success('Biometric lock disabled');
+        }
+    };
 
     useEffect(() => {
         if (!user) return;
@@ -104,6 +141,33 @@ function SecuritySection() {
             <p className="text-sm text-[var(--ui-text-muted)] mb-5">
                 Manage encryption, review login activity, and monitor your session.
             </p>
+
+            {/* ── Biometric Lock Toggle (Android Only) ── */}
+            {isAndroidApp() && (
+                <div className="mb-5 rounded-xl border border-[var(--ui-accent)]/15 bg-[var(--ui-accent-dim)] p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Fingerprint className="h-5 w-5 text-[var(--ui-accent)]" />
+                            <h3 className="text-sm font-bold text-[var(--ui-text)]">Biometric App Lock</h3>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={biometricEnabled}
+                                onChange={toggleBiometric}
+                                className="sr-only peer"
+                            />
+                            <div className="w-9 h-5 bg-[var(--ui-bg-elevated)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--ui-accent)]"></div>
+                        </label>
+                    </div>
+                    <p className="text-[11px] text-[var(--ui-text-muted)]">
+                        When enabled, the app will require fingerprint or face authentication every time you open it to protect your privacy.
+                    </p>
+                    {!isBiometricAvailable() && (
+                        <p className="text-[11px] text-[var(--ui-warning)]">Biometrics not supported or not set up on this device.</p>
+                    )}
+                </div>
+            )}
 
             {/* ── Drive Encryption Toggle ── */}
             <div className="mb-5 rounded-xl border border-[var(--ui-accent)]/15 bg-[var(--ui-accent-dim)] p-4 space-y-3">

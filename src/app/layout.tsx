@@ -55,8 +55,9 @@ export default function RootLayout({
             <body className={inter.className} suppressHydrationWarning>
                 <AuthProvider>
                     <SystemProvider>
-                        <SessionGuard />
-                        {children}
+                        <SessionGuard>
+                            {children}
+                        </SessionGuard>
                         <Toaster position="top-right" />
                         <CookieConsentBanner />
                     </SystemProvider>
