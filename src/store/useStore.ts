@@ -19,6 +19,8 @@ interface AppState {
     unreadCount: number;
     /** Whether the notification panel is open */
     notificationPanelOpen: boolean;
+    /** Whether the global search modal is open */
+    searchModalOpen: boolean;
     setCurrentUser: (user: User | null) => void;
     setUserProfile: (profile: UserProfile | null) => void;
     setLoading: (loading: boolean) => void;
@@ -27,6 +29,7 @@ interface AppState {
     setUnreadMessagesCount: (count: number) => void;
     setUnreadGroupsCount: (count: number) => void;
     setNotificationPanelOpen: (open: boolean) => void;
+    setSearchModalOpen: (open: boolean) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -39,6 +42,7 @@ export const useStore = create<AppState>((set) => ({
     unreadMessagesCount: 0,
     unreadGroupsCount: 0,
     notificationPanelOpen: false,
+    searchModalOpen: false,
     setCurrentUser: (user) => set({ currentUser: user }),
     setUserProfile: (profile) => set({ userProfile: profile }),
     setLoading: (loading) => set({ isLoading: loading }),
@@ -51,4 +55,5 @@ export const useStore = create<AppState>((set) => ({
     setUnreadMessagesCount: (count) => set({ unreadMessagesCount: count }),
     setUnreadGroupsCount: (count) => set({ unreadGroupsCount: count }),
     setNotificationPanelOpen: (open) => set({ notificationPanelOpen: open }),
+    setSearchModalOpen: (open) => set({ searchModalOpen: open }),
 }));

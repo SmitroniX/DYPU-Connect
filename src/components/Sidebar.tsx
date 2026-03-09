@@ -5,7 +5,7 @@ import { useStore } from '@/store/useStore';
 import { useSystemStore } from '@/store/useSystemStore';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, ChevronRight, Bell } from 'lucide-react';
+import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, ChevronRight, Bell, Search } from 'lucide-react';
 import clsx from 'clsx';
 import NotificationPanel from '@/components/NotificationPanel';
 
@@ -46,7 +46,7 @@ const NAV_SECTIONS = [
 
 export default function Sidebar({ onNavigate }: SidebarProps) {
     const { logout } = useAuth();
-    const { userProfile, unreadCount, unreadMessagesCount, unreadGroupsCount, notificationPanelOpen, setNotificationPanelOpen } = useStore();
+    const { userProfile, unreadCount, unreadMessagesCount, unreadGroupsCount, notificationPanelOpen, setNotificationPanelOpen, setSearchModalOpen } = useStore();
     const { settings } = useSystemStore();
     const pathname = usePathname();
 
@@ -92,21 +92,30 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 <h1 className="text-base font-semibold text-[var(--ui-text)] tracking-tight">
                     <span className="text-[var(--ui-accent)]">✦</span> DYPU Connect
                 </h1>
-                {/* Notification bell (Desktop Only) */}
-                <div className="relative hidden lg:block">
+                {/* Actions (Desktop Only) */}
+                <div className="relative hidden lg:flex items-center gap-1.5">
                     <button
-                        onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
-                        className="relative p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
-                        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+                        onClick={() => setSearchModalOpen(true)}
+                        className="p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                        aria-label="Search"
                     >
-                        <Bell className="h-[18px] w-[18px]" />
-                        {unreadCount > 0 && (
-                            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-[var(--ui-bg-surface)]">
-                                {unreadCount > 99 ? '99+' : unreadCount}
-                            </span>
-                        )}
+                        <Search className="h-[18px] w-[18px]" />
                     </button>
-                    <NotificationPanel align="sidebar" />
+                    <div className="relative">
+                        <button
+                            onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
+                            className="relative p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                            aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+                        >
+                            <Bell className="h-[18px] w-[18px]" />
+                        {unreadCount > 0 && (
+                                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-[var(--ui-bg-surface)]">
+                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                </span>
+                            )}
+                        </button>
+                        <NotificationPanel align="sidebar" />
+                    </div>
                 </div>
             </div>
 

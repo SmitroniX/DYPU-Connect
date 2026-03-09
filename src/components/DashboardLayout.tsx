@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { AlertCircle, Info, Menu, X, Zap, Bell } from 'lucide-react';
+import { AlertCircle, Info, Menu, X, Zap, Bell, Search } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import NotificationPanel from '@/components/NotificationPanel';
+import GlobalSearch from '@/components/GlobalSearch';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { db } from '@/lib/firebase';
 import { onSnapshot, collection, query, where, orderBy, limit } from 'firebase/firestore';
@@ -152,7 +153,8 @@ export default function DashboardLayout({
         userProfile,
         unreadCount,
         notificationPanelOpen,
-        setNotificationPanelOpen
+        setNotificationPanelOpen,
+        setSearchModalOpen
     } = useStore();
     const prevUnreadRef = useRef(0);
     const prevUnreadMsgRef = useRef(0);
@@ -366,22 +368,31 @@ export default function DashboardLayout({
                             </span>
                         </div>
                         
-                        {/* Mobile Notification Bell */}
-                        <div className="relative">
+                        {/* Mobile Actions */}
+                        <div className="relative flex items-center gap-1.5">
                             <button
-                                onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
-                                className="relative p-1.5 -mr-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] active:bg-[var(--ui-bg-hover)] transition-colors"
-                                aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+                                onClick={() => setSearchModalOpen(true)}
+                                className="p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] active:bg-[var(--ui-bg-hover)] transition-colors"
+                                aria-label="Search"
                             >
+                                <Search className="h-5 w-5" />
+                            </button>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
+                                    className="relative p-1.5 -mr-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] active:bg-[var(--ui-bg-hover)] transition-colors"
+                                    aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+                                >
                                 <Bell className="h-5 w-5" />
                                 {unreadCount > 0 && (
                                     <span className="absolute -top-0 -right-0 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-[var(--ui-bg-base)]">
                                         {unreadCount > 99 ? '99+' : unreadCount}
                                     </span>
                                 )}
-                            </button>
-                            {/* The panel handles opening logic based on the store implicitly */}
-                            <NotificationPanel align="header" />
+                                </button>
+                                {/* The panel handles opening logic based on the store implicitly */}
+                                <NotificationPanel align="header" />
+                            </div>
                         </div>
                     </div>
 
@@ -391,8 +402,10 @@ export default function DashboardLayout({
                     {/* Native Push Prompt */}
                     <PushPromptBanner />
 
+                    <GlobalSearch />
+
                     {/* Page content */}
-                    <main className="flex-1 overflow-y-auto" role="main" aria-label="Page content">
+                    <main className="flex-1 overflow-y-auto w-full max-w-[100vw]" role="main" aria-label="Page content">
                         {children}
                     </main>
                 </div>
