@@ -77,7 +77,11 @@ function groupNotifications(notifs: AppNotification[]): { label: string; items: 
 
 /* ── Component ── */
 
-export default function NotificationPanel() {
+interface NotificationPanelProps {
+    align?: 'sidebar' | 'header';
+}
+
+export default function NotificationPanel({ align = 'sidebar' }: NotificationPanelProps) {
     const router = useRouter();
     const { user } = useAuth();
     const {
@@ -165,7 +169,11 @@ export default function NotificationPanel() {
             role="dialog"
             aria-label="Notifications"
             aria-modal="true"
-            className="absolute left-full top-0 ml-2 w-[360px] max-h-[calc(100vh-6rem)] bg-[var(--ui-bg-surface)] border border-[var(--ui-divider)] rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-[fade-in-up_0.15s_ease-out]"
+            className={`absolute z-[100] bg-[var(--ui-bg-surface)] border border-[var(--ui-divider)] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-[fade-in-up_0.15s_ease-out] ${
+                align === 'sidebar'
+                    ? 'left-full top-0 ml-2 w-[360px] max-h-[calc(100vh-6rem)]'
+                    : 'right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-[360px] max-h-[80vh] sm:max-h-[calc(100vh-6rem)] origin-top-right'
+            }`}
         >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--ui-divider)] shrink-0">

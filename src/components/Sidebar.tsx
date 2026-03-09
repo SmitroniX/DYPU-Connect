@@ -92,8 +92,8 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 <h1 className="text-base font-semibold text-[var(--ui-text)] tracking-tight">
                     <span className="text-[var(--ui-accent)]">✦</span> DYPU Connect
                 </h1>
-                {/* Notification bell */}
-                <div className="relative">
+                {/* Notification bell (Desktop Only) */}
+                <div className="relative hidden lg:block">
                     <button
                         onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
                         className="relative p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
@@ -106,7 +106,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                             </span>
                         )}
                     </button>
-                    <NotificationPanel />
+                    <NotificationPanel align="sidebar" />
                 </div>
             </div>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { AlertCircle, Info, Menu, X, Zap, Bell } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import NotificationPanel from '@/components/NotificationPanel';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { db } from '@/lib/firebase';
 import { onSnapshot, collection, query, where, orderBy, limit } from 'firebase/firestore';
@@ -148,7 +149,10 @@ export default function DashboardLayout({
         setNotifications,
         setUnreadMessagesCount,
         setUnreadGroupsCount,
-        userProfile
+        userProfile,
+        unreadCount,
+        notificationPanelOpen,
+        setNotificationPanelOpen
     } = useStore();
     const prevUnreadRef = useRef(0);
     const prevUnreadMsgRef = useRef(0);
@@ -348,17 +352,37 @@ export default function DashboardLayout({
                 {/* Main content area */}
                 <div className="flex-1 flex flex-col lg:pl-[260px] h-screen overflow-hidden pb-[env(safe-area-inset-bottom)]">
                     {/* Mobile header bar */}
-                    <div className="lg:hidden flex items-center min-h-[3.5rem] pt-[env(safe-area-inset-top)] bg-[var(--ui-bg-base)] border-b border-[var(--ui-divider)] px-4 shrink-0">
-                        <button
-                            onClick={() => setSidebarOpen(true)}
-                            className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] transition-colors"
-                            aria-label="Open sidebar navigation"
-                        >
-                            <Menu className="h-5 w-5" />
-                        </button>
-                        <span className="ml-3 text-[15px] font-semibold text-[var(--ui-text)]">
-                            <span className="text-[var(--ui-accent)]">✦</span> DYPU Connect
-                        </span>
+                    <div className="lg:hidden flex items-center justify-between min-h-[3.5rem] pt-[env(safe-area-inset-top)] bg-[var(--ui-bg-base)] border-b border-[var(--ui-divider)] px-4 shrink-0 relative z-40">
+                        <div className="flex items-center">
+                            <button
+                                onClick={() => setSidebarOpen(true)}
+                                className="p-1.5 -ml-1.5 mr-2 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] transition-colors"
+                                aria-label="Open sidebar navigation"
+                            >
+                                <Menu className="h-5 w-5" />
+                            </button>
+                            <span className="text-[15px] font-semibold text-[var(--ui-text)]">
+                                <span className="text-[var(--ui-accent)]">✦</span> DYPU Connect
+                            </span>
+                        </div>
+                        
+                        {/* Mobile Notification Bell */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
+                                className="relative p-1.5 -mr-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] active:bg-[var(--ui-bg-hover)] transition-colors"
+                                aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+                            >
+                                <Bell className="h-5 w-5" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-0 -right-0 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-[var(--ui-bg-base)]">
+                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                    </span>
+                                )}
+                            </button>
+                            {/* The panel handles opening logic based on the store implicitly */}
+                            <NotificationPanel align="header" />
+                        </div>
                     </div>
 
                     {/* Announcement banners */}
