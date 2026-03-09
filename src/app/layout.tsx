@@ -15,6 +15,8 @@ const inter = Inter({
 export const viewport: Viewport = {
     width: "device-width",
     initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
     viewportFit: "cover",
     themeColor: "#0f0f0f",
 };
@@ -23,6 +25,11 @@ export const metadata: Metadata = {
     title: "DYPU Connect",
     description: "Exclusive social platform for DY Patil University",
     applicationName: "DYPU Connect",
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: "black-translucent",
+        title: "DYPU Connect",
+    },
     icons: {
         icon: "/favicon.ico",
         apple: "/logo.png",

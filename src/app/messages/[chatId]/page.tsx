@@ -330,10 +330,10 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                     {/* Messages stream */}
                     <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
                     {/* E2EE Notice */}
-                    <div className="flex justify-center mb-6 mt-2">
-                        <div className="bg-[var(--ui-accent)]/10 text-[var(--ui-accent)] text-[11px] px-3 py-2 rounded-lg flex items-center gap-2 max-w-[300px] text-center shadow-sm ring-1 ring-[var(--ui-accent)]/20 animate-[fade-in-up_0.4s_ease-out]">
-                            <Lock className="w-3.5 h-3.5 shrink-0" />
-                            <span className="leading-tight">Messages are end-to-end encrypted. No one outside of this chat, not even DYPU Connect, can read them.</span>
+                    <div className="flex justify-center mb-6 mt-4">
+                        <div className="flex items-center gap-1.5 text-[10px] text-[var(--ui-text-muted)] font-medium tracking-wide uppercase px-3 py-1 bg-[var(--ui-bg-surface)]/50 rounded-full border border-[var(--ui-border)]/30 backdrop-blur-sm animate-[fade-in-up_0.4s_ease-out]">
+                            <Lock className="w-3 h-3 shrink-0 opacity-70" />
+                            <span>End-to-end encrypted</span>
                         </div>
                     </div>
 
@@ -416,26 +416,26 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                             {/* Actual Bubble */}
                                             <div
                                                 className={`
-                                                    relative px-3 py-2 shadow-sm flex flex-col min-w-[75px]
+                                                    relative px-3.5 py-2.5 flex flex-col min-w-[75px] backdrop-blur-sm
                                                     ${isMine 
-                                                        ? 'bg-gradient-to-br from-[var(--ui-accent)] to-[#4f46e5] text-white rounded-2xl rounded-br-sm' 
-                                                        : 'bg-[var(--ui-bg-surface)] text-[var(--ui-text)] rounded-2xl rounded-bl-sm border border-[var(--ui-border)]/50'}
+                                                        ? 'bg-gradient-to-br from-[var(--ui-accent)] to-[#4f46e5] text-white rounded-[20px] rounded-br-[4px] shadow-sm shadow-[var(--ui-accent)]/10' 
+                                                        : 'bg-[#18181b] text-[#fafafa] rounded-[20px] rounded-bl-[4px] border border-[#3f3f46]/40 shadow-sm'}
                                                 `}
                                             >
                                                 {/* Reply snippet inside the bubble */}
                                                 {msg.replyToId && (
-                                                    <div className={`mb-2 pl-2 border-l-2 rounded-sm text-[12px] opacity-80 cursor-pointer ${isMine ? 'border-white/50 bg-white/10 p-1.5' : 'border-[var(--ui-accent)] bg-[var(--ui-accent)]/5 p-1.5'}`}>
-                                                        <div className="font-semibold">{messages.find(m => m.id === msg.replyToId)?.senderId === user.uid ? 'You' : otherName}</div>
-                                                        <div className="truncate max-w-[200px]">
+                                                    <div className={`mb-2 pl-2.5 border-l-[3px] rounded-r-md text-[12px] opacity-85 cursor-pointer transition-opacity hover:opacity-100 ${isMine ? 'border-white/60 bg-white/10 p-1.5' : 'border-[var(--ui-accent)] bg-[var(--ui-accent)]/10 p-1.5'}`}>
+                                                        <div className="font-semibold tracking-wide text-[11px] uppercase mb-0.5">{messages.find(m => m.id === msg.replyToId)?.senderId === user.uid ? 'You' : otherName}</div>
+                                                        <div className="truncate max-w-[200px] text-xs">
                                                             {messages.find(m => m.id === msg.replyToId)?.text || 'Attachment'}
                                                         </div>
                                                     </div>
                                                 )}
                                                 {msg.gifUrl && (
-                                                    <img src={msg.gifUrl} alt="GIF" className="max-w-full sm:max-w-[280px] rounded-xl mb-1 object-cover" />
+                                                    <img src={msg.gifUrl} alt="GIF" className="max-w-full sm:max-w-[280px] rounded-[14px] mb-1 z-10 relative object-cover ring-1 ring-black/10" />
                                                 )}
                                                 {msg.imageUrl && (
-                                                    <img src={msg.imageUrl} alt="Photo" className={`max-w-full sm:max-w-[280px] rounded-xl mb-1 object-cover ${!isMine && 'border border-[var(--ui-border)]/50'}`} />
+                                                    <img src={msg.imageUrl} alt="Photo" className={`max-w-full sm:max-w-[280px] rounded-[14px] mb-1 z-10 relative object-cover ring-1 ring-black/10`} />
                                                 )}
                                                 {msg.audioUrl && (
                                                     <div className="mb-1">
@@ -446,7 +446,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                                     <div className="flex flex-col w-full min-w-[200px] mt-1 z-20 relative">
                                                         <input
                                                             autoFocus
-                                                            className={`bg-transparent border-b ${isMine ? 'border-white/40 text-white' : 'border-[var(--ui-border)] text-[var(--ui-text)]'} focus:outline-none pb-1`}
+                                                            className={`bg-transparent border-b ${isMine ? 'border-white/40 text-white' : 'border-[#3f3f46] text-[#fafafa]'} focus:outline-none pb-1`}
                                                             value={editValue}
                                                             onChange={(e) => setEditValue(e.target.value)}
                                                             onKeyDown={(e) => {
@@ -454,22 +454,22 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                                                 if (e.key === 'Escape') setEditingMessageId(null);
                                                             }}
                                                         />
-                                                        <div className={`text-[10px] mt-1 ${isMine ? 'text-white/60' : 'text-[var(--ui-text-muted)]'}`}>
+                                                        <div className={`text-[10px] mt-1.5 font-medium ${isMine ? 'text-white/70' : 'text-[#71717a]'}`}>
                                                             Esc to cancel, Enter to save
                                                         </div>
                                                     </div>
                                                 ) : msg.text && (
-                                                    <p className={`text-[15px] leading-relaxed break-words whitespace-pre-wrap ${isMine ? 'text-white/95' : 'text-[var(--ui-text-secondary)]'} ${msg.text.length < 20 ? 'pr-12' : 'pb-3.5'} ${msg.isDeleted ? 'italic opacity-60' : ''}`}>
+                                                    <p className={`text-[15px] leading-[1.4] break-words whitespace-pre-wrap ${isMine ? 'text-white' : 'text-[#fafafa]'} ${msg.text.length < 20 ? 'pr-12' : 'pb-4'} ${msg.isDeleted ? 'italic opacity-60' : ''}`}>
                                                         {renderMarkdown(filterProfanity(msg.text))}
-                                                        {msg.isEdited && !msg.isDeleted && <span className="text-[10px] ml-1 opacity-60">(edited)</span>}
+                                                        {msg.isEdited && !msg.isDeleted && <span className="text-[10px] ml-1.5 opacity-70 font-medium">(edited)</span>}
                                                     </p>
                                                 )}
 
                                                 {/* Timestamp & Read Receipt */}
-                                                <div className={`absolute bottom-1 right-2 flex items-center gap-0.5 text-[10px] ${isMine ? 'text-white/80' : 'text-[var(--ui-text-muted)]'}`}>
+                                                <div className={`absolute bottom-1.5 right-2.5 flex items-center gap-0.5 text-[9px] font-medium tracking-wide ${isMine ? 'text-white/80' : 'text-[#71717a]'}`}>
                                                     <span>{ts ? format(ts, 'HH:mm') : '...'}</span>
                                                     {isMine && (
-                                                        <svg className="w-3 h-3 ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                        <svg className="w-[14px] h-[14px] ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                             <path d="m18 6-11 11-5-5"></path>
                                                             <path d="m22 10-7.5 7.5L13 16"></path>
                                                         </svg>

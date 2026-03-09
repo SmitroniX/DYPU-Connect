@@ -236,7 +236,7 @@ export default function ChatInput({
             )}
 
             {/* Input bar - Floating Pill Design */}
-            <div className="flex flex-col bg-[var(--ui-bg-surface)] backdrop-blur-xl shadow-lg shadow-black/5 rounded-3xl border border-[var(--ui-border)]/60 focus-within:border-[var(--ui-accent)]/40 focus-within:ring-4 focus-within:ring-[var(--ui-accent)]/10 transition-all duration-300 relative z-20 overflow-hidden group">
+            <div className="flex flex-col bg-[#27272a]/95 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.2)] rounded-[26px] border border-white/5 focus-within:border-[var(--ui-accent)]/40 focus-within:ring-4 focus-within:ring-[var(--ui-accent)]/10 transition-all duration-300 relative z-20 overflow-hidden group">
                
                {/* Animated Gradient Glow on Active */}
                <div className="absolute inset-0 bg-gradient-to-r from-[var(--ui-accent)]/0 via-[var(--ui-accent)]/5 to-[var(--ui-accent)]/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
@@ -357,10 +357,10 @@ export default function ChatInput({
                             type="button"
                             onClick={handleSend}
                             disabled={!canSend || overLimit}
-                            className="h-10 w-10 flex items-center justify-center rounded-full bg-[var(--ui-accent)] text-white hover:bg-[var(--ui-accent-hover)] hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:bg-[var(--ui-bg-elevated)] disabled:text-[var(--ui-text-muted)] transition-all shadow-md shadow-[var(--ui-accent)]/20"
+                            className="h-[42px] w-[42px] flex items-center justify-center rounded-full bg-gradient-to-br from-[#818cf8] to-[#4f46e5] text-white hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:from-[#3f3f46] disabled:to-[#3f3f46] disabled:text-[#a1a1aa] transition-all shadow-md shadow-[#4f46e5]/25"
                             title="Send message"
                         >
-                            <Send className="w-4 h-4 ml-0.5" />
+                            <Send className="w-[18px] h-[18px] ml-0.5" />
                         </button>
                     </div>
                 </div>

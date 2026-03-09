@@ -55,6 +55,8 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── Keyframes ──────────────────────────────────── */
@@ -214,5 +216,12 @@ body {
   border-bottom: 1px solid var(--ui-divider);
   background: var(--ui-bg-base);
   flex-shrink: 0;
+}
+
+/* User Selection / Touch */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 

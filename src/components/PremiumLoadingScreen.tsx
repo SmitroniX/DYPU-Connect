@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export default function PremiumLoadingScreen() {
     const [mounted, setMounted] = useState(false);
@@ -28,11 +29,16 @@ export default function PremiumLoadingScreen() {
                 <div className="absolute w-24 h-24 rounded-full border border-fuchsia-500/20 border-l-fuchsia-400/80 animate-[spin_3s_linear_infinite_reverse]"></div>
                 
                 {/* Center Core */}
-                <div className="relative w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 shadow-[0_0_30px_rgba(59,130,246,0.2)] flex items-center justify-center overflow-hidden">
+                <div className="relative w-20 h-20 rounded-full bg-zinc-900 border border-zinc-800 shadow-[0_0_30px_rgba(59,130,246,0.2)] flex items-center justify-center overflow-hidden p-2">
                     <div className="absolute inset-0 bg-linear-to-tr from-blue-500/20 to-fuchsia-500/20 mix-blend-overlay"></div>
-                    <span className="font-black text-xl bg-clip-text text-transparent bg-linear-to-r from-blue-400 to-fuchsia-400 animate-pulse">
-                        DC
-                    </span>
+                    <Image 
+                        src="/logo.png" 
+                        alt="DYPU Connect Logo" 
+                        width={48} 
+                        height={48} 
+                        className="object-contain relative z-10 animate-pulse drop-shadow-lg"
+                        priority
+                    />
                 </div>
             </div>
 
