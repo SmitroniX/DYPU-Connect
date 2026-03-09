@@ -580,7 +580,11 @@ public class MainActivity extends AppCompatActivity {
         String webHost = Uri.parse(WEB_URL).getHost();
         String urlHost = Uri.parse(url).getHost();
         if (webHost == null || urlHost == null) return false;
-        return urlHost.equals(webHost)
+        
+        // Match the web host exactly or as a sub-domain (for netlify.app, vercel.app)
+        boolean isMainHost = urlHost.equals(webHost) || urlHost.endsWith("." + webHost);
+        
+        return isMainHost
                 || urlHost.endsWith(".firebaseapp.com")
                 || urlHost.endsWith(".firebaseio.com")
                 || urlHost.equals("accounts.google.com")

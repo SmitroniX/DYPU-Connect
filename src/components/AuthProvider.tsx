@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, signInWithPopup, deleteUser } from 'firebase/auth';
+import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, deleteUser } from 'firebase/auth';
 import type { FirebaseError } from 'firebase/app';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -15,6 +15,7 @@ import { startAutoBackupScheduler, stopAutoBackupScheduler } from '@/lib/backup'
 import { loadGoogleIdentityScript, isGoogleDriveConfigured } from '@/lib/googleDrive';
 import PremiumLoadingScreen from './PremiumLoadingScreen';
 import { usePresence } from '@/hooks/usePresence';
+import { isAndroidApp } from '@/lib/android';
 
 interface AuthContextType {
     user: User | null;
@@ -170,14 +171,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => unsubscribe();
     }, [firebaseReady, setCurrentUser, setUserProfile, setStoreLoading]);
 
-    // Preload Google Identity Services script early so that
-    // requestGoogleDriveAccessToken() doesn't need to await script loading
-    // at click-time (which causes browsers to block the popup).
+    // Preload Google Identity Services script early
     useEffect(() => {
         if (isGoogleDriveConfigured()) {
             loadGoogleIdentityScript().catch(() => {});
         }
     }, []);
+
+    // Handle Redirect Result (for Android App)
+    useEffect(() => {
+        if (!firebaseReady || !isAndroidApp()) return;
+
+        getRedirectResult(auth).then(async (result) => {
+            if (result) {
+                const email = result.user.email;
+                // Enforce @dypatil.edu restriction
+                if (!email || !email.endsWith('@dypatil.edu')) {
+                    await deleteUser(result.user).catch(() => {});
+                    await signOut(auth);
+                    // notify through state or toast if needed
+                    return;
+                }
+                
+                // Log and register session
+                const deviceInfo = collectDeviceInfo();
+                logActivity(
+                    result.user.uid,
+                    'login',
+                    `Signed in with Google Redirect (${email}) · ${deviceInfo.browser} on ${deviceInfo.os} · ${deviceInfo.device}`,
+                );
+                registerDeviceSession(result.user.uid).catch(() => {});
+            }
+        }).catch((error) => {
+            console.error('Redirect sign-in error:', error);
+        });
+    }, [firebaseReady]);
 
 
     const sendLoginLink = async (email: string) => {
@@ -219,6 +247,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         provider.setCustomParameters({ hd: 'dypatil.edu', prompt: 'select_account' });
 
         try {
+            if (isAndroidApp()) {
+                await signInWithRedirect(auth, provider);
+                return; // The page will redirect
+            }
 
             const result = await signInWithPopup(auth, provider);
             const email = result.user.email;
