@@ -4,10 +4,25 @@ import { useEffect } from 'react';
 import { useSystemStore } from '@/store/useSystemStore';
 import { useStore } from '@/store/useStore';
 import { AlertTriangle } from 'lucide-react';
+import { notifyWebReady, registerAndroidEventListener, showToast, isAndroidApp } from '@/lib/android';
 
 export default function SystemProvider({ children }: { children: React.ReactNode }) {
     const { settings, isInitializing, initSystemListener } = useSystemStore();
     const { userProfile, currentUser: user } = useStore();
+
+    useEffect(() => {
+        // Initialize Android bridge
+        if (isAndroidApp()) {
+            console.log('[Android] Native bridge detected, registering listener...');
+            registerAndroidEventListener((event, data) => {
+                console.log(`[Android] Received event: ${event}`, data);
+                if (event === 'app_connected') {
+                    showToast('Native features enabled');
+                }
+            });
+            notifyWebReady();
+        }
+    }, []);
 
     useEffect(() => {
         if (!user?.uid) return;
