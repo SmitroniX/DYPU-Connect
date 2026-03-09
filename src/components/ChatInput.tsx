@@ -4,11 +4,7 @@ import { useRef, useState, Suspense, lazy } from 'react';
 import { Bold, Code, Image as ImageIcon, Italic, Send, X } from 'lucide-react';
 import type { GiphyGif } from '@/lib/giphy';
 import { useStore } from '@/store/useStore';
-import {
-    isGoogleDriveConfigured,
-    requestGoogleDriveAccessToken,
-    uploadImageToGoogleDrive,
-} from '@/lib/googleDrive';
+import { uploadChatMedia } from '@/lib/storage';
 import toast from 'react-hot-toast';
 
 // Lazy-load heavy picker components — only loaded when the user opens them
@@ -60,6 +56,7 @@ export default function ChatInput({
     typingIndicator,
     onTyping,
     onStopTyping,
+    chatId,
 }: ChatInputProps) {
     const features = { ...DEFAULT_FEATURES, ...featuresProp };
     const [message, setMessage] = useState('');
@@ -70,7 +67,7 @@ export default function ChatInput({
     const [sending, setSending] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
-    const { userProfile, driveAccessToken } = useStore();
+    const { userProfile } = useStore();
 
     const canSend = !disabled && !sending && (message.trim() || selectedGifUrl || selectedImageUrl || selectedAudioUrl);
     const showCharCount = message.length > maxLength * 0.8;
@@ -162,27 +159,12 @@ export default function ChatInput({
             toast.error('Please choose an image file.');
             return;
         }
-        if (!isGoogleDriveConfigured() || !userProfile?.googleDrive) {
-            toast.error('Connect Google Drive in Settings to upload images.');
-            return;
-        }
 
         setUploading(true);
         try {
-            let accessToken: string;
-            if (driveAccessToken) {
-                accessToken = driveAccessToken;
-            } else {
-                try { accessToken = await requestGoogleDriveAccessToken(''); }
-                catch { accessToken = await requestGoogleDriveAccessToken('consent'); }
-            }
-            const result = await uploadImageToGoogleDrive({
-                accessToken,
-                file,
-                folderId: userProfile.googleDrive.folderId,
-            });
-            setSelectedImageUrl(result.directImageUrl);
-            toast.success('Image uploaded!');
+            const url = await uploadChatMedia(file, chatId || 'general');
+            setSelectedImageUrl(url);
+            toast.success('Image attached!');
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Image upload failed.');
         } finally {

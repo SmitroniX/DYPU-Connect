@@ -25,6 +25,8 @@ import { createNotification } from '@/lib/notifications';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useTypingStatus } from '@/hooks/useTypingStatus';
 import TypingIndicator from '@/components/TypingIndicator';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
     id: string;
@@ -459,10 +461,26 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                                         </div>
                                                     </div>
                                                 ) : msg.text && (
-                                                    <p className={`text-[15px] leading-[1.4] break-words whitespace-pre-wrap ${isMine ? 'text-white' : 'text-[#fafafa]'} ${msg.text.length < 20 ? 'pr-12' : 'pb-4'} ${msg.isDeleted ? 'italic opacity-60' : ''}`}>
-                                                        {renderMarkdown(filterProfanity(msg.text))}
+                                                    <div className={`text-[15px] leading-[1.4] break-words whitespace-pre-wrap ${isMine ? 'text-white' : 'text-[#fafafa]'} ${msg.text.length < 20 ? 'pr-12' : 'pb-4'} ${msg.isDeleted ? 'italic opacity-60' : ''}`}>
+                                                        <ReactMarkdown
+                                                            remarkPlugins={[remarkGfm]}
+                                                            components={{
+                                                                p: ({node, ...props}) => <span {...props} />,
+                                                                a: ({node, ...props}) => <a className={`${isMine ? 'text-white underline font-semibold' : 'text-[var(--ui-accent)] hover:underline'}`} target="_blank" rel="noopener noreferrer" {...props} />,
+                                                                strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
+                                                                em: ({node, ...props}) => <em className="italic" {...props} />,
+                                                                code: ({node, ...props}) => <code className={`px-1.5 py-0.5 rounded text-[13px] font-mono ${isMine ? 'bg-white/20 text-white' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)]'}`} {...props} />,
+                                                                pre: ({node, ...props}) => <pre className={`p-3 my-2 rounded-lg ${isMine ? 'bg-black/20 text-white/90' : 'bg-[#1e1e1e] text-[#d4d4d4]'} overflow-x-auto text-[13px] font-mono shadow-inner border border-white/10 scrollbar-thin`} {...props} />,
+                                                                blockquote: ({node, ...props}) => <blockquote className={`border-l-4 pl-3 my-2 italic ${isMine ? 'border-white/50 bg-white/10 text-white/90' : 'border-[var(--ui-accent)]/50 bg-[var(--ui-bg-elevated)]/50 text-[var(--ui-text-muted)]'} py-1 pr-2 rounded-r`} {...props} />,
+                                                                ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
+                                                                ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
+                                                                li: ({node, ...props}) => <li className="mb-1" {...props} />
+                                                            }}
+                                                        >
+                                                            {filterProfanity(msg.text)}
+                                                        </ReactMarkdown>
                                                         {msg.isEdited && !msg.isDeleted && <span className="text-[10px] ml-1.5 opacity-70 font-medium">(edited)</span>}
-                                                    </p>
+                                                    </div>
                                                 )}
 
                                                 {/* Timestamp & Read Receipt */}
@@ -556,32 +574,3 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 );
 }
 
-/* Simple markdown renderer */
-function renderMarkdown(text: string): React.ReactNode {
-    const parts: React.ReactNode[] = [];
-    let remaining = text;
-    let key = 0;
-
-    const patterns = [
-        { regex: /\*\*(.+?)\*\*/g, render: (m: string) => <strong key={key++} className="font-bold text-[var(--ui-text)]">{m}</strong> },
-        { regex: /\*(.+?)\*/g, render: (m: string) => <em key={key++} className="italic">{m}</em> },
-        { regex: /`(.+?)`/g, render: (m: string) => <code key={key++} className="px-1.5 py-0.5 rounded bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)] text-[13px] font-mono">{m}</code> },
-    ];
-
-    for (const { regex, render } of patterns) {
-        if (typeof remaining !== 'string') { parts.push(remaining); return parts; }
-        const newParts: React.ReactNode[] = [];
-        let lastIndex = 0;
-        regex.lastIndex = 0;
-        let match: RegExpExecArray | null;
-        while ((match = regex.exec(remaining)) !== null) {
-            if (match.index > lastIndex) newParts.push(remaining.slice(lastIndex, match.index));
-            newParts.push(render(match[1]));
-            lastIndex = match.index + match[0].length;
-        }
-        if (lastIndex < remaining.length) newParts.push(remaining.slice(lastIndex));
-        if (newParts.some((n) => typeof n !== 'string')) return newParts;
-        remaining = newParts.join('');
-    }
-    return remaining || text;
-}

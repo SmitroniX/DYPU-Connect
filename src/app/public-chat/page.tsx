@@ -18,6 +18,8 @@ import { shouldShowHeader } from '@/lib/utils';
 import { Users } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
     id: string;
@@ -184,9 +186,25 @@ export default function PublicChatPage() {
                                                 <img src={msg.imageUrl} alt="Photo" className="max-w-[80%] sm:max-w-[340px] rounded-xl mt-1.5 mb-1 object-cover border border-[var(--ui-border)]/50 shadow-sm" />
                                             )}
                                             {msg.text && (
-                                                <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
-                                                    {renderMarkdown(filterProfanity(msg.text))}
-                                                </p>
+                                                <div className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap mt-0.5">
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[remarkGfm]}
+                                                        components={{
+                                                            p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                                                            a: ({node, ...props}) => <a className="text-[var(--ui-accent)] hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
+                                                            strong: ({node, ...props}) => <strong className="font-semibold text-[var(--ui-text)]" {...props} />,
+                                                            em: ({node, ...props}) => <em className="italic" {...props} />,
+                                                            code: ({node, ...props}) => <code className="px-1.5 py-0.5 rounded bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)] text-[13px] font-mono" {...props} />,
+                                                            pre: ({node, ...props}) => <pre className="p-3 my-2 rounded-lg bg-[#1e1e1e] text-[#d4d4d4] overflow-x-auto text-[13px] font-mono shadow-inner border border-white/10 scrollbar-thin" {...props} />,
+                                                            blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-[var(--ui-accent)]/50 pl-3 my-2 italic text-[var(--ui-text-muted)] bg-[var(--ui-bg-elevated)]/50 py-1 pr-2 rounded-r" {...props} />,
+                                                            ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
+                                                            ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
+                                                            li: ({node, ...props}) => <li className="mb-1" {...props} />
+                                                        }}
+                                                    >
+                                                        {filterProfanity(msg.text)}
+                                                    </ReactMarkdown>
+                                                </div>
                                             )}
                                             <div className="mt-1">
                                                 <MessageReactions
@@ -222,34 +240,4 @@ export default function PublicChatPage() {
             </ModuleGuard>
         </DashboardLayout>
     );
-}
-
-/* Simple markdown renderer */
-function renderMarkdown(text: string): React.ReactNode {
-    const parts: React.ReactNode[] = [];
-    let remaining = text;
-    let key = 0;
-
-    const patterns = [
-        { regex: /\*\*(.+?)\*\*/g, render: (m: string) => <strong key={key++} className="font-bold text-[var(--ui-text)]">{m}</strong> },
-        { regex: /\*(.+?)\*/g, render: (m: string) => <em key={key++} className="italic">{m}</em> },
-        { regex: /`(.+?)`/g, render: (m: string) => <code key={key++} className="px-1.5 py-0.5 rounded bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)] text-[13px] font-mono">{m}</code> },
-    ];
-
-    for (const { regex, render } of patterns) {
-        if (typeof remaining !== 'string') { parts.push(remaining); return parts; }
-        const newParts: React.ReactNode[] = [];
-        let lastIndex = 0;
-        regex.lastIndex = 0;
-        let match: RegExpExecArray | null;
-        while ((match = regex.exec(remaining)) !== null) {
-            if (match.index > lastIndex) newParts.push(remaining.slice(lastIndex, match.index));
-            newParts.push(render(match[1]));
-            lastIndex = match.index + match[0].length;
-        }
-        if (lastIndex < remaining.length) newParts.push(remaining.slice(lastIndex));
-        if (newParts.some((n) => typeof n !== 'string')) return newParts;
-        remaining = newParts.join('');
-    }
-    return remaining || text;
 }

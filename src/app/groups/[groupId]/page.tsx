@@ -24,7 +24,8 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { rtdb } from '@/lib/firebase'; // Assuming rtdb is exported from here
 import { ref, onValue, set, onDisconnect, remove } from 'firebase/database';
 import ModuleGuard from '@/components/ModuleGuard'; // Assuming ModuleGuard is a new component
-
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 
 export default function GroupChatDetail({ params }: { params: Promise<{ groupId: string }> }) {
@@ -399,9 +400,25 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                                     <img src={msg.imageUrl} alt="Photo" className="max-w-[300px] rounded-lg mt-1 object-cover border border-[var(--ui-border)]" />
                                                 )}
                                                 {msg.text && (
-                                                    <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
-                                                        {filterProfanity(msg.text)}
-                                                    </p>
+                                                    <div className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap mt-0.5">
+                                                        <ReactMarkdown
+                                                            remarkPlugins={[remarkGfm]}
+                                                            components={{
+                                                                p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                                                                a: ({node, ...props}) => <a className="text-[var(--ui-accent)] hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
+                                                                strong: ({node, ...props}) => <strong className="font-semibold text-[var(--ui-text)]" {...props} />,
+                                                                em: ({node, ...props}) => <em className="italic" {...props} />,
+                                                                code: ({node, ...props}) => <code className="px-1.5 py-0.5 rounded bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)] text-[13px] font-mono" {...props} />,
+                                                                pre: ({node, ...props}) => <pre className="p-3 my-2 rounded-lg bg-[#1e1e1e] text-[#d4d4d4] overflow-x-auto text-[13px] font-mono shadow-inner border border-white/10 scrollbar-thin" {...props} />,
+                                                                blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-[var(--ui-accent)]/50 pl-3 my-2 italic text-[var(--ui-text-muted)] bg-[var(--ui-bg-elevated)]/50 py-1 pr-2 rounded-r" {...props} />,
+                                                                ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
+                                                                ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
+                                                                li: ({node, ...props}) => <li className="mb-1" {...props} />
+                                                            }}
+                                                        >
+                                                            {filterProfanity(msg.text)}
+                                                        </ReactMarkdown>
+                                                    </div>
                                                 )}
                                                 <MessageReactions
                                                     messageRef={msgRef}
