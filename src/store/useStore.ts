@@ -11,6 +11,10 @@ interface AppState {
     driveAccessToken: string | null;
     /** Real-time notifications list (most recent first) */
     notifications: AppNotification[];
+    /** Count of unread chat messages */
+    unreadMessagesCount: number;
+    /** Count of unread group chat messages */
+    unreadGroupsCount: number;
     /** Count of unread notifications */
     unreadCount: number;
     /** Whether the notification panel is open */
@@ -20,6 +24,8 @@ interface AppState {
     setLoading: (loading: boolean) => void;
     setDriveAccessToken: (token: string | null) => void;
     setNotifications: (notifications: AppNotification[]) => void;
+    setUnreadMessagesCount: (count: number) => void;
+    setUnreadGroupsCount: (count: number) => void;
     setNotificationPanelOpen: (open: boolean) => void;
 }
 
@@ -30,6 +36,8 @@ export const useStore = create<AppState>((set) => ({
     driveAccessToken: null,
     notifications: [],
     unreadCount: 0,
+    unreadMessagesCount: 0,
+    unreadGroupsCount: 0,
     notificationPanelOpen: false,
     setCurrentUser: (user) => set({ currentUser: user }),
     setUserProfile: (profile) => set({ userProfile: profile }),
@@ -40,5 +48,7 @@ export const useStore = create<AppState>((set) => ({
             notifications,
             unreadCount: notifications.filter((n) => !n.read).length,
         }),
+    setUnreadMessagesCount: (count) => set({ unreadMessagesCount: count }),
+    setUnreadGroupsCount: (count) => set({ unreadGroupsCount: count }),
     setNotificationPanelOpen: (open) => set({ notificationPanelOpen: open }),
 }));

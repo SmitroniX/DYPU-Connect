@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, getCountFromServer } from 'firebase/firestore';
+import { collection, getDocs, getCountFromServer, query, where, Timestamp } from 'firebase/firestore';
 import { cacheGet, cacheInvalidate } from '@/lib/cache';
-import { BarChart3, GraduationCap, RefreshCw, TrendingUp, Users } from 'lucide-react';
+import { BarChart3, GraduationCap, RefreshCw, TrendingUp, Users, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart as RechartsBarChart, Bar, Legend } from 'recharts';
+import { format, subDays, startOfDay, eachDayOfInterval } from 'date-fns';
 
 interface FieldDistribution {
     field: string;
@@ -22,9 +24,11 @@ interface GenderDistribution {
     count: number;
 }
 
-interface SignupTrend {
-    label: string;
-    count: number;
+interface TimeSeriesData {
+    date: string;
+    users: number;
+    confessions: number;
+    messages: number;
 }
 
 interface AnalyticsData {
@@ -35,28 +39,7 @@ interface AnalyticsData {
     fieldDistribution: FieldDistribution[];
     yearDistribution: YearDistribution[];
     genderDistribution: GenderDistribution[];
-    signupTrend: SignupTrend[];
-}
-
-/* ── Tiny SVG bar chart ─────────────────────────── */
-function BarChart({ data, colorVar = '--ui-accent' }: { data: { label: string; count: number }[]; colorVar?: string }) {
-    const max = Math.max(...data.map(d => d.count), 1);
-    return (
-        <div className="space-y-2">
-            {data.map(({ label, count }) => (
-                <div key={label} className="flex items-center gap-3">
-                    <span className="text-xs text-[var(--ui-text-muted)] w-32 truncate text-right shrink-0">{label}</span>
-                    <div className="flex-1 h-6 bg-[var(--ui-bg-elevated)] rounded-md overflow-hidden">
-                        <div
-                            className="h-full rounded-md transition-all duration-500"
-                            style={{ width: `${(count / max) * 100}%`, backgroundColor: `var(${colorVar})` }}
-                        />
-                    </div>
-                    <span className="text-xs font-semibold text-[var(--ui-text-secondary)] w-10 text-right">{count}</span>
-                </div>
-            ))}
-        </div>
-    );
+    timeSeries: TimeSeriesData[];
 }
 
 function StatCard({ label, value, icon: Icon }: { label: string; value: number; icon: React.ElementType }) {
@@ -78,42 +61,52 @@ export default function AdminAnalyticsPage() {
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [dateRange, setDateRange] = useState<'7d' | '30d'>('7d');
 
-    const fetchAnalytics = useCallback(async (isRefresh = false) => {
-        if (isRefresh) { setRefreshing(true); cacheInvalidate('admin_analytics'); }
+    const fetchAnalytics = useCallback(async (isRefresh = false, range: '7d' | '30d') => {
+        if (isRefresh) { setRefreshing(true); cacheInvalidate(`admin_analytics_${range}`); }
         else setLoading(true);
 
         try {
             const analytics = await cacheGet<AnalyticsData>(
-                'admin_analytics',
+                `admin_analytics_${range}`,
                 async () => {
-                    // Fetch all user docs (needed for distribution breakdowns)
+                    const days = range === '7d' ? 7 : 30;
+                    const startDate = startOfDay(subDays(new Date(), days - 1));
+                    const startTimestamp = Timestamp.fromDate(startDate);
+                    const startMs = startDate.getTime();
+
+                    // Generate date array for the x-axis
+                    const dateIntervals = eachDayOfInterval({ start: startDate, end: new Date() });
+                    const timeSeriesMap = new Map<string, TimeSeriesData>();
+                    dateIntervals.forEach(d => {
+                        timeSeriesMap.set(format(d, 'MMM dd'), { date: format(d, 'MMM dd'), users: 0, confessions: 0, messages: 0 });
+                    });
+
+                    // 1. Fetch users
                     const usersSnapshot = await getDocs(collection(db, 'users'));
                     const users = usersSnapshot.docs.map(d => d.data());
 
-                    // Counts
+                    // 2. Fetch counts for top stats
                     const [pubCount, confCount, anonCount] = await Promise.all([
                         getCountFromServer(collection(db, 'public_chat')),
                         getCountFromServer(collection(db, 'confessions_public')),
                         getCountFromServer(collection(db, 'anonymous_public_chat_private')),
                     ]);
 
-                    // Field distribution
+                    // 3. Fetch time-series data within range
+                    const [recentConfessions, recentMessages] = await Promise.all([
+                        getDocs(query(collection(db, 'confessions_public'), where('createdAt', '>=', startTimestamp))),
+                        getDocs(query(collection(db, 'public_chat'), where('timestamp', '>=', startTimestamp))),
+                    ]);
+
+                    // Process Distributions
                     const fieldMap = new Map<string, number>();
                     const yearMap = new Map<string, number>();
                     const genderMap = new Map<string, number>();
-                    const signupMap = new Map<string, number>();
-
-                    const now = Date.now();
-                    const monthLabels: string[] = [];
-                    for (let i = 5; i >= 0; i--) {
-                        const d = new Date(now);
-                        d.setMonth(d.getMonth() - i);
-                        monthLabels.push(`${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`);
-                    }
-                    monthLabels.forEach(l => signupMap.set(l, 0));
 
                     users.forEach(u => {
+                        // Distributions
                         const field = (u.field as string) || 'Unknown';
                         fieldMap.set(field, (fieldMap.get(field) || 0) + 1);
 
@@ -124,12 +117,34 @@ export default function AdminAnalyticsPage() {
                         const gLabel = gender.charAt(0).toUpperCase() + gender.slice(1);
                         genderMap.set(gLabel, (genderMap.get(gLabel) || 0) + 1);
 
+                        // User Signups Time Series
                         const createdAt = u.createdAt as number | undefined;
-                        if (createdAt) {
-                            const d = new Date(createdAt);
-                            const label = `${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`;
-                            if (signupMap.has(label)) {
-                                signupMap.set(label, signupMap.get(label)! + 1);
+                        if (createdAt && createdAt >= startMs) {
+                            const dateLabel = format(new Date(createdAt), 'MMM dd');
+                            if (timeSeriesMap.has(dateLabel)) {
+                                timeSeriesMap.get(dateLabel)!.users += 1;
+                            }
+                        }
+                    });
+
+                    // Process Confession Time Series
+                    recentConfessions.forEach(doc => {
+                        const ts = doc.data().createdAt as Timestamp;
+                        if (ts) {
+                            const dateLabel = format(ts.toDate(), 'MMM dd');
+                            if (timeSeriesMap.has(dateLabel)) {
+                                timeSeriesMap.get(dateLabel)!.confessions += 1;
+                            }
+                        }
+                    });
+
+                    // Process Message Time Series
+                    recentMessages.forEach(doc => {
+                        const ts = doc.data().timestamp as Timestamp;
+                        if (ts) {
+                            const dateLabel = format(ts.toDate(), 'MMM dd');
+                            if (timeSeriesMap.has(dateLabel)) {
+                                timeSeriesMap.get(dateLabel)!.messages += 1;
                             }
                         }
                     });
@@ -142,7 +157,7 @@ export default function AdminAnalyticsPage() {
                         fieldDistribution: [...fieldMap.entries()].map(([field, count]) => ({ field, count })).sort((a, b) => b.count - a.count),
                         yearDistribution: [...yearMap.entries()].map(([year, count]) => ({ year, count })).sort((a, b) => b.count - a.count),
                         genderDistribution: [...genderMap.entries()].map(([gender, count]) => ({ gender, count })).sort((a, b) => b.count - a.count),
-                        signupTrend: monthLabels.map(label => ({ label, count: signupMap.get(label) || 0 })),
+                        timeSeries: Array.from(timeSeriesMap.values()),
                     };
                 },
                 { ttl: 60_000, swr: 300_000 }
@@ -157,12 +172,34 @@ export default function AdminAnalyticsPage() {
         }
     }, []);
 
-    useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
+    useEffect(() => {
+        fetchAnalytics(false, dateRange);
+    }, [fetchAnalytics, dateRange]);
+
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="surface p-3 ring-1 ring-[var(--ui-border)] shadow-xl rounded-lg min-w-[150px]">
+                    <p className="text-sm font-bold text-[var(--ui-text)] mb-2">{label}</p>
+                    {payload.map((entry: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between gap-4 text-xs">
+                            <span className="flex items-center gap-1.5 text-[var(--ui-text-muted)]">
+                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                {entry.name}
+                            </span>
+                            <span className="font-semibold text-[var(--ui-text)]">{entry.value}</span>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+        return null;
+    };
 
     return (
         <div className="max-w-6xl mx-auto pb-12 font-sans animate-[fade-in-up_0.4s_ease-out]">
             {/* Header */}
-            <div className="flex items-start justify-between mb-8">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
                 <div className="flex items-start gap-4">
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--ui-accent-dim)] ring-1 ring-[var(--ui-accent)]/20 shrink-0">
                         <BarChart3 className="h-5 w-5 text-[var(--ui-accent)]" />
@@ -172,14 +209,30 @@ export default function AdminAnalyticsPage() {
                         <p className="text-sm text-[var(--ui-text-muted)] mt-1">Enrollment distribution, engagement stats, and signup trends.</p>
                     </div>
                 </div>
-                <button
-                    onClick={() => fetchAnalytics(true)}
-                    disabled={refreshing}
-                    className="inline-flex items-center gap-2 rounded-lg border border-[var(--ui-border)] bg-[var(--ui-bg-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] disabled:opacity-40 transition-colors"
-                >
-                    <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                    Refresh
-                </button>
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center bg-[var(--ui-bg-elevated)] rounded-lg p-1 border border-[var(--ui-border)]">
+                        <button
+                            onClick={() => setDateRange('7d')}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${dateRange === '7d' ? 'bg-[var(--ui-accent)] text-white shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]'}`}
+                        >
+                            7 Days
+                        </button>
+                        <button
+                            onClick={() => setDateRange('30d')}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${dateRange === '30d' ? 'bg-[var(--ui-accent)] text-white shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]'}`}
+                        >
+                            30 Days
+                        </button>
+                    </div>
+                    <button
+                        onClick={() => fetchAnalytics(true, dateRange)}
+                        disabled={refreshing}
+                        className="p-2.5 rounded-lg border border-[var(--ui-border)] bg-[var(--ui-bg-elevated)] text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] disabled:opacity-40 transition-colors"
+                        title="Refresh Data"
+                    >
+                        <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                    </button>
+                </div>
             </div>
 
             {loading ? (
@@ -197,41 +250,157 @@ export default function AdminAnalyticsPage() {
                         <StatCard label="Anon Messages" value={data.totalAnonMessages} icon={TrendingUp} />
                     </div>
 
+                    {/* Time Series Charts */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        {/* Engagement Activity */}
+                        <div className="surface p-6">
+                            <h2 className="text-lg font-semibold text-[var(--ui-text)] mb-1 flex items-center gap-2">
+                                <TrendingUp className="h-4.5 w-4.5 text-[var(--ui-text-muted)]" />
+                                Platform Engagement
+                            </h2>
+                            <p className="text-xs text-[var(--ui-text-muted)] mb-6">Daily confessions and public messages</p>
+                            
+                            <div className="h-[250px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={data.timeSeries} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="colorMessages" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                            </linearGradient>
+                                            <linearGradient id="colorConfessions" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--ui-border)" opacity={0.5} />
+                                        <XAxis 
+                                            dataKey="date" 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fontSize: 11, fill: 'var(--ui-text-muted)' }} 
+                                            dy={10}
+                                        />
+                                        <YAxis 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fontSize: 11, fill: 'var(--ui-text-muted)' }} 
+                                        />
+                                        <Tooltip content={<CustomTooltip />} />
+                                        <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                                        <Area type="monotone" name="Messages" dataKey="messages" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorMessages)" />
+                                        <Area type="monotone" name="Confessions" dataKey="confessions" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#colorConfessions)" />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* User Growth */}
+                        <div className="surface p-6">
+                            <h2 className="text-lg font-semibold text-[var(--ui-text)] mb-1 flex items-center gap-2">
+                                <Calendar className="h-4.5 w-4.5 text-[var(--ui-text-muted)]" />
+                                User Registration Growth
+                            </h2>
+                            <p className="text-xs text-[var(--ui-text-muted)] mb-6">New student signups per day</p>
+                            
+                            <div className="h-[250px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RechartsBarChart data={data.timeSeries} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--ui-border)" opacity={0.5} />
+                                        <XAxis 
+                                            dataKey="date" 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fontSize: 11, fill: 'var(--ui-text-muted)' }} 
+                                            dy={10}
+                                        />
+                                        <YAxis 
+                                            allowDecimals={false}
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fontSize: 11, fill: 'var(--ui-text-muted)' }} 
+                                        />
+                                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--ui-bg-hover)' }} />
+                                        <Bar name="New Users" dataKey="users" fill="var(--ui-accent)" radius={[4, 4, 0, 0]} />
+                                    </RechartsBarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Field distribution */}
                         <div className="surface p-6">
                             <h2 className="text-lg font-semibold text-[var(--ui-text)] mb-1 flex items-center gap-2">
                                 <GraduationCap className="h-4.5 w-4.5 text-[var(--ui-text-muted)]" />
                                 By Field of Study
                             </h2>
-                            <p className="text-xs text-[var(--ui-text-muted)] mb-4">Student distribution across academic fields</p>
-                            <BarChart data={data.fieldDistribution.map(d => ({ label: d.field, count: d.count }))} />
+                            <p className="text-xs text-[var(--ui-text-muted)] mb-6">Student distribution across academic fields</p>
+                            <div className="h-[250px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RechartsBarChart data={data.fieldDistribution} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--ui-border)" opacity={0.5} />
+                                        <XAxis type="number" hide />
+                                        <YAxis 
+                                            type="category" 
+                                            dataKey="field" 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            width={120}
+                                            tick={{ fontSize: 11, fill: 'var(--ui-text-muted)' }} 
+                                        />
+                                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--ui-bg-hover)' }} />
+                                        <Bar name="Students" dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} />
+                                    </RechartsBarChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
 
-                        {/* Year distribution */}
-                        <div className="surface p-6">
-                            <h2 className="text-lg font-semibold text-[var(--ui-text)] mb-1 flex items-center gap-2">
-                                <Users className="h-4.5 w-4.5 text-[var(--ui-text-muted)]" />
-                                By Year
-                            </h2>
-                            <p className="text-xs text-[var(--ui-text-muted)] mb-4">Distribution across academic years</p>
-                            <BarChart data={data.yearDistribution.map(d => ({ label: d.year, count: d.count }))} />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Gender distribution */}
-                        <div className="surface p-6">
-                            <h2 className="text-lg font-semibold text-[var(--ui-text)] mb-1">Gender Distribution</h2>
-                            <p className="text-xs text-[var(--ui-text-muted)] mb-4">Self-reported gender breakdown</p>
-                            <BarChart data={data.genderDistribution.map(d => ({ label: d.gender, count: d.count }))} />
-                        </div>
-
-                        {/* Signup trend */}
-                        <div className="surface p-6">
-                            <h2 className="text-lg font-semibold text-[var(--ui-text)] mb-1">Signup Trend (Last 6 Months)</h2>
-                            <p className="text-xs text-[var(--ui-text-muted)] mb-4">New user registrations per month</p>
-                            <BarChart data={data.signupTrend} />
+                        {/* Year & Gender distribution */}
+                        <div className="space-y-6">
+                            {/* Year distribution */}
+                            <div className="surface p-6">
+                                <h2 className="text-lg font-semibold text-[var(--ui-text)] mb-1 flex items-center gap-2">
+                                    <Users className="h-4.5 w-4.5 text-[var(--ui-text-muted)]" />
+                                    By Year
+                                </h2>
+                                <p className="text-xs text-[var(--ui-text-muted)] mb-6">Distribution across academic years</p>
+                                <div className="h-[180px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <RechartsBarChart data={data.yearDistribution} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--ui-border)" opacity={0.5} />
+                                            <XAxis 
+                                                dataKey="year" 
+                                                axisLine={false} 
+                                                tickLine={false} 
+                                                tick={{ fontSize: 11, fill: 'var(--ui-text-muted)' }} 
+                                                dy={10}
+                                            />
+                                            <YAxis 
+                                                allowDecimals={false}
+                                                axisLine={false} 
+                                                tickLine={false} 
+                                                tick={{ fontSize: 11, fill: 'var(--ui-text-muted)' }} 
+                                            />
+                                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--ui-bg-hover)' }} />
+                                            <Bar name="Students" dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={30} />
+                                        </RechartsBarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                            
+                            {/* Gender Distribution */}
+                            <div className="surface p-6">
+                                <h2 className="text-lg font-semibold text-[var(--ui-text)] mb-1">Gender Distribution</h2>
+                                <div className="flex gap-4 mt-4">
+                                    {data.genderDistribution.map(g => (
+                                        <div key={g.gender} className="flex-1 bg-[var(--ui-bg-elevated)] rounded-lg p-3 text-center border border-[var(--ui-border)]">
+                                            <p className="text-2xl font-bold text-[var(--ui-text)]">{g.count}</p>
+                                            <p className="text-xs text-[var(--ui-text-muted)] mt-1">{g.gender}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </>
@@ -239,4 +408,3 @@ export default function AdminAnalyticsPage() {
         </div>
     );
 }
-

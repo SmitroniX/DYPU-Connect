@@ -11,12 +11,18 @@ service cloud.firestore {
 
     function isAdmin() {
       return signedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
     function participant(chatId) {
       return signedIn() &&
         request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
+    }
+
+    function isGroupMember(groupId) {
+      return signedIn() &&
+        request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.memberIds;
     }
 
     match /users/{userId} {
@@ -86,38 +92,51 @@ service cloud.firestore {
       }
     }
 
-    match /group_messages/{groupId}/messages/{msgId} {
-      allow read, create: if signedIn();
-      allow update: if signedIn();       // reactions
+    // ── Groups (Hierarchical & Custom) ─────────────
+    match /groups/{groupId} {
+      // Anyone signed in can read the group list (for directory)
+      allow read: if signedIn();
+      // Only admins or the system can create groups initially
+      allow create: if isAdmin();
+      // Allow taking membership (adding self to memberIds)
+      allow update: if signedIn(); 
       allow delete: if isAdmin();
+
+      match /messages/{msgId} {
+        allow read: if isGroupMember(groupId) || isAdmin();
+        allow create: if isGroupMember(groupId);
+        allow update: if isGroupMember(groupId); // reactions
+        allow delete: if isAdmin();
+      }
     }
 
     match /private_chats/{chatId} {
       allow create: if signedIn() && request.auth.uid in request.resource.data.participants;
-      allow read, update: if signedIn() && request.auth.uid in resource.data.participants;
+      allow read: if (signedIn() && request.auth.uid in resource.data.participants) || isAdmin();
+      allow update: if signedIn() && request.auth.uid in resource.data.participants;
       allow delete: if isAdmin();
     }
 
     match /private_messages/{chatId}/messages/{msgId} {
-      allow read, create: if participant(chatId);
+      allow read: if participant(chatId) || isAdmin();
+      allow create: if participant(chatId);
       allow update: if participant(chatId);  // reactions
       allow delete: if isAdmin();
     }
 
     // ── WebRTC call signaling ─────────────────────────────
     match /calls/{callId} {
-      allow read: if signedIn();
+      allow read: if signedIn() 
+        && (resource.data.callerId == request.auth.uid || resource.data.calleeId == request.auth.uid);
       allow create: if signedIn();
-      allow update: if signedIn()
-        && (resource.data.callerId == request.auth.uid
-            || resource.data.calleeId == request.auth.uid);
-      allow delete: if signedIn()
-        && (resource.data.callerId == request.auth.uid
-            || resource.data.calleeId == request.auth.uid);
+      allow update, delete: if signedIn()
+        && (resource.data.callerId == request.auth.uid || resource.data.calleeId == request.auth.uid);
 
-      match /candidates/{candidateId} {
-        allow read: if signedIn();
-        allow write: if signedIn();
+      match /callerCandidates/{docId} {
+        allow read, write: if signedIn();
+      }
+      match /calleeCandidates/{docId} {
+        allow read, write: if signedIn();
       }
     }
 
@@ -142,6 +161,11 @@ service cloud.firestore {
     match /announcements/{docId} {
       allow read: if signedIn();
       allow create, update, delete: if isAdmin();
+    }
+
+    match /system_settings/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
     }
 
     // ── Admin audit log (tracks all admin actions) ──────────

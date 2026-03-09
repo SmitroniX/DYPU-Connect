@@ -5,6 +5,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from 'react-hot-toast';
 import CookieConsentBanner from "@/components/CookieConsentBanner";
 import SessionGuard from "@/components/SessionGuard";
+import SystemProvider from '@/components/SystemProvider';
 
 const inter = Inter({
     subsets: ["latin"],
@@ -53,10 +54,12 @@ export default function RootLayout({
             </head>
             <body className={inter.className} suppressHydrationWarning>
                 <AuthProvider>
-                    <SessionGuard />
-                    {children}
-                    <Toaster position="top-right" />
-                    <CookieConsentBanner />
+                    <SystemProvider>
+                        <SessionGuard />
+                        {children}
+                        <Toaster position="top-right" />
+                        <CookieConsentBanner />
+                    </SystemProvider>
                 </AuthProvider>
             </body>
         </html>

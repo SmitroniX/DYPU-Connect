@@ -14,11 +14,13 @@ import toast from 'react-hot-toast';
 // Lazy-load heavy picker components — only loaded when the user opens them
 const EmojiPicker = lazy(() => import('@/components/EmojiPicker'));
 const GiphyPicker = lazy(() => import('@/components/GiphyPicker'));
+const AudioRecorder = lazy(() => import('@/components/AudioRecorder'));
 
 export interface ChatInputPayload {
     text: string;
     gifUrl?: string;
     imageUrl?: string;
+    audioUrl?: string;
 }
 
 export interface ChatInputFeatures {
@@ -26,6 +28,7 @@ export interface ChatInputFeatures {
     gif?: boolean;
     image?: boolean;
     markdown?: boolean;
+    voice?: boolean;
 }
 
 interface ChatInputProps {
@@ -35,6 +38,9 @@ interface ChatInputProps {
     maxLength?: number;
     features?: ChatInputFeatures;
     typingIndicator?: React.ReactNode;
+    onTyping?: (isTyping: boolean) => void;
+    onStopTyping?: () => void;
+    chatId?: string;
 }
 
 const DEFAULT_FEATURES: Required<ChatInputFeatures> = {
@@ -42,6 +48,7 @@ const DEFAULT_FEATURES: Required<ChatInputFeatures> = {
     gif: true,
     image: true,
     markdown: true,
+    voice: true,
 };
 
 export default function ChatInput({
@@ -51,33 +58,39 @@ export default function ChatInput({
     maxLength = 2000,
     features: featuresProp,
     typingIndicator,
+    onTyping,
+    onStopTyping,
 }: ChatInputProps) {
     const features = { ...DEFAULT_FEATURES, ...featuresProp };
     const [message, setMessage] = useState('');
     const [selectedGifUrl, setSelectedGifUrl] = useState('');
     const [selectedImageUrl, setSelectedImageUrl] = useState('');
+    const [selectedAudioUrl, setSelectedAudioUrl] = useState('');
     const [uploading, setUploading] = useState(false);
     const [sending, setSending] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const { userProfile, driveAccessToken } = useStore();
 
-    const canSend = !disabled && !sending && (message.trim() || selectedGifUrl || selectedImageUrl);
+    const canSend = !disabled && !sending && (message.trim() || selectedGifUrl || selectedImageUrl || selectedAudioUrl);
     const showCharCount = message.length > maxLength * 0.8;
     const overLimit = message.length > maxLength;
 
     const handleSend = async () => {
         if (!canSend || overLimit) return;
         setSending(true);
+        onStopTyping?.();
         try {
             await onSend({
                 text: message.trim(),
                 gifUrl: selectedGifUrl || undefined,
                 imageUrl: selectedImageUrl || undefined,
+                audioUrl: selectedAudioUrl || undefined,
             });
             setMessage('');
             setSelectedGifUrl('');
             setSelectedImageUrl('');
+            setSelectedAudioUrl('');
             // Reset textarea height
             if (textareaRef.current) {
                 textareaRef.current.style.height = 'auto';
@@ -98,6 +111,7 @@ export default function ChatInput({
 
     const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setMessage(e.target.value);
+        onTyping?.(true);
         // Auto-resize
         const textarea = e.target;
         textarea.style.height = 'auto';
@@ -177,134 +191,165 @@ export default function ChatInput({
     };
 
     const hasAttachment = !!(selectedGifUrl || selectedImageUrl);
-
     return (
-        <div className="px-4 pb-4 shrink-0">
+        <div className="px-4 pb-4 shrink-0 relative bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent pt-4">
             {/* Typing indicator slot */}
             {typingIndicator && (
-                <div className="h-6 flex items-center">{typingIndicator}</div>
+                <div className="absolute -top-6 left-6 h-6 flex items-center">{typingIndicator}</div>
             )}
 
             {/* Attachment preview */}
             {hasAttachment && (
-                <div className="mb-2 rounded-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] p-2 flex items-center gap-3 animate-[fade-in-up_0.15s_ease-out]">
+                <div className="absolute bottom-full left-4 mb-2 rounded-2xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)]/50 p-2 flex items-center gap-3 shadow-lg backdrop-blur-md animate-[fade-in-up_0.15s_ease-out] z-10 w-fit max-w-[calc(100%-2rem)]">
                     {selectedGifUrl && (
-                        <img src={selectedGifUrl} alt="GIF" className="h-16 w-16 rounded-lg object-cover" />
+                        <div className="relative group overflow-hidden rounded-xl">
+                             <img src={selectedGifUrl} alt="GIF" className="h-16 w-16 object-cover" />
+                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <X className="w-5 h-5 text-white" />
+                             </div>
+                        </div>
                     )}
                     {selectedImageUrl && (
-                        <img src={selectedImageUrl} alt="Image" className="h-16 w-16 rounded-lg object-cover" />
+                        <div className="relative group overflow-hidden rounded-xl">
+                             <img src={selectedImageUrl} alt="Image" className="h-16 w-16 object-cover" />
+                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center border border-white/20 rounded-xl" />
+                        </div>
                     )}
-                    <div className="flex-1">
-                        <p className="text-xs text-[var(--ui-text-muted)]">
-                            {selectedGifUrl ? 'GIF attached' : 'Image attached'}
+                    {selectedAudioUrl && (
+                        <div className="relative group flex items-center">
+                            <audio src={selectedAudioUrl} controls className="h-10 w-48" />
+                        </div>
+                    )}
+                    <div className="flex-1 pr-2 pl-1">
+                        <p className="text-[13px] font-medium text-[var(--ui-text)]">
+                            {selectedAudioUrl ? 'Voice Note' : selectedGifUrl ? 'GIF attached' : 'Image attached'}
                         </p>
+                        <button
+                             type="button"
+                             onClick={() => { setSelectedGifUrl(''); setSelectedImageUrl(''); setSelectedAudioUrl(''); }}
+                             className="text-[11px] text-[var(--ui-danger)] hover:underline mt-0.5"
+                        >
+                            Remove attachment
+                        </button>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => { setSelectedGifUrl(''); setSelectedImageUrl(''); }}
-                        className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-danger)] transition-colors rounded-md hover:bg-[var(--ui-bg-hover)]"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
                 </div>
             )}
 
-            {/* Input bar */}
-            <div className="flex flex-col bg-[var(--ui-bg-input)] rounded-xl border border-[var(--ui-border)] focus-within:border-[var(--ui-accent)]/40 transition-colors">
-                {/* Markdown toolbar */}
+            {/* Input bar - Floating Pill Design */}
+            <div className="flex flex-col bg-[var(--ui-bg-surface)] backdrop-blur-xl shadow-lg shadow-black/5 rounded-3xl border border-[var(--ui-border)]/60 focus-within:border-[var(--ui-accent)]/40 focus-within:ring-4 focus-within:ring-[var(--ui-accent)]/10 transition-all duration-300 relative z-20 overflow-hidden group">
+               
+               {/* Animated Gradient Glow on Active */}
+               <div className="absolute inset-0 bg-gradient-to-r from-[var(--ui-accent)]/0 via-[var(--ui-accent)]/5 to-[var(--ui-accent)]/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+
+                {/* Markdown toolbar (shown only when multi-line or focused) */}
                 {features.markdown && (
-                    <div className="flex items-center gap-0.5 px-2 pt-1.5 pb-0">
+                    <div className="flex items-center gap-1 px-3 pt-2 pb-0 opacity-60 hover:opacity-100 focus-within:opacity-100 transition-opacity">
                         <button
                             type="button"
                             onClick={() => wrapSelection('**', '**')}
-                            className="p-1 rounded text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                            className="p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
                             title="Bold (Ctrl+B)"
                         >
-                            <Bold className="w-3.5 h-3.5" />
+                            <Bold className="w-4 h-4" />
                         </button>
                         <button
                             type="button"
                             onClick={() => wrapSelection('*', '*')}
-                            className="p-1 rounded text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                            className="p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
                             title="Italic (Ctrl+I)"
                         >
-                            <Italic className="w-3.5 h-3.5" />
+                            <Italic className="w-4 h-4" />
                         </button>
                         <button
                             type="button"
                             onClick={() => wrapSelection('`', '`')}
-                            className="p-1 rounded text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                            className="p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
                             title="Inline code"
                         >
-                            <Code className="w-3.5 h-3.5" />
+                            <Code className="w-4 h-4" />
                         </button>
                     </div>
                 )}
 
                 {/* Main input row */}
-                <div className="flex items-end gap-0">
+                <div className="flex items-end gap-1 px-2 pb-2 pt-1 relative z-10">
                     {/* Left action buttons */}
-                    <div className="flex items-center pl-2 pb-1.5 gap-0.5 shrink-0">
+                    <div className="flex items-center pb-1 gap-1 shrink-0">
                         {features.emoji && (
                             <Suspense fallback={null}>
                                 <EmojiPicker
-                                    disabled={disabled || sending}
                                     onSelect={insertEmoji}
-                                    align="left"
-                                />
-                            </Suspense>
-                        )}
-                        {features.gif && (
-                            <Suspense fallback={null}>
-                                <GiphyPicker
-                                    disabled={disabled || sending}
-                                    onSelect={(gif: GiphyGif) => { setSelectedGifUrl(gif.url); setSelectedImageUrl(''); }}
-                                    align="left"
+                                    trigger={
+                                        <button
+                                            type="button"
+                                            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] hover:scale-105 transition-all text-lg leading-none"
+                                            title="Add emoji"
+                                        >
+                                            🙂
+                                        </button>
+                                    }
                                 />
                             </Suspense>
                         )}
                         {features.image && (
-                            <>
-                                <button
-                                    type="button"
-                                    disabled={disabled || sending || uploading}
-                                    onClick={() => imageInputRef.current?.click()}
-                                    className="text-[var(--ui-text-muted)] p-2 rounded-lg hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] disabled:opacity-50 transition-all flex shrink-0 items-center justify-center"
-                                    title="Upload image"
-                                >
-                                    {uploading ? (
-                                        <div className="w-5 h-5 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
-                                    ) : (
-                                        <ImageIcon className="w-5 h-5" />
-                                    )}
-                                </button>
-                                <input
-                                    ref={imageInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleImageUpload}
-                                />
-                            </>
+                            <button
+                                type="button"
+                                onClick={() => imageInputRef.current?.click()}
+                                disabled={uploading || disabled}
+                                className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] hover:bg-[var(--ui-accent)]/10 transition-all hover:scale-105 disabled:opacity-50"
+                                title="Attach photo"
+                            >
+                                <ImageIcon className="w-5 h-5" />
+                            </button>
                         )}
+                        {features.gif && (
+                            <div className="flex items-center justify-center pt-0.5">
+                                <Suspense fallback={null}>
+                                    <GiphyPicker
+                                        onSelect={(gif: GiphyGif) => setSelectedGifUrl(gif.url)}
+                                        disabled={disabled}
+                                    />
+                                </Suspense>
+                            </div>
+                        )}
+                        {features.voice && (
+                            <div className="flex items-center justify-center">
+                                <Suspense fallback={null}>
+                                    <AudioRecorder
+                                        onAudioUploaded={(url) => setSelectedAudioUrl(url)}
+                                        disabled={disabled || uploading || sending}
+                                    />
+                                </Suspense>
+                            </div>
+                        )}
+                        <input
+                            type="file"
+                            accept="image/*"
+                            ref={imageInputRef}
+                            className="hidden"
+                            onChange={handleImageUpload}
+                        />
                     </div>
 
-                    {/* Textarea */}
-                    <textarea
-                        ref={textareaRef}
-                        value={message}
-                        onChange={handleTextareaChange}
-                        onKeyDown={handleKeyDown}
-                        placeholder={placeholder}
-                        disabled={disabled || sending}
-                        rows={1}
-                        className="flex-1 bg-transparent text-[var(--ui-text)] text-[15px] placeholder-[var(--ui-text-muted)] py-2.5 px-2 outline-none resize-none min-h-[40px] max-h-[160px] leading-relaxed"
-                    />
+                    {/* Text area */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-end pt-1">
+                        <textarea
+                            ref={textareaRef}
+                            value={message}
+                            onChange={handleTextareaChange}
+                            onKeyDown={handleKeyDown}
+                            placeholder={placeholder}
+                            disabled={disabled}
+                            maxLength={maxLength}
+                            className="w-full bg-transparent text-[15px] text-[var(--ui-text)] placeholder-[var(--ui-text-muted)] focus:outline-none resize-none overflow-y-auto min-h-[40px] max-h-[160px] py-2 px-1 scrollbar-hide"
+                            rows={1}
+                        />
+                    </div>
 
-                    {/* Right side — char count + send */}
-                    <div className="flex items-end pb-1.5 pr-2 gap-1 shrink-0">
+                    {/* Right side (Send button + char count) */}
+                    <div className="flex flex-col items-center justify-end pb-1 pr-1 shrink-0 gap-1 min-w-[36px]">
                         {showCharCount && (
-                            <span className={`text-[10px] font-mono self-center mr-1 ${overLimit ? 'text-[var(--ui-danger)]' : 'text-[var(--ui-text-muted)]'}`}>
+                            <span className={`text-[10px] w-full text-center ${overLimit ? 'text-[var(--ui-danger)] font-bold' : 'text-[var(--ui-text-muted)]'}`}>
                                 {message.length}/{maxLength}
                             </span>
                         )}
@@ -312,10 +357,10 @@ export default function ChatInput({
                             type="button"
                             onClick={handleSend}
                             disabled={!canSend || overLimit}
-                            className="p-2 text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] disabled:opacity-30 transition-colors rounded-lg hover:bg-[var(--ui-bg-hover)]"
-                            title="Send message (Enter)"
+                            className="h-10 w-10 flex items-center justify-center rounded-full bg-[var(--ui-accent)] text-white hover:bg-[var(--ui-accent-hover)] hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:bg-[var(--ui-bg-elevated)] disabled:text-[var(--ui-text-muted)] transition-all shadow-md shadow-[var(--ui-accent)]/20"
+                            title="Send message"
                         >
-                            <Send className="w-5 h-5" />
+                            <Send className="w-4 h-4 ml-0.5" />
                         </button>
                     </div>
                 </div>

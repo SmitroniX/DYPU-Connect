@@ -22,6 +22,7 @@ interface PrivateChat {
     participantImages: Record<string, string>;
     lastMessage: string;
     updatedAt: Timestamp | null;
+    unreadCount?: Record<string, number>;
 }
 
 interface DirectoryUser {
@@ -199,11 +200,20 @@ export default function InboxPage() {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-baseline mb-0.5">
                                                 <h3 className="text-[15px] font-medium text-[var(--ui-text)] truncate pr-4">{otherName}</h3>
-                                                <span className="text-[10px] text-[var(--ui-text-muted)] shrink-0">
-                                                    {chat.updatedAt?.toDate ? chat.updatedAt.toDate().toLocaleDateString() : ''}
-                                                </span>
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    {(chat.unreadCount?.[user?.uid || ''] ?? 0) > 0 && (
+                                                        <span className="bg-[var(--ui-accent)] text-[var(--ui-bg-elevated)] text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                                                            {chat.unreadCount![user!.uid] > 99 ? '99+' : chat.unreadCount![user!.uid]}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-[10px] text-[var(--ui-text-muted)]">
+                                                        {chat.updatedAt?.toDate ? chat.updatedAt.toDate().toLocaleDateString() : ''}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <p className="text-sm text-[var(--ui-text-secondary)] truncate">{chat.lastMessage || 'Say hello! 👋'}</p>
+                                            <p className={`text-sm truncate ${((chat.unreadCount?.[user?.uid || ''] ?? 0) > 0) ? 'text-[var(--ui-text)] font-medium' : 'text-[var(--ui-text-secondary)]'}`}>
+                                                {chat.lastMessage || 'Say hello! 👋'}
+                                            </p>
                                         </div>
                                     </Link>
                                 );

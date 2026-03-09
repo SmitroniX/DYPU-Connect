@@ -3,7 +3,7 @@
 import DashboardLayout from '@/components/DashboardLayout';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ShieldAlert, ShieldX, Zap } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -12,6 +12,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const { userProfile, isLoading } = useStore();
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     const [timedOut, setTimedOut] = useState(false);
 
     // Safety timeout — if loading doesn't resolve in 10s, stop waiting
@@ -31,16 +32,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             return;
         }
 
-        // Logged in but not admin
-        if (userProfile && userProfile.role !== 'admin') {
+        // Logged in but not admin or moderator
+        if (userProfile && !['admin', 'moderator'].includes(userProfile.role || '')) {
             router.replace('/');
+            return;
+        }
+
+        // Route-level restrictions for moderators
+        if (userProfile?.role === 'moderator') {
+            const restrictedPaths = ['/admin/settings', '/admin/anonymous-chat', '/admin/audit-log'];
+            if (restrictedPaths.some(path => pathname.startsWith(path))) {
+                router.replace('/admin'); // Redirect to main admin dashboard
+                return;
+            }
         }
 
         // Timed out with no profile — redirect to login
         if (timedOut && !userProfile) {
             router.replace('/login');
         }
-    }, [userProfile, stillLoading, user, timedOut, router]);
+    }, [userProfile, stillLoading, user, timedOut, router, pathname]);
 
     /* Still loading user data */
     if (stillLoading) {
@@ -58,8 +69,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         );
     }
 
-    /* Profile loaded but not an admin — redirecting */
-    if (!userProfile || userProfile.role !== 'admin') {
+    /* Profile loaded but not authorized — redirecting */
+    if (!userProfile || !['admin', 'moderator'].includes(userProfile.role || '')) {
         return (
             <DashboardLayout>
                 <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] gap-4">
@@ -92,10 +103,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </div>
                         <div>
                             <p className="text-sm font-bold text-red-300">
-                                Admin Mode Active
+                                {userProfile?.role === 'admin' ? 'Admin Mode Active' : 'Moderator Mode Active'}
                             </p>
                             <p className="text-[11px] text-[var(--ui-text-muted)]">
-                                Unrestricted access to platform data and controls
+                                {userProfile?.role === 'admin' ? 'Unrestricted access to platform data and controls' : 'Limited access to moderation tools'}
                             </p>
                         </div>
                     </div>

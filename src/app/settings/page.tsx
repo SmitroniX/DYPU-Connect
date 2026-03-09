@@ -13,6 +13,7 @@ import {
     fetchGoogleUserEmail,
     isGoogleDriveConfigured,
     requestGoogleDriveAccessToken,
+    loadGoogleIdentityScript,
 } from '@/lib/googleDrive';
 import type { GoogleDriveConnection } from '@/types/profile';
 import {
@@ -27,7 +28,8 @@ import {
     panicWipeCookies,
 } from '@/lib/cookieShield';
 import { generateSessionFingerprint } from '@/lib/security';
-import { Shield, Cookie, Lock, Fingerprint, ShieldCheck, ShieldAlert, Trash2, RefreshCw, KeyRound, Activity, Eye, Monitor, Smartphone, Laptop, Globe, X, LogOut, CloudUpload, Clock, CheckCircle2 } from 'lucide-react';
+import { Shield, Cookie, Lock, Fingerprint, ShieldCheck, ShieldAlert, Trash2, RefreshCw, KeyRound, Activity, Eye, Monitor, Smartphone, Laptop, Globe, X, LogOut, CloudUpload, Clock, CheckCircle2, Bell, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { fetchActivityLog, type ActivityLogEntry } from '@/lib/activityLog';
 import { getOrCreateEncryptionSalt } from '@/lib/encryption';
@@ -911,6 +913,11 @@ export default function SettingsPage() {
     useEffect(() => {
         if (!initialized) return;
         window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+        
+        // Preload Google Identity script so that popup doesn't get blocked later
+        if (isGoogleDriveConfigured()) {
+            loadGoogleIdentityScript().catch(() => { /* ignore */ });
+        }
     }, [initialized, settings]);
 
     useEffect(() => {
@@ -1060,6 +1067,24 @@ export default function SettingsPage() {
 
                     <section className="surface p-6">
                         <h2 className="text-lg font-semibold text-[var(--ui-text)]">Preferences</h2>
+                        
+                        <div className="mt-4 mb-5">
+                            <Link href="/settings/notifications" className="flex items-center justify-between rounded-lg border border-[var(--ui-border)] p-4 bg-[var(--ui-bg-elevated)] transition-colors hover:border-[var(--ui-accent)]/50 group">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-[var(--ui-accent-dim)] text-[var(--ui-accent)] rounded-lg">
+                                        <Bell className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-sm text-[var(--ui-text)] group-hover:text-[var(--ui-accent)] transition-colors">Advanced Notifications</h3>
+                                        <p className="text-xs text-[var(--ui-text-muted)] mt-0.5">Manage push notifications, mentions, and alerts.</p>
+                                    </div>
+                                </div>
+                                <div className="shrink-0 p-2 text-[var(--ui-text-muted)] group-hover:text-[var(--ui-accent)] transition-colors">
+                                    <ChevronRight className="w-5 h-5" />
+                                </div>
+                            </Link>
+                        </div>
+
                         <div className="mt-4 space-y-3">
                             <label className="flex items-center justify-between rounded-lg border border-[var(--ui-border)] p-3">
                                 <span className="text-sm text-[var(--ui-text-secondary)]">Email notifications</span>

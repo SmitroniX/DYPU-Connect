@@ -13,6 +13,8 @@ import { logActivity } from '@/lib/activityLog';
 import { registerDeviceSession, collectDeviceInfo } from '@/lib/deviceSessions';
 import { startAutoBackupScheduler, stopAutoBackupScheduler } from '@/lib/backup';
 import { loadGoogleIdentityScript, isGoogleDriveConfigured } from '@/lib/googleDrive';
+import PremiumLoadingScreen from './PremiumLoadingScreen';
+import { usePresence } from '@/hooks/usePresence';
 
 interface AuthContextType {
     user: User | null;
@@ -61,6 +63,7 @@ function mapAuthError(error: unknown): Error {
 
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+    usePresence(); // Track user online/offline status in RTDB
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const { setCurrentUser, setUserProfile, setLoading: setStoreLoading, setDriveAccessToken } = useStore();
@@ -300,7 +303,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <AuthContext.Provider value={{ user, loading, sendLoginLink, verifyLoginLink, signInWithGoogle, logout }}>
-            {!loading && children}
+            {loading ? <PremiumLoadingScreen /> : children}
         </AuthContext.Provider>
     );
 }

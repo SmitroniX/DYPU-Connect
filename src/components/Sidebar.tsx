@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
+import { useSystemStore } from '@/store/useSystemStore';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, ChevronRight, Bell } from 'lucide-react';
@@ -45,15 +46,20 @@ const NAV_SECTIONS = [
 
 export default function Sidebar({ onNavigate }: SidebarProps) {
     const { logout } = useAuth();
-    const { userProfile, unreadCount, notificationPanelOpen, setNotificationPanelOpen } = useStore();
+    const { userProfile, unreadCount, unreadMessagesCount, unreadGroupsCount, notificationPanelOpen, setNotificationPanelOpen } = useStore();
+    const { settings } = useSystemStore();
     const pathname = usePathname();
 
-    const adminItem = userProfile?.role === 'admin'
+    const adminItem = ['admin', 'moderator'].includes(userProfile?.role || '')
         ? { name: 'Admin', href: '/admin', icon: ShieldAlert }
         : null;
 
     const renderItem = (item: { name: string; href: string; icon: React.ElementType }) => {
         const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+        let badgeCount = 0;
+        if (item.name === 'Messages') badgeCount = unreadMessagesCount;
+        if (item.name === 'Groups') badgeCount = unreadGroupsCount;
+        
         return (
             <li key={item.name}>
                 <Link
@@ -68,7 +74,12 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 >
                     <item.icon className={clsx('h-[18px] w-[18px] shrink-0', isActive ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text-muted)] group-hover:text-[var(--ui-text-secondary)]')} />
                     <span className="truncate flex-1">{item.name}</span>
-                    {isActive && <ChevronRight className="h-3.5 w-3.5 text-[var(--ui-accent)] opacity-60" />}
+                    {badgeCount > 0 && (
+                        <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-[var(--ui-accent)] px-1.5 text-[10px] font-bold text-white shrink-0">
+                            {badgeCount > 99 ? '99+' : badgeCount}
+                        </span>
+                    )}
+                    {isActive && badgeCount === 0 && <ChevronRight className="h-3.5 w-3.5 text-[var(--ui-accent)] opacity-60 shrink-0" />}
                 </Link>
             </li>
         );
@@ -101,9 +112,18 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
 
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto px-3 py-1" role="navigation" aria-label="Main navigation">
-                {NAV_SECTIONS.map((section, i) => (
+                {NAV_SECTIONS.map((section) => ({
+                    ...section,
+                    items: section.items.filter(item => {
+                        if (item.name === 'Confessions' && settings?.disableConfessions) return false;
+                        if (item.name === 'Public Chat' && settings?.disablePublicChat) return false;
+                        if (item.name === 'Anonymous Chat' && settings?.disableAnonymousChat) return false;
+                        if (item.name === 'Groups' && settings?.disableGroups) return false;
+                        return true;
+                    })
+                })).filter(section => section.items.length > 0 || section.label === 'Account').map((section, i) => (
                     <div key={section.label ?? i}>
-                        {section.label && (
+                        {section.label && section.items.length > 0 && (
                             <h3 className="px-3 pt-5 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--ui-text-muted)] select-none">
                                 {section.label}
                             </h3>

@@ -1,5 +1,6 @@
 'use client';
 
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/components/AuthProvider';
@@ -11,9 +12,10 @@ import toast from 'react-hot-toast';
 import type { FirebaseError } from 'firebase/app';
 import { formatDistanceToNowStrict } from 'date-fns';
 import {
-    isGoogleDriveConfigured,
     requestGoogleDriveAccessToken,
     uploadImageToGoogleDrive,
+    loadGoogleIdentityScript,
+    isGoogleDriveConfigured,
 } from '@/lib/googleDrive';
 import { logActivity, fetchActivityLog, type ActivityLogEntry } from '@/lib/activityLog';
 import { exportProfileBackup, listBackups, importProfileBackup } from '@/lib/backup';
@@ -43,7 +45,6 @@ import {
     Clock,
     Download,
     Edit3,
-    ExternalLink,
     Eye,
     EyeOff,
     GalleryHorizontalEnd,
@@ -59,7 +60,6 @@ import {
     Plus,
     Save,
     ScrollText,
-    Shield,
     ShieldCheck,
     Sparkles,
     Star,
@@ -122,12 +122,12 @@ function visibilityLabel(visibility: ProfileVisibility): string {
 /* ── Tiny reusable UI pieces ─────────────────────── */
 
 function Badge({ children, variant = 'default' }: { children: React.ReactNode; variant?: 'default' | 'accent' | 'success' | 'warning' }) {
-    const base = 'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase';
+    const base = 'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black tracking-wider uppercase backdrop-blur-md shadow-sm transition-all duration-300 hover:scale-105';
     const styles: Record<string, string> = {
-        default: 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text-secondary)]',
-        accent: 'bg-[var(--ui-accent-dim)] text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/30',
-        success: 'bg-[var(--ui-accent-dim)] text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/30',
-        warning: 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)] ring-1 ring-[var(--ui-border)]',
+        default: 'bg-zinc-800/80 text-zinc-300 border border-zinc-700/50',
+        accent: 'bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20 shadow-[0_0_10px_rgba(217,70,239,0.2)]',
+        success: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]',
+        warning: 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]',
     };
     return <span className={`${base} ${styles[variant]}`}>{children}</span>;
 }
@@ -135,13 +135,14 @@ function Badge({ children, variant = 'default' }: { children: React.ReactNode; v
 function SectionHeader({ icon: Icon, title, subtitle, action }: { icon: React.ElementType; title: string; subtitle: string; action?: React.ReactNode }) {
     return (
         <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--ui-accent-dim)] ring-1 ring-[var(--ui-accent)]/20">
-                    <Icon className="h-5 w-5 text-[var(--ui-accent)]" />
+            <div className="flex items-center gap-4">
+                <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-900/80 border border-zinc-700/50 shadow-inner overflow-hidden group">
+                    <div className="absolute inset-0 bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <Icon className="relative z-10 h-6 w-6 text-blue-400 group-hover:text-blue-300 group-hover:scale-110 transition-all duration-300" />
                 </div>
                 <div>
-                    <h2 className="text-lg font-semibold text-[var(--ui-text)]">{title}</h2>
-                    <p className="text-xs text-[var(--ui-text-muted)] mt-0.5">{subtitle}</p>
+                    <h2 className="text-xl font-black text-white tracking-tight">{title}</h2>
+                    <p className="text-sm font-medium text-zinc-400 mt-1">{subtitle}</p>
                 </div>
             </div>
             {action}
@@ -151,19 +152,22 @@ function SectionHeader({ icon: Icon, title, subtitle, action }: { icon: React.El
 
 function GlassCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
     return (
-        <div className={`surface p-5 sm:p-6 transition-all duration-300 ${className}`}>
-            {children}
+        <div className={`relative overflow-hidden rounded-3xl bg-zinc-900/40 backdrop-blur-2xl border border-zinc-800/60 shadow-2xl transition-all duration-300 ${className}`}>
+            <div className="absolute inset-0 bg-linear-to-br from-white/[0.02] to-transparent pointer-events-none" />
+            <div className="relative z-10 p-6 sm:p-8">
+                {children}
+            </div>
         </div>
     );
 }
 
 function InputField({ label, id, ...props }: { label: string; id: string } & React.InputHTMLAttributes<HTMLInputElement>) {
     return (
-        <div>
-            <label htmlFor={id} className="block text-xs font-medium text-[var(--ui-text-muted)] mb-1.5">{label}</label>
+        <div className="group">
+            <label htmlFor={id} className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2 transition-colors group-focus-within:text-blue-400">{label}</label>
             <input
                 id={id}
-                className="input"
+                className="w-full rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-zinc-600"
                 {...props}
             />
         </div>
@@ -172,15 +176,18 @@ function InputField({ label, id, ...props }: { label: string; id: string } & Rea
 
 function SelectField({ label, id, children, ...props }: { label: string; id: string; children: React.ReactNode } & React.SelectHTMLAttributes<HTMLSelectElement>) {
     return (
-        <div>
-            <label htmlFor={id} className="block text-xs font-medium text-[var(--ui-text-muted)] mb-1.5">{label}</label>
-            <select
-                id={id}
-                className="w-full rounded-lg bg-[var(--ui-bg-input)] border-none px-3.5 py-2.5 text-sm text-[var(--ui-text)] focus:outline-none transition-all appearance-none"
-                {...props}
-            >
-                {children}
-            </select>
+        <div className="group">
+            <label htmlFor={id} className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2 transition-colors group-focus-within:text-blue-400">{label}</label>
+            <div className="relative">
+                <select
+                    id={id}
+                    className="w-full rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all appearance-none"
+                    {...props}
+                >
+                    {children}
+                </select>
+                <ChevronUp className="h-4 w-4 text-zinc-500 absolute right-4 top-1/2 -translate-y-1/2 rotate-180 pointer-events-none" />
+            </div>
         </div>
     );
 }
@@ -188,10 +195,11 @@ function SelectField({ label, id, children, ...props }: { label: string; id: str
 function PrimaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
     return (
         <button
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] px-5 py-2.5 text-sm font-semibold text-[var(--ui-bg-elevated)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             {...props}
         >
-            {children}
+            <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 transition-opacity group-hover:opacity-100" />
+            <span className="relative z-10 flex items-center gap-2">{children}</span>
         </button>
     );
 }
@@ -199,7 +207,7 @@ function PrimaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLBu
 function SecondaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
     return (
         <button
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--ui-border)] bg-[var(--ui-bg-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700/50 bg-zinc-800/50 px-5 py-3 text-sm font-bold text-zinc-300 transition-all duration-300 hover:bg-zinc-700 hover:text-white hover:border-zinc-600 disabled:opacity-40 disabled:cursor-not-allowed backdrop-blur-md"
             {...props}
         >
             {children}
@@ -209,7 +217,7 @@ function SecondaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTML
 
 /* ── Tab selector ───────────────────────────────── */
 
-type ProfileTab = 'edit' | 'stories' | 'highlights' | 'gallery' | 'activity';
+type ProfileTab = 'stories' | 'highlights' | 'gallery' | 'activity';
 
 function TabBar({ activeTab, setActiveTab, storiesCount, highlightsCount, galleryCount }: {
     activeTab: ProfileTab;
@@ -219,7 +227,6 @@ function TabBar({ activeTab, setActiveTab, storiesCount, highlightsCount, galler
     galleryCount: number;
 }) {
     const tabs: { key: ProfileTab; label: string; icon: React.ElementType; count?: number }[] = [
-        { key: 'edit', label: 'Edit Profile', icon: Edit3 },
         { key: 'stories', label: 'Stories', icon: Clock, count: storiesCount },
         { key: 'highlights', label: 'Highlights', icon: Star, count: highlightsCount },
         { key: 'gallery', label: 'Gallery', icon: Grid3X3, count: galleryCount },
@@ -227,28 +234,36 @@ function TabBar({ activeTab, setActiveTab, storiesCount, highlightsCount, galler
     ];
 
     return (
-        <div className="flex gap-1 p-1 rounded-lg bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] overflow-x-auto">
-            {tabs.map(({ key, label, icon: TabIcon, count }) => (
-                <button
-                    key={key}
-                    onClick={() => setActiveTab(key)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2.5 text-xs sm:text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
-                        activeTab === key
-                            ? 'bg-[var(--ui-accent)] text-[var(--ui-bg-elevated)]'
-                            : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)]'
-                    }`}
-                >
-                    <TabIcon className="h-4 w-4" />
-                    <span className="hidden sm:inline">{label}</span>
-                    {count !== undefined && count > 0 && (
-                        <span className={`ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                            activeTab === key ? 'bg-[var(--ui-bg-elevated)]/20' : 'bg-[var(--ui-bg-elevated)]'
-                        }`}>
-                            {count}
+        <div className="flex gap-2 p-1.5 rounded-2xl bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/80 overflow-x-auto custom-scrollbar shadow-inner relative z-10">
+            {tabs.map(({ key, label, icon: TabIcon, count }) => {
+                const isActive = activeTab === key;
+                return (
+                    <button
+                        key={key}
+                        onClick={() => setActiveTab(key)}
+                        className={`relative flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all duration-300 whitespace-nowrap overflow-hidden group ${
+                            isActive
+                                ? 'text-white'
+                                : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50'
+                        }`}
+                    >
+                        {isActive && (
+                            <div className="absolute inset-0 bg-zinc-800/80 shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-xl" />
+                        )}
+                        <span className="relative z-10 flex items-center gap-2">
+                            <TabIcon className={`h-4 w-4 ${isActive ? 'text-blue-400' : 'group-hover:text-blue-400/70 transition-colors'}`} />
+                            <span className="hidden sm:inline">{label}</span>
                         </span>
-                    )}
-                </button>
-            ))}
+                        {count !== undefined && count > 0 && (
+                            <span className={`relative z-10 ml-1 rounded-full px-2 py-0.5 text-[10px] font-black tracking-wider ${
+                                isActive ? 'bg-blue-500/20 text-blue-300' : 'bg-zinc-800 text-zinc-400'
+                            }`}>
+                                {count}
+                            </span>
+                        )}
+                    </button>
+                );
+            })}
         </div>
     );
 }
@@ -264,7 +279,7 @@ export default function ProfilePage() {
     const highlightFileInputRef = useRef<HTMLInputElement>(null);
     const galleryFileInputRef = useRef<HTMLInputElement>(null);
 
-    const [activeTab, setActiveTab] = useState<ProfileTab>('edit');
+    const [activeTab, setActiveTab] = useState<ProfileTab>('gallery');
     const [formData, setFormData] = useState<EditableProfileData>({
         name: '',
         bio: '',
@@ -324,6 +339,12 @@ export default function ProfilePage() {
 
     useEffect(() => {
         const timer = window.setInterval(() => setCurrentTime(Date.now()), 60 * 1000);
+        
+        // Preload Google Identity script so that popup doesn't get blocked later
+        if (isGoogleDriveConfigured()) {
+            loadGoogleIdentityScript().catch(() => { /* ignore */ });
+        }
+
         return () => window.clearInterval(timer);
     }, []);
 
@@ -640,7 +661,7 @@ export default function ProfilePage() {
                         <div className="relative">
                             <div className="h-12 w-12 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
                         </div>
-                        <p className="text-sm text-[var(--ui-text-muted)] animate-pulse">Loading profile...</p>
+                        <p className="text-sm text-(--ui-text-muted) animate-pulse">Loading profile...</p>
                     </div>
                 </div>
             </DashboardLayout>
@@ -660,177 +681,185 @@ export default function ProfilePage() {
             <div className="max-w-4xl mx-auto py-6 px-2 sm:px-4 space-y-6">
 
                 {/* ═══════════ HERO PROFILE HEADER ═══════════ */}
-                <div className="relative overflow-hidden rounded-2xl">
-                    {/* Gradient Banner */}
-                    <div className="h-36 sm:h-44 bg-linear-to-br from-[var(--ui-accent)]/40 via-[var(--ui-bg-surface)] to-[var(--ui-bg-elevated)] relative">
-                        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE4YzEuNjU3IDAgMyAxLjM0MyAzIDNzLTEuMzQzIDMtMyAzLTMtMS4zNDMtMy0zIDEuMzQzLTMgMy0zek0yNCAzNmMxLjY1NyAwIDMgMS4zNDMgMyAzcy0xLjM0MyAzLTMgMy0zLTEuMzQzLTMtMyAxLjM0My0zIDMtM3oiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-50" />
-                        <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-[var(--ui-bg-base)] to-transparent" />
+                <div className="relative overflow-hidden rounded-4xl bg-zinc-950 border border-zinc-800/60 shadow-2xl mb-8">
+                    {/* Vibrant Neon Gradient Banner */}
+                    <div className="h-44 sm:h-56 bg-linear-to-br from-violet-600/40 via-fuchsia-600/20 to-blue-600/40 relative overflow-hidden">
+                        {/* Animated gradient orbs */}
+                        <div className="absolute top-0 left-1/4 w-96 h-96 bg-fuchsia-500/30 rounded-full mix-blend-screen filter blur-[100px] animate-[pulse_8s_infinite]" />
+                        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/30 rounded-full mix-blend-screen filter blur-[100px] animate-[pulse_10s_infinite_reverse]" />
+                        
+                        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE4YzEuNjU3IDAgMyAxLjM0MyAzIDNzLTEuMzQzIDMtMyAzLTMtMS4zNDMtMy0zIDEuMzQzLTMgMy0zek0yNCAzNmMxLjY1NyAwIDMgMS4zNDMgMyAzcy0xLjM0MyAzLTMgMy0zLTEuMzQzLTMtMyAxLjM0My0zIDMtM3oiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-10 mix-blend-overlay" />
+                        <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-zinc-950 to-transparent" />
+                        
                         {/* Encryption badge on banner */}
                         {userProfile.encryptionEnabled && (
-                            <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-[var(--ui-accent-dim)] px-2.5 py-1 text-[10px] font-bold text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/30">
-                                <ShieldCheck className="h-3 w-3" /> Encrypted
+                            <div className="absolute top-4 right-4 flex items-center gap-1.5 rounded-full bg-zinc-950/50 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                                <ShieldCheck className="h-4 w-4" /> Encrypted
                             </div>
                         )}
                     </div>
 
                     {/* Profile Info Overlay */}
-                    <div className="relative -mt-16 sm:-mt-20 px-4 sm:px-6 pb-6">
-                        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6">
-                            {/* Avatar with completion ring */}
-                            <div className="relative group">
-                                <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-2xl ring-4 ring-[var(--ui-bg-base)] overflow-hidden bg-[var(--ui-bg-elevated)] shadow-2xl">
-                                    <img
-                                        src={resolvedPreviewImage}
-                                        alt={formData.name || 'Profile'}
-                                        onError={handleImgError}
-                                        className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                                    />
+                    <div className="relative -mt-20 sm:-mt-24 px-6 sm:px-10 pb-10">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 sm:gap-8">
+                            {/* Avatar with Neon Completion Ring */}
+                            <div className="relative group shrink-0">
+                                {/* The glowing ring background effect */}
+                                <div className="absolute -inset-1 rounded-full bg-linear-to-br from-violet-500 via-fuchsia-500 to-blue-500 opacity-70 blur-md group-hover:opacity-100 transition-opacity duration-500" />
+                                
+                                <div className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-full p-2 bg-zinc-950 z-10">
+                                    {/* SVG Progress Ring */}
+                                    <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="3" />
+                                        <circle 
+                                            cx="50" cy="50" r="48" fill="none" 
+                                            stroke="url(#gradient)" strokeWidth="4" 
+                                            strokeLinecap="round"
+                                            strokeDasharray={`${301.59 * (profileCompletion / 100)} 301.59`}
+                                            className="transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(217,70,239,0.6)]"
+                                        />
+                                        <defs>
+                                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stopColor="#8b5cf6" />
+                                                <stop offset="50%" stopColor="#d946ef" />
+                                                <stop offset="100%" stopColor="#3b82f6" />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                    
+                                    <div className="w-full h-full rounded-full overflow-hidden bg-zinc-800">
+                                        <img
+                                            src={resolvedPreviewImage}
+                                            alt={formData.name || 'Profile'}
+                                            onError={handleImgError}
+                                            className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
+                                        />
+                                    </div>
+                                    
+                                    {/* Completion tooltip */}
+                                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 text-zinc-200 text-[10px] font-black px-3 py-1 rounded-full shadow-lg whitespace-nowrap z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                                        {profileCompletion}% Complete
+                                    </div>
                                 </div>
-                                {/* Completion indicator */}
-                                <div className="absolute -top-1 -left-1 h-7 w-7 rounded-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] flex items-center justify-center shadow-lg">
-                                    <span className={`text-[9px] font-bold ${profileCompletion >= 80 ? 'text-[var(--ui-success)]' : profileCompletion >= 50 ? 'text-[var(--ui-warning)]' : 'text-[var(--ui-text-muted)]'}`}>
-                                        {profileCompletion}%
-                                    </span>
-                                </div>
+                                
                                 <button
-                                    onClick={() => { setActiveTab('edit'); profilePhotoFileInputRef.current?.click(); }}
-                                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-xl bg-[var(--ui-accent)] flex items-center justify-center shadow-lg hover:bg-[var(--ui-accent-hover)] transition-colors"
+                                    onClick={() => { profilePhotoFileInputRef.current?.click(); }}
+                                    className="absolute bottom-1 right-1 h-10 w-10 rounded-full bg-linear-to-br from-fuchsia-500 to-violet-600 flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300 z-20 text-white ring-4 ring-zinc-950"
                                     title="Upload profile photo"
                                 >
-                                    <Camera className="h-4 w-4 text-[var(--ui-bg-elevated)]" />
+                                    <Camera className="h-4 w-4" />
                                 </button>
                             </div>
 
                             {/* Name & Details */}
-                            <div className="flex-1 text-center sm:text-left space-y-2 pb-1">
-                                <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-2">
-                                    <h1 className="text-2xl sm:text-3xl font-bold text-[var(--ui-text)] tracking-tight">
+                            <div className="flex-1 text-center sm:text-left space-y-3 pb-2 w-full">
+                                <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-3">
+                                    <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight drop-shadow-md">
                                         {userProfile.name}
                                     </h1>
-                                    <Badge variant={userProfile.accountVisibility === 'public' ? 'success' : 'warning'}>
-                                        {userProfile.accountVisibility === 'public' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                                        {visibilityLabel(userProfile.accountVisibility)}
-                                    </Badge>
-                                    {userProfile.role === 'admin' && (
-                                        <Badge variant="accent">
-                                            <Sparkles className="h-3 w-3" /> Admin
-                                        </Badge>
-                                    )}
+                                    <div className="flex gap-2">
+                                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border ${userProfile.accountVisibility === 'public' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                                            {userProfile.accountVisibility === 'public' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                                            {visibilityLabel(userProfile.accountVisibility)}
+                                        </div>
+                                        {userProfile.role === 'admin' && (
+                                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md shadow-[0_0_10px_rgba(217,70,239,0.2)]">
+                                                <Sparkles className="h-3 w-3" /> Admin
+                                            </div>
+                                        )}
+                                        <button 
+                                            onClick={() => router.push('/profile/edit')}
+                                            className="ml-2 flex flex-none items-center gap-1.5 px-4 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition-colors whitespace-nowrap border border-zinc-700 shadow-sm"
+                                        >
+                                            <Edit3 className="h-3.5 w-3.5" /> Edit Profile
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Bio */}
                                 {userProfile.bio && (
-                                    <p className="text-sm text-[var(--ui-text-secondary)] max-w-lg italic">
-                                        &ldquo;{userProfile.bio}&rdquo;
+                                    <p className="text-sm text-zinc-300 max-w-2xl leading-relaxed">
+                                        {userProfile.bio}
                                     </p>
                                 )}
 
-                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-sm text-[var(--ui-text-muted)]">
-                                    <span className="flex items-center gap-1">
-                                        <Mail className="h-3.5 w-3.5" /> {userProfile.email}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <User className="h-3.5 w-3.5" /> {userProfile.gender.charAt(0).toUpperCase() + userProfile.gender.slice(1)}
-                                    </span>
-                                </div>
-
-                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                                    <Badge>{userProfile.field}</Badge>
-                                    {userProfile.branch && <Badge>{userProfile.branch}</Badge>}
-                                    <Badge>{userProfile.year}</Badge>
-                                    <Badge>Div {userProfile.division}</Badge>
+                                {/* Academic Glass Cards */}
+                                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-center sm:justify-start gap-3 pt-2">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-4 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 backdrop-blur-md text-left">
+                                        <span className="text-[10px] text-zinc-500 uppercase font-black tracking-wider">Field</span>
+                                        <span className="text-sm font-bold text-zinc-200">{userProfile.field}</span>
+                                    </div>
+                                    {userProfile.branch && (
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-4 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 backdrop-blur-md text-left">
+                                            <span className="text-[10px] text-zinc-500 uppercase font-black tracking-wider">Branch</span>
+                                            <span className="text-sm font-bold text-zinc-200">{userProfile.branch}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-4 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 backdrop-blur-md text-left">
+                                        <span className="text-[10px] text-zinc-500 uppercase font-black tracking-wider">Year/Div</span>
+                                        <span className="text-sm font-bold text-zinc-200">{userProfile.year} • {userProfile.division}</span>
+                                    </div>
                                 </div>
 
                                 {/* Social Links */}
                                 {(userProfile.socialLinks?.instagram || userProfile.socialLinks?.linkedin || userProfile.socialLinks?.github) && (
-                                    <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
+                                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-2">
                                         {userProfile.socialLinks.instagram && (
                                             <a href={`https://instagram.com/${userProfile.socialLinks.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer"
-                                               className="flex items-center gap-1 rounded-lg bg-[var(--ui-bg-elevated)] px-2.5 py-1.5 text-[11px] text-[var(--ui-text-secondary)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors">
-                                                <Instagram className="h-3.5 w-3.5" /> {userProfile.socialLinks.instagram}
+                                               className="flex items-center gap-2 rounded-xl bg-pink-500/10 border border-pink-500/20 px-3 py-1.5 text-xs font-bold text-pink-400 hover:bg-pink-500 hover:text-white transition-all duration-300">
+                                                <Instagram className="h-4 w-4" /> {userProfile.socialLinks.instagram}
                                             </a>
                                         )}
                                         {userProfile.socialLinks.linkedin && (
                                             <a href={userProfile.socialLinks.linkedin.startsWith('http') ? userProfile.socialLinks.linkedin : `https://linkedin.com/in/${userProfile.socialLinks.linkedin}`} target="_blank" rel="noopener noreferrer"
-                                               className="flex items-center gap-1 rounded-lg bg-[var(--ui-bg-elevated)] px-2.5 py-1.5 text-[11px] text-[var(--ui-text-secondary)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors">
-                                                <Linkedin className="h-3.5 w-3.5" /> LinkedIn <ExternalLink className="h-2.5 w-2.5" />
+                                               className="flex items-center gap-2 rounded-xl bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 text-xs font-bold text-blue-400 hover:bg-blue-600 hover:text-white transition-all duration-300">
+                                                <Linkedin className="h-4 w-4" /> LinkedIn
                                             </a>
                                         )}
                                         {userProfile.socialLinks.github && (
                                             <a href={userProfile.socialLinks.github.startsWith('http') ? userProfile.socialLinks.github : `https://github.com/${userProfile.socialLinks.github}`} target="_blank" rel="noopener noreferrer"
-                                               className="flex items-center gap-1 rounded-lg bg-[var(--ui-bg-elevated)] px-2.5 py-1.5 text-[11px] text-[var(--ui-text-secondary)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors">
-                                                <Github className="h-3.5 w-3.5" /> {userProfile.socialLinks.github}
+                                               className="flex items-center gap-2 rounded-xl bg-zinc-800 border border-zinc-700 px-3 py-1.5 text-xs font-bold text-zinc-300 hover:bg-white hover:text-black transition-all duration-300">
+                                                <Github className="h-4 w-4" /> {userProfile.socialLinks.github}
                                             </a>
                                         )}
                                     </div>
                                 )}
                             </div>
-
-                            {/* Stats */}
-                            <div className="flex gap-6 sm:gap-8 text-center">
-                                <div>
-                                    <p className="text-xl font-bold text-[var(--ui-text)]">{activeStories.length}</p>
-                                    <p className="text-[11px] text-[var(--ui-text-muted)] uppercase tracking-wide">Stories</p>
-                                </div>
-                                <div>
-                                    <p className="text-xl font-bold text-[var(--ui-text)]">{userProfile.highlights.length}</p>
-                                    <p className="text-[11px] text-[var(--ui-text-muted)] uppercase tracking-wide">Highlights</p>
-                                </div>
-                                <div>
-                                    <p className="text-xl font-bold text-[var(--ui-text)]">{userProfile.gallery.length}</p>
-                                    <p className="text-[11px] text-[var(--ui-text-muted)] uppercase tracking-wide">Gallery</p>
-                                </div>
-                            </div>
                         </div>
 
-                        {/* Achievement Badges */}
-                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-4">
-                            {profileCompletion >= 80 && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-success)]/10 px-2.5 py-1 text-[10px] font-bold text-[var(--ui-success)] ring-1 ring-[var(--ui-success)]/20">
-                                    <Award className="h-3 w-3" /> Profile Pro
-                                </span>
-                            )}
-                            {userProfile.googleDrive && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-accent-dim)] px-2.5 py-1 text-[10px] font-bold text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/20">
-                                    <HardDriveUpload className="h-3 w-3" /> Drive Connected
-                                </span>
-                            )}
-                            {userProfile.encryptionEnabled && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-accent-dim)] px-2.5 py-1 text-[10px] font-bold text-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/20">
-                                    <Shield className="h-3 w-3" /> Encrypted
-                                </span>
-                            )}
-                            {userProfile.gallery.length >= 5 && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-warning)]/10 px-2.5 py-1 text-[10px] font-bold text-[var(--ui-warning)] ring-1 ring-[var(--ui-warning)]/20">
-                                    <Zap className="h-3 w-3" /> Shutterbug
-                                </span>
-                            )}
-                            {(new Date().getTime() - userProfile.createdAt) > 30 * 24 * 60 * 60 * 1000 && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-info)]/10 px-2.5 py-1 text-[10px] font-bold text-[var(--ui-info)] ring-1 ring-[var(--ui-info)]/20">
-                                    <Sparkles className="h-3 w-3" /> Veteran
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Profile Completion Bar */}
-                        <div className="mt-3">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="text-[10px] text-[var(--ui-text-muted)] uppercase tracking-wide">Profile Completion</span>
-                                <span className={`text-[10px] font-bold ${profileCompletion >= 80 ? 'text-[var(--ui-success)]' : profileCompletion >= 50 ? 'text-[var(--ui-warning)]' : 'text-[var(--ui-text-muted)]'}`}>
-                                    {profileCompletion}%
-                                </span>
+                        {/* Badges / Stats Footer */}
+                        <div className="mt-8 pt-6 border-t border-zinc-800/80 flex flex-col sm:flex-row items-center justify-between gap-6">
+                            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                                <div className="flex items-center gap-2 text-zinc-400 text-sm bg-zinc-900/50 px-4 py-2 rounded-xl border border-zinc-800">
+                                    <Mail className="h-4 w-4" /> {userProfile.email}
+                                </div>
+                                <div className="flex items-center gap-2 text-zinc-400 text-sm bg-zinc-900/50 px-4 py-2 rounded-xl border border-zinc-800">
+                                    <User className="h-4 w-4" /> {userProfile.gender.charAt(0).toUpperCase() + userProfile.gender.slice(1)}
+                                </div>
+                                <div className="flex items-center gap-2 text-zinc-500 text-xs pl-2">
+                                    Member since {createdOn}
+                                </div>
                             </div>
-                            <div className="h-1.5 rounded-full bg-[var(--ui-bg-elevated)] overflow-hidden">
-                                <div
-                                    className={`h-full rounded-full transition-all duration-700 ease-out ${profileCompletion >= 80 ? 'bg-[var(--ui-success)]' : profileCompletion >= 50 ? 'bg-[var(--ui-warning)]' : 'bg-[var(--ui-accent)]'}`}
-                                    style={{ width: `${profileCompletion}%` }}
-                                />
+
+                            {/* Achievement Pills */}
+                            <div className="flex flex-wrap items-center justify-center gap-2">
+                                {profileCompletion >= 80 && (
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-500/10 px-3 py-1.5 text-[10px] font-black text-yellow-500 border border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.15)] outline outline-yellow-500/50 outline-offset-1">
+                                        <Award className="h-3.5 w-3.5" /> PROFILE PRO
+                                    </span>
+                                )}
+                                {userProfile.googleDrive && (
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 px-3 py-1.5 text-[10px] font-black text-blue-400 border border-blue-500/20">
+                                        <HardDriveUpload className="h-3.5 w-3.5" /> DRIVE
+                                    </span>
+                                )}
+                                {userProfile.gallery.length >= 5 && (
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-500/10 px-3 py-1.5 text-[10px] font-black text-orange-400 border border-orange-500/20">
+                                        <Zap className="h-3.5 w-3.5" /> SHUTTERBUG
+                                    </span>
+                                )}
                             </div>
                         </div>
-
-                        <p className="text-xs text-[var(--ui-text-muted)] mt-3 text-center sm:text-left">
-                            Member since {createdOn}
-                        </p>
                     </div>
                 </div>
 
@@ -842,174 +871,6 @@ export default function ProfilePage() {
                     highlightsCount={userProfile.highlights.length}
                     galleryCount={userProfile.gallery.length}
                 />
-
-                {/* ═══════════ EDIT PROFILE TAB ═══════════ */}
-                {activeTab === 'edit' && (
-                    <GlassCard>
-                        <SectionHeader
-                            icon={Edit3}
-                            title="Edit Profile"
-                            subtitle="Update your personal information and preferences"
-                        />
-
-                        <form className="mt-6 space-y-5" onSubmit={handleSave}>
-                            {/* Profile Photo Section — Drive upload only */}
-                            <div className="flex items-center gap-4 p-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)]">
-                                <img
-                                    src={resolvedPreviewImage}
-                                    alt="Preview"
-                                    onError={handleImgError}
-                                    className="h-16 w-16 rounded-xl object-cover object-center ring-2 ring-[var(--ui-border)]"
-                                />
-                                <div className="flex-1 min-w-0 space-y-2">
-                                    <p className="text-xs font-medium text-[var(--ui-text-muted)]">Profile Photo</p>
-                                    <PrimaryButton
-                                        type="button"
-                                        disabled={!canUploadToDrive || !!uploadingTarget}
-                                        onClick={() => profilePhotoFileInputRef.current?.click()}
-                                    >
-                                        <Upload className="h-3.5 w-3.5" />
-                                        {uploadingTarget === 'profile' ? 'Uploading...' : 'Upload Photo'}
-                                    </PrimaryButton>
-                                </div>
-                                <input ref={profilePhotoFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoFileChange} />
-                            </div>
-
-                            {/* Name */}
-                            <InputField
-                                label="Full Name"
-                                id="name"
-                                required
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            />
-
-                            {/* Bio */}
-                            <div>
-                                <label htmlFor="bio" className="block text-xs font-medium text-[var(--ui-text-muted)] mb-1.5">Bio / About Me</label>
-                                <textarea
-                                    id="bio"
-                                    rows={3}
-                                    maxLength={250}
-                                    className="input resize-none"
-                                    placeholder="Tell the campus about yourself..."
-                                    value={formData.bio}
-                                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                                />
-                                <p className="text-[10px] text-[var(--ui-text-muted)] mt-1 text-right">{formData.bio.length}/250</p>
-                            </div>
-
-                            {/* Social Links */}
-                            <div>
-                                <p className="text-xs font-medium text-[var(--ui-text-muted)] mb-3">Social Links</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div className="flex items-center gap-2">
-                                        <Instagram className="h-4 w-4 text-[var(--ui-text-muted)] shrink-0" />
-                                        <input
-                                            className="input"
-                                            placeholder="@username"
-                                            value={formData.socialLinks.instagram ?? ''}
-                                            onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, instagram: e.target.value } })}
-                                        />
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Linkedin className="h-4 w-4 text-[var(--ui-text-muted)] shrink-0" />
-                                        <input
-                                            className="input"
-                                            placeholder="linkedin.com/in/..."
-                                            value={formData.socialLinks.linkedin ?? ''}
-                                            onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, linkedin: e.target.value } })}
-                                        />
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Github className="h-4 w-4 text-[var(--ui-text-muted)] shrink-0" />
-                                        <input
-                                            className="input"
-                                            placeholder="github.com/..."
-                                            value={formData.socialLinks.github ?? ''}
-                                            onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, github: e.target.value } })}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Academic Info Grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <SelectField label="Field of Study" id="field" value={formData.field} onChange={(e) => setFormData({ ...formData, field: e.target.value })}>
-                                    {PROFILE_FIELDS.map((f) => <option key={f} value={f}>{f}</option>)}
-                                </SelectField>
-                                <SelectField label="Branch / Specialization" id="branch" value={formData.branch} onChange={(e) => setFormData({ ...formData, branch: e.target.value })}>
-                                    {branchOptions.map((b) => <option key={b} value={b}>{b}</option>)}
-                                </SelectField>
-                            </div>
-
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                <SelectField label="Year" id="year" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })}>
-                                    {PROFILE_YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-                                </SelectField>
-                                <SelectField label="Division" id="division" value={formData.division} onChange={(e) => setFormData({ ...formData, division: e.target.value })}>
-                                    {PROFILE_DIVISIONS.map((d) => <option key={d} value={d}>{d}</option>)}
-                                </SelectField>
-                                <SelectField label="Gender" id="gender" value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value as ProfileFormData['gender'] })}>
-                                    {PROFILE_GENDERS.map((g) => <option key={g} value={g}>{g.charAt(0).toUpperCase() + g.slice(1)}</option>)}
-                                </SelectField>
-                                <SelectField label="Account Type" id="accountVisibility" value={formData.accountVisibility} onChange={(e) => setFormData({ ...formData, accountVisibility: e.target.value as ProfileFormData['accountVisibility'] })}>
-                                    {PROFILE_VISIBILITY_OPTIONS.map((v) => <option key={v} value={v}>{visibilityLabel(v)}</option>)}
-                                </SelectField>
-                            </div>
-
-                            <div className="flex justify-end pt-2">
-                                <PrimaryButton type="submit" disabled={saving}>
-                                    <Save className="h-4 w-4" />
-                                    {saving ? 'Saving...' : 'Save Changes'}
-                                </PrimaryButton>
-                            </div>
-                        </form>
-
-                        {/* ── Backup & Restore ─────────────────── */}
-                        {canUploadToDrive && (
-                            <div className="mt-6 pt-6 border-t border-[var(--ui-border)]">
-                                <SectionHeader
-                                    icon={HardDriveUpload}
-                                    title="Backup & Restore"
-                                    subtitle="Export your profile to Google Drive or restore from a backup"
-                                />
-                                <div className="mt-4 flex flex-wrap gap-3">
-                                    <PrimaryButton onClick={handleExportBackup} disabled={backupBusy}>
-                                        <Upload className="h-4 w-4" /> {backupBusy ? 'Working...' : 'Export to Drive'}
-                                    </PrimaryButton>
-                                    <SecondaryButton onClick={handleListBackups} disabled={backupBusy}>
-                                        <Download className="h-4 w-4" /> {backupBusy ? 'Loading...' : 'Restore from Drive'}
-                                    </SecondaryButton>
-                                </div>
-
-                                {showBackups && (
-                                    <div className="mt-4 space-y-2 animate-[fade-in-up_0.2s_ease-out]">
-                                        {backupFiles.length === 0 && !backupBusy && (
-                                            <p className="text-sm text-[var(--ui-text-muted)]">No backup files found on your Google Drive.</p>
-                                        )}
-                                        {backupFiles.map((file) => (
-                                            <div key={file.id} className="flex items-center justify-between gap-3 rounded-lg border border-[var(--ui-border)] p-3">
-                                                <div className="min-w-0">
-                                                    <p className="text-sm text-[var(--ui-text)] truncate">{file.name}</p>
-                                                    <p className="text-[10px] text-[var(--ui-text-muted)] mt-0.5">
-                                                        {new Date(file.modifiedTime).toLocaleString()}
-                                                    </p>
-                                                </div>
-                                                <SecondaryButton
-                                                    onClick={() => handleImportBackup(file.id, file.name)}
-                                                    disabled={backupBusy}
-                                                >
-                                                    <Download className="h-3.5 w-3.5" /> Restore
-                                                </SecondaryButton>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </GlassCard>
-                )}
 
                 {/* ═══════════ STORIES TAB ═══════════ */}
                 {activeTab === 'stories' && (
@@ -1028,9 +889,10 @@ export default function ProfilePage() {
 
                         {/* Add Story Form — Drive upload only */}
                         {showAddStory && (
-                            <form className="mt-5 p-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addStory}>
+                            <form className="mt-5 p-5 rounded-3xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md shadow-inner space-y-4 animate-[fade-in-up_0.2s_ease-out] relative overflow-hidden" onSubmit={addStory}>
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-fuchsia-500/5 rounded-full filter blur-[50px] pointer-events-none" />
                                 {storyDraft.imageSource && (
-                                    <div className="relative w-24 h-32 rounded-lg overflow-hidden border border-[var(--ui-border)]">
+                                    <div className="relative w-24 h-32 rounded-lg overflow-hidden border border-(--ui-border)">
                                         <img src={storyDraft.imageSource} alt="Story preview" className="h-full w-full object-cover" onError={handleImgError} />
                                         <button type="button" onClick={() => setStoryDraft((p) => ({ ...p, imageSource: '' }))} className="absolute top-1 right-1 h-5 w-5 rounded bg-black/60 flex items-center justify-center">
                                             <X className="h-3 w-3 text-white" />
@@ -1063,23 +925,23 @@ export default function ProfilePage() {
                         {/* Stories Grid */}
                         <div className="mt-5">
                             {activeStories.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="h-16 w-16 rounded-2xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
-                                        <Clock className="h-8 w-8 text-[var(--ui-text-muted)]" />
+                                <div className="flex flex-col items-center justify-center py-16 text-center rounded-4xl bg-zinc-900/30 border border-zinc-800/50 border-dashed backdrop-blur-sm">
+                                    <div className="h-16 w-16 rounded-2xl bg-zinc-800/50 flex items-center justify-center mb-4">
+                                        <Clock className="h-8 w-8 text-zinc-500" />
                                     </div>
-                                    <p className="text-sm text-[var(--ui-text-muted)]">No active stories</p>
-                                    <p className="text-xs text-[var(--ui-text-muted)] mt-1">Stories disappear after 24 hours</p>
+                                    <p className="text-sm text-(--ui-text-muted)">No active stories</p>
+                                    <p className="text-xs text-(--ui-text-muted) mt-1">Stories disappear after 24 hours</p>
                                 </div>
                             ) : (
                                 <div className="flex gap-4 overflow-x-auto pb-2">
                                     {activeStories.map((story) => (
                                         <div key={story.id} className="group relative min-w-35 max-w-35 shrink-0">
-                                            <div className="relative overflow-hidden rounded-2xl ring-2 ring-[var(--ui-accent)]/30 shadow-lg">
+                                            <div className="relative overflow-hidden rounded-4xl ring-1 ring-zinc-800 bg-zinc-950/50 shadow-2xl transition-all duration-300 hover:ring-fuchsia-500/50 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] hover:-translate-y-1">
                                                 <img
                                                     src={story.imageUrl}
                                                     alt="Story"
                                                     onError={handleImgError}
-                                                    className="h-50 w-full object-cover object-center bg-[var(--ui-bg-elevated)] transition-transform duration-300 group-hover:scale-105"
+                                                    className="h-50 w-full object-cover object-center bg-zinc-900 transition-transform duration-500 group-hover:scale-110"
                                                 />
                                                 <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
                                                 <div className="absolute bottom-2 left-2 right-2">
@@ -1124,7 +986,8 @@ export default function ProfilePage() {
                         />
 
                         {showAddHighlight && (
-                            <form className="mt-5 p-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addHighlight}>
+                            <form className="mt-5 p-5 rounded-3xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md shadow-inner space-y-4 animate-[fade-in-up_0.2s_ease-out] relative overflow-hidden" onSubmit={addHighlight}>
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full filter blur-[50px] pointer-events-none" />
                                 <InputField
                                     label="Title"
                                     id="highlightTitle"
@@ -1133,7 +996,7 @@ export default function ProfilePage() {
                                     placeholder="e.g. College Fest 2026"
                                 />
                                 {highlightDraft.coverSource && (
-                                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-[var(--ui-border)]">
+                                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-(--ui-border)">
                                         <img src={highlightDraft.coverSource} alt="Cover preview" className="h-full w-full object-cover" onError={handleImgError} />
                                         <button type="button" onClick={() => setHighlightDraft((p) => ({ ...p, coverSource: '' }))} className="absolute top-1 right-1 h-5 w-5 rounded bg-black/60 flex items-center justify-center">
                                             <X className="h-3 w-3 text-white" />
@@ -1158,7 +1021,7 @@ export default function ProfilePage() {
                                     )}
                                 </div>
                                 {!driveConnected && (
-                                    <p className="text-[11px] text-[var(--ui-text-muted)]">Connect Google Drive in Settings to upload</p>
+                                    <p className="text-[11px] text-(--ui-text-muted)">Connect Google Drive in Settings to upload</p>
                                 )}
                                 <input ref={highlightFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleHighlightFileChange} />
                             </form>
@@ -1166,23 +1029,23 @@ export default function ProfilePage() {
 
                         <div className="mt-5">
                             {userProfile.highlights.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="h-16 w-16 rounded-2xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
-                                        <Star className="h-8 w-8 text-[var(--ui-text-muted)]" />
+                                <div className="flex flex-col items-center justify-center py-16 text-center rounded-4xl bg-zinc-900/30 border border-zinc-800/50 border-dashed backdrop-blur-sm">
+                                    <div className="h-16 w-16 rounded-2xl bg-zinc-800/50 flex items-center justify-center mb-4">
+                                        <Star className="h-8 w-8 text-zinc-500" />
                                     </div>
-                                    <p className="text-sm text-[var(--ui-text-muted)]">No highlights yet</p>
-                                    <p className="text-xs text-[var(--ui-text-muted)] mt-1">Pin your best moments here</p>
+                                    <p className="text-sm text-(--ui-text-muted)">No highlights yet</p>
+                                    <p className="text-xs text-(--ui-text-muted) mt-1">Pin your best moments here</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                     {userProfile.highlights.map((highlight) => (
                                         <div key={highlight.id} className="group relative">
-                                            <div className="relative overflow-hidden rounded-2xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] transition-all duration-300 hover:border-[var(--ui-accent)]/25">
+                                            <div className="relative overflow-hidden rounded-4xl bg-zinc-950/50 ring-1 ring-zinc-800 shadow-2xl transition-all duration-300 hover:ring-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:-translate-y-1">
                                                 <img
                                                     src={highlight.coverImageUrl}
                                                     alt={highlight.title}
                                                     onError={handleImgError}
-                                                    className="h-28 sm:h-32 w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                                                    className="h-28 sm:h-32 w-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
                                                 />
                                                 <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
                                                 <div className="absolute bottom-2 left-2 right-2">
@@ -1224,9 +1087,10 @@ export default function ProfilePage() {
                         />
 
                         {showAddGallery && (
-                            <form className="mt-5 p-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] space-y-3 animate-[fade-in-up_0.2s_ease-out]" onSubmit={addGalleryItem}>
+                            <form className="mt-5 p-5 rounded-3xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md shadow-inner space-y-4 animate-[fade-in-up_0.2s_ease-out] relative overflow-hidden" onSubmit={addGalleryItem}>
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full filter blur-[50px] pointer-events-none" />
                                 {galleryDraft.imageSource && (
-                                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-[var(--ui-border)]">
+                                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-(--ui-border)">
                                         <img src={galleryDraft.imageSource} alt="Gallery preview" className="h-full w-full object-cover" onError={handleImgError} />
                                         <button type="button" onClick={() => setGalleryDraft((p) => ({ ...p, imageSource: '' }))} className="absolute top-1 right-1 h-5 w-5 rounded bg-black/60 flex items-center justify-center">
                                             <X className="h-3 w-3 text-white" />
@@ -1259,7 +1123,7 @@ export default function ProfilePage() {
                                     )}
                                 </div>
                                 {!driveConnected && (
-                                    <p className="text-[11px] text-[var(--ui-text-muted)]">Connect Google Drive in Settings to upload</p>
+                                    <p className="text-[11px] text-(--ui-text-muted)">Connect Google Drive in Settings to upload</p>
                                 )}
                                 <input ref={galleryFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleGalleryFileChange} />
                             </form>
@@ -1267,19 +1131,19 @@ export default function ProfilePage() {
 
                         <div className="mt-5">
                             {userProfile.gallery.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="h-16 w-16 rounded-2xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
-                                        <Grid3X3 className="h-8 w-8 text-[var(--ui-text-muted)]" />
+                                <div className="flex flex-col items-center justify-center py-16 text-center rounded-4xl bg-zinc-900/30 border border-zinc-800/50 border-dashed backdrop-blur-sm">
+                                    <div className="h-16 w-16 rounded-2xl bg-zinc-800/50 flex items-center justify-center mb-4">
+                                        <Grid3X3 className="h-8 w-8 text-zinc-500" />
                                     </div>
-                                    <p className="text-sm text-[var(--ui-text-muted)]">No photos yet</p>
-                                    <p className="text-xs text-[var(--ui-text-muted)] mt-1">Start building your gallery</p>
+                                    <p className="text-sm text-(--ui-text-muted)">No photos yet</p>
+                                    <p className="text-xs text-(--ui-text-muted) mt-1">Start building your gallery</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     {userProfile.gallery.map((item) => (
                                         <div key={item.id} className="group relative">
                                             <div
-                                                className="relative overflow-hidden rounded-2xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] cursor-pointer transition-all duration-300 hover:border-[var(--ui-accent)]/25"
+                                                className="relative overflow-hidden rounded-4xl bg-zinc-950/50 ring-1 ring-zinc-800 shadow-2xl transition-all duration-300 cursor-pointer hover:ring-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)]"
                                                 onClick={() => setGalleryPreview(galleryPreview === item.id ? null : item.id)}
                                             >
                                                 <img
@@ -1334,22 +1198,22 @@ export default function ProfilePage() {
                                 </div>
                             ) : activityLogs.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                                    <div className="h-16 w-16 rounded-2xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
-                                        <ScrollText className="h-8 w-8 text-[var(--ui-text-muted)]" />
+                                    <div className="h-16 w-16 rounded-2xl bg-(--ui-bg-elevated) flex items-center justify-center mb-4">
+                                        <ScrollText className="h-8 w-8 text-(--ui-text-muted)" />
                                     </div>
-                                    <p className="text-sm text-[var(--ui-text-muted)]">No activity yet</p>
-                                    <p className="text-xs text-[var(--ui-text-muted)] mt-1">Your actions will appear here</p>
+                                    <p className="text-sm text-(--ui-text-muted)">No activity yet</p>
+                                    <p className="text-xs text-(--ui-text-muted) mt-1">Your actions will appear here</p>
                                 </div>
                             ) : (
                                 <div className="space-y-2">
                                     {activityLogs.map((log) => (
-                                        <div key={log.id} className="flex items-start gap-3 rounded-lg border border-[var(--ui-border)] p-3 hover:bg-[var(--ui-bg-hover)] transition-colors">
+                                        <div key={log.id} className="flex items-start gap-3 rounded-lg border border-(--ui-border) p-3 hover:bg-[var(--ui-bg-hover)] transition-colors">
                                             <div className="h-8 w-8 shrink-0 rounded-lg bg-[var(--ui-accent-dim)] flex items-center justify-center mt-0.5">
                                                 <ActivityIcon action={log.action} />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm text-[var(--ui-text)]">{log.details}</p>
-                                                <p className="text-[10px] text-[var(--ui-text-muted)] mt-0.5">
+                                                <p className="text-[10px] text-(--ui-text-muted) mt-0.5">
                                                     {formatDistanceToNowStrict(new Date(log.timestamp), { addSuffix: true })}
                                                 </p>
                                             </div>

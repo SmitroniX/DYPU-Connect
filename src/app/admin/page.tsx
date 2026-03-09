@@ -8,6 +8,7 @@ import type { Timestamp } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 import { cacheGet, cacheInvalidate } from '@/lib/cache';
+import { useStore } from '@/store/useStore';
 import {
     Activity,
     BarChart3,
@@ -21,6 +22,7 @@ import {
     TrendingUp,
     UserX,
     Users,
+    Settings,
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -39,6 +41,7 @@ interface RecentActivity {
 }
 
 export default function AdminDashboard() {
+    const { userProfile } = useStore();
     const [stats, setStats] = useState<DashboardStats>({ totalUsers: 0, bannedUsers: 0, totalConfessions: 0, totalAnonMessages: 0 });
     const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
     const [loading, setLoading] = useState(true);
@@ -136,12 +139,22 @@ export default function AdminDashboard() {
         { name: 'User Management', description: 'View users, manage roles, and issue bans.', href: '/admin/users', icon: Users, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
         { name: 'Confession Tracker', description: 'Real identities behind anonymous confessions.', href: '/admin/confessions', icon: MessageSquare, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
         { name: 'Shadow Realm Oversight', description: 'Monitor anonymous chat with real email addresses.', href: '/admin/anonymous-chat', icon: EyeOff, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
+        { name: 'Advanced Group Management', description: 'View active groups, hierarchies, and their members.', href: '/admin/groups', icon: Users, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
         { name: 'Moderation Reports', description: 'Review and act on user-submitted reports.', href: '/admin/reports', icon: ShieldAlert, color: 'text-red-400 bg-red-500/15' },
         { name: 'Content Moderation', description: 'Browse, search, and bulk-delete messages and confessions.', href: '/admin/content', icon: Trash2, color: 'text-red-400 bg-red-500/15' },
+        { name: 'Auto-Moderation Rules', description: 'Manage custom banned keywords and profanity filters.', href: '/admin/moderation-rules', icon: ShieldAlert, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
         { name: 'Announcements', description: 'Broadcast notices to all students or specific groups.', href: '/admin/announcements', icon: Megaphone, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
         { name: 'Platform Analytics', description: 'Enrollment distribution, engagement stats, and trends.', href: '/admin/analytics', icon: BarChart3, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
         { name: 'Audit Log', description: 'Track all admin actions for accountability.', href: '/admin/audit-log', icon: ClipboardList, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
+        { name: 'System Settings', description: 'Global configuration, maintenance mode, and feature toggles.', href: '/admin/settings', icon: Settings, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
+        { name: 'Private Chat Oversight', description: 'Classified deep-inspection of encrypted user communications.', href: '/admin/private-chats', icon: EyeOff, color: 'text-red-400 bg-red-500/15' },
     ];
+
+    const visibleModules = adminModules.filter(item => {
+        if (userProfile?.role === 'admin') return true;
+        const restricted = ['Shadow Realm Oversight', 'Audit Log', 'System Settings', 'Private Chat Oversight'];
+        return !restricted.includes(item.name);
+    });
 
     return (
         <div className="max-w-6xl mx-auto pb-12 font-sans animate-[fade-in-up_0.4s_ease-out]">
@@ -200,7 +213,7 @@ export default function AdminDashboard() {
                     Admin Modules
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {adminModules.map((item) => (
+                    {visibleModules.map((item) => (
                         <Link
                             key={item.name}
                             href={item.href}

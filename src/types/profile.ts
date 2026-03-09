@@ -54,6 +54,14 @@ export const AUTO_BACKUP_INTERVALS: { value: AutoBackupInterval; label: string; 
     { value: '28d', label: 'Every 28 days',   ms: 28 * 24 * 60 * 60 * 1000 },
 ];
 
+export interface NotificationPreferences {
+    directMessages: boolean;
+    mentions: boolean;
+    groupMessages: boolean;
+    confessions: boolean;
+    announcements: boolean;
+}
+
 export interface SocialLinks {
     instagram?: string;
     linkedin?: string;
@@ -80,6 +88,9 @@ export interface UserProfile {
     autoBackup?: AutoBackupSettings;
     encryptionSalt?: string;
     encryptionEnabled?: boolean;
+    fcmToken?: string;
+    notificationPrefs?: NotificationPreferences;
+    mutedEntities?: string[];
     role: UserRole;
     status: UserStatus;
     createdAt: number;
@@ -277,5 +288,22 @@ export function normalizeUserProfile(profile: UserProfile): UserProfile {
         googleDrive: normalizeGoogleDriveConnection(raw.googleDrive),
         encryptionSalt: typeof raw.encryptionSalt === 'string' ? raw.encryptionSalt : undefined,
         encryptionEnabled: typeof raw.encryptionEnabled === 'boolean' ? raw.encryptionEnabled : false,
+        fcmToken: typeof raw.fcmToken === 'string' ? raw.fcmToken : undefined,
+        notificationPrefs: raw.notificationPrefs && typeof raw.notificationPrefs === 'object' ? {
+            directMessages: typeof raw.notificationPrefs.directMessages === 'boolean' ? raw.notificationPrefs.directMessages : true,
+            mentions: typeof raw.notificationPrefs.mentions === 'boolean' ? raw.notificationPrefs.mentions : true,
+            groupMessages: typeof raw.notificationPrefs.groupMessages === 'boolean' ? raw.notificationPrefs.groupMessages : true,
+            confessions: typeof raw.notificationPrefs.confessions === 'boolean' ? raw.notificationPrefs.confessions : true,
+            announcements: typeof raw.notificationPrefs.announcements === 'boolean' ? raw.notificationPrefs.announcements : true,
+        } : {
+            directMessages: true,
+            mentions: true,
+            groupMessages: true,
+            confessions: true,
+            announcements: true,
+        },
+        mutedEntities: Array.isArray(raw.mutedEntities) ? raw.mutedEntities.filter(e => typeof e === 'string') : [],
+        role: raw.role || 'user',
+        status: raw.status || 'active',
     };
 }

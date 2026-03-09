@@ -10,6 +10,8 @@ import {
     collection,
     addDoc,
     deleteDoc,
+    query,
+    where,
     type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -91,6 +93,8 @@ export async function createCall(
         if (data?.answer && !pc.currentRemoteDescription) {
             pc.setRemoteDescription(new RTCSessionDescription(data.answer));
         }
+    }, (error) => {
+        console.error('[WebRTC] Answer listener error:', error);
     });
 
     // Listen for callee ICE candidates
@@ -101,6 +105,8 @@ export async function createCall(
                 pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
             }
         });
+    }, (error) => {
+        console.error('[WebRTC] Callee ICE listener error:', error);
     });
 
     return {
@@ -165,6 +171,8 @@ export async function answerCall(
                 pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
             }
         });
+    }, (error) => {
+        console.error('[WebRTC] Caller ICE listener error:', error);
     });
 
     return {
@@ -237,22 +245,25 @@ export function listenForIncomingCalls(
     onIncoming: (callId: string, callData: CallData) => void,
 ): Unsubscribe {
     // Listen on the calls collection for calls where I'm the callee
-    // We filter by chatId prefix since callId = `${chatId}_${timestamp}`
-    const callsRef = collection(db, 'calls');
+    // We filter by calleeId to avoid permission-denied on the whole collection
+    const q = query(
+        collection(db, 'calls'),
+        where('calleeId', '==', myUid),
+        where('status', '==', 'ringing')
+    );
 
-    return onSnapshot(callsRef, (snapshot) => {
+    return onSnapshot(q, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
             if (change.type === 'added') {
                 const data = change.doc.data() as CallData;
-                if (
-                    data.calleeId === myUid &&
-                    data.status === 'ringing' &&
-                    change.doc.id.startsWith(chatId)
-                ) {
+                // Double check chatId prefix for safety
+                if (change.doc.id.startsWith(chatId)) {
                     onIncoming(change.doc.id, data);
                 }
             }
         });
+    }, (error) => {
+        console.error('[WebRTC] Incoming call listener error:', error);
     });
 }
 

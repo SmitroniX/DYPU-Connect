@@ -45,6 +45,17 @@
       ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    {
+      "collectionGroup": "public_chat",
+      "fieldPath": "expiresAt",
+      "ttl": true
+    },
+    {
+      "collectionGroup": "anonymous_public_chat",
+      "fieldPath": "expiresAt",
+      "ttl": true
+    }
+  ]
 }
 

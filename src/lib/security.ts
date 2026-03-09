@@ -1,3 +1,5 @@
+import { useSystemStore } from '@/store/useSystemStore';
+
 // ---------------------------------------------------------------------------
 // Security Configuration — CrowdStrike Falcon-inspired policies
 //
@@ -182,18 +184,32 @@ const PROFANITY_LIST: string[] = [
 ];
 
 /**
+ * Get the combined list of hardcoded and custom banned keywords
+ */
+export function getProfanityList(): string[] {
+    const customList = useSystemStore.getState().settings?.bannedKeywords || [];
+    const allWords = new Set([...PROFANITY_LIST, ...customList]);
+    return Array.from(allWords).filter(w => typeof w === 'string' && w.trim().length > 0);
+}
+
+/**
  * Build a regex that matches any profane word at word boundaries.
  * Sorted longest-first so "motherfucker" matches before "fucker".
  */
-const PROFANITY_REGEX = new RegExp(
-    '\\b(' +
-    [...PROFANITY_LIST]
-        .sort((a, b) => b.length - a.length)
-        .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-        .join('|') +
-    ')\\b',
-    'gi',
-);
+function getProfanityRegex(): RegExp {
+    const list = getProfanityList();
+    
+    if (list.length === 0) return /(?!)/; // Matches nothing
+
+    return new RegExp(
+        '\\b(' +
+        list.sort((a, b) => b.length - a.length)
+            .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+            .join('|') +
+        ')\\b',
+        'gi',
+    );
+}
 
 /**
  * Partially censor a profane word — replaces just ONE character
@@ -229,13 +245,13 @@ function censorWord(word: string): string {
  * "What the fuck is this bullshit" → "What the Fu*k is this Bullsh*t"
  */
 export function filterProfanity(text: string): string {
-    return text.replace(PROFANITY_REGEX, (match) => censorWord(match));
+    return text.replace(getProfanityRegex(), (match) => censorWord(match));
 }
 
 /**
  * Check if text contains profanity.
  */
 export function containsProfanity(text: string): boolean {
-    return PROFANITY_REGEX.test(text);
+    return getProfanityRegex().test(text);
 }
 

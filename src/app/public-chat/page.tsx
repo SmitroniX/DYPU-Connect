@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import ModuleGuard from '@/components/ModuleGuard';
 import ChannelHeader from '@/components/ChannelHeader';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, doc, updateDoc, Timestamp as FirestoreTimestamp, where } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
@@ -28,6 +29,7 @@ interface Message {
     imageUrl?: string;
     reactions?: Record<string, string[]>;
     timestamp?: Timestamp | null;
+    expiresAt?: Timestamp | null;
 }
 
 export default function PublicChatPage() {
@@ -42,15 +44,19 @@ export default function PublicChatPage() {
     };
 
     useEffect(() => {
+        const now = new Date();
         const q = query(
             collection(db, 'public_chat'),
-            orderBy('timestamp', 'asc'),
+            where('expiresAt', '>', FirestoreTimestamp.fromDate(now)),
+            orderBy('expiresAt', 'asc'), // Firebase requires ordering by the filtered field first
             limit(100)
         );
         const unsubscribe = onSnapshot(
             q,
             (snapshot) => {
                 const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Message[];
+                // Sort by timestamp for UI display
+                data.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
                 setMessages(data);
                 scrollToBottom();
             },
@@ -69,12 +75,16 @@ export default function PublicChatPage() {
         const cleanMessage = sanitiseInput(payload.text);
         if ((!cleanMessage && !payload.gifUrl && !payload.imageUrl) || !userProfile || !user) return;
 
+        const expireDate = new Date();
+        expireDate.setHours(expireDate.getHours() + 48);
+
         const msgPayload: Record<string, unknown> = {
             text: cleanMessage,
             senderId: user.uid,
             senderName: userProfile.name,
             senderProfileImage: userProfile.profileImage,
             timestamp: serverTimestamp(),
+            expiresAt: FirestoreTimestamp.fromDate(expireDate),
         };
         if (payload.gifUrl) msgPayload.gifUrl = payload.gifUrl;
         if (payload.imageUrl) msgPayload.imageUrl = payload.imageUrl;
@@ -102,6 +112,7 @@ export default function PublicChatPage() {
 
     return (
         <DashboardLayout>
+            <ModuleGuard moduleKey="disablePublicChat" moduleName="Public Chat">
             <div className="h-full flex flex-col">
                 <ChannelHeader name="campus-plaza" description="Real-time public chat for everyone at DYPU">
                     <Users className="h-4 w-4 text-[var(--ui-text-muted)]" />
@@ -132,56 +143,58 @@ export default function PublicChatPage() {
                             return (
                                 <div
                                     key={msg.id}
-                                    className={`message-row group relative ${showHeader ? 'mt-4' : 'mt-0'}`}
+                                    className={`group relative flex px-2 py-1 transition-colors hover:bg-[var(--ui-bg-hover)]/30 rounded-xl ${showHeader ? 'mt-4' : 'mt-0.5'}`}
                                 >
                                     <MessageHoverToolbar onReact={(emoji) => handleReact(msg.id, emoji)} />
 
-                                    <div className="flex gap-4">
-                                        <div className="w-10 shrink-0 flex items-start pt-0.5">
+                                    <div className="flex gap-4 w-full">
+                                        <div className="w-10 shrink-0 flex items-start pt-1">
                                             {showHeader ? (
                                                 <img
                                                     src={resolveProfileImage(msg.senderProfileImage, undefined, msg.senderName)}
                                                     alt=""
-                                                    className="w-10 h-10 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-[var(--ui-accent)]/40 transition-all"
+                                                    className="w-10 h-10 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-[var(--ui-accent)]/40 hover:scale-105 transition-all shadow-sm"
                                                     onClick={(e) => handleAvatarClick(msg.senderId, e)}
                                                 />
                                             ) : (
-                                                <span className="text-[10px] text-[var(--ui-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity w-full text-center pt-1">
+                                                <span className="text-[10px] text-[var(--ui-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity w-full text-center pt-1 font-medium">
                                                     {ts ? format(ts, 'HH:mm') : ''}
                                                 </span>
                                             )}
                                         </div>
 
-                                        <div className="flex-1 min-w-0">
+                                        <div className="flex-1 min-w-0 pt-0.5 pb-1">
                                             {showHeader && (
                                                 <div className="flex items-baseline gap-2 mb-0.5">
                                                     <span
-                                                        className="font-medium text-[var(--ui-text)] text-[15px] hover:underline cursor-pointer"
+                                                        className="font-semibold text-[var(--ui-text)] text-[15px] hover:text-[var(--ui-accent)] hover:underline cursor-pointer transition-colors"
                                                         onClick={(e) => handleAvatarClick(msg.senderId, e)}
                                                     >
                                                         {msg.senderName}
                                                     </span>
-                                                    <span className="text-xs text-[var(--ui-text-muted)]">
+                                                    <span className="text-xs text-[var(--ui-text-muted)] font-medium">
                                                         {ts ? format(ts, 'dd/MM/yyyy HH:mm') : 'Sending...'}
                                                     </span>
                                                 </div>
                                             )}
                                             {msg.gifUrl && (
-                                                <img src={msg.gifUrl} alt="GIF" className="max-w-[300px] rounded-lg mt-1 object-cover" />
+                                                <img src={msg.gifUrl} alt="GIF" className="max-w-[80%] sm:max-w-[340px] rounded-xl mt-1.5 mb-1 object-cover shadow-sm" />
                                             )}
                                             {msg.imageUrl && (
-                                                <img src={msg.imageUrl} alt="Photo" className="max-w-[300px] rounded-lg mt-1 object-cover border border-[var(--ui-border)]" />
+                                                <img src={msg.imageUrl} alt="Photo" className="max-w-[80%] sm:max-w-[340px] rounded-xl mt-1.5 mb-1 object-cover border border-[var(--ui-border)]/50 shadow-sm" />
                                             )}
                                             {msg.text && (
                                                 <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
-                                                    {filterProfanity(msg.text)}
+                                                    {renderMarkdown(filterProfanity(msg.text))}
                                                 </p>
                                             )}
-                                            <MessageReactions
-                                                messageRef={msgRef}
-                                                reactions={msg.reactions ?? {}}
-                                                currentUserId={user?.uid ?? ''}
-                                            />
+                                            <div className="mt-1">
+                                                <MessageReactions
+                                                    messageRef={msgRef}
+                                                    reactions={msg.reactions ?? {}}
+                                                    currentUserId={user?.uid ?? ''}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -206,6 +219,37 @@ export default function PublicChatPage() {
                     />
                 )}
             </div>
+            </ModuleGuard>
         </DashboardLayout>
     );
+}
+
+/* Simple markdown renderer */
+function renderMarkdown(text: string): React.ReactNode {
+    const parts: React.ReactNode[] = [];
+    let remaining = text;
+    let key = 0;
+
+    const patterns = [
+        { regex: /\*\*(.+?)\*\*/g, render: (m: string) => <strong key={key++} className="font-bold text-[var(--ui-text)]">{m}</strong> },
+        { regex: /\*(.+?)\*/g, render: (m: string) => <em key={key++} className="italic">{m}</em> },
+        { regex: /`(.+?)`/g, render: (m: string) => <code key={key++} className="px-1.5 py-0.5 rounded bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)] text-[13px] font-mono">{m}</code> },
+    ];
+
+    for (const { regex, render } of patterns) {
+        if (typeof remaining !== 'string') { parts.push(remaining); return parts; }
+        const newParts: React.ReactNode[] = [];
+        let lastIndex = 0;
+        regex.lastIndex = 0;
+        let match: RegExpExecArray | null;
+        while ((match = regex.exec(remaining)) !== null) {
+            if (match.index > lastIndex) newParts.push(remaining.slice(lastIndex, match.index));
+            newParts.push(render(match[1]));
+            lastIndex = match.index + match[0].length;
+        }
+        if (lastIndex < remaining.length) newParts.push(remaining.slice(lastIndex));
+        if (newParts.some((n) => typeof n !== 'string')) return newParts;
+        remaining = newParts.join('');
+    }
+    return remaining || text;
 }

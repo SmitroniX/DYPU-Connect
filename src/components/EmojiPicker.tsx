@@ -8,9 +8,10 @@ interface EmojiPickerProps {
     onSelect: (emoji: string) => void;
     disabled?: boolean;
     align?: 'left' | 'right';
+    trigger?: React.ReactNode;
 }
 
-export default function EmojiPicker({ onSelect, disabled, align = 'left' }: EmojiPickerProps) {
+export default function EmojiPicker({ onSelect, disabled, align = 'left', trigger }: EmojiPickerProps) {
     const [open, setOpen] = useState(false);
     const [activeCategory, setActiveCategory] = useState(0);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -30,15 +31,18 @@ export default function EmojiPicker({ onSelect, disabled, align = 'left' }: Emoj
 
     return (
         <div className="relative" ref={wrapperRef}>
-            <button
-                type="button"
-                disabled={disabled}
-                onClick={() => setOpen((prev) => !prev)}
-                className="text-[var(--ui-text-muted)] p-2 rounded-lg hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] disabled:opacity-50 transition-all flex shrink-0 items-center justify-center"
-                title="Insert emoji"
-            >
-                <Smile className="w-5 h-5" />
-            </button>
+            <div onClick={() => !disabled && setOpen((prev) => !prev)}>
+                {trigger || (
+                    <button
+                        type="button"
+                        disabled={disabled}
+                        className="text-[var(--ui-text-muted)] p-2 rounded-lg hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] disabled:opacity-50 transition-all flex shrink-0 items-center justify-center"
+                        title="Insert emoji"
+                    >
+                        <Smile className="w-5 h-5" />
+                    </button>
+                )}
+            </div>
 
             {open && (
                 <div className={`absolute z-50 bottom-12 ${panelAlignment} w-[320px] rounded-xl border border-[var(--ui-border)] bg-[var(--ui-bg-surface)] shadow-2xl overflow-hidden`}>

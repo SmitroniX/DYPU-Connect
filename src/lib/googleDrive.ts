@@ -137,7 +137,9 @@ export async function requestGoogleDriveAccessToken(prompt: 'consent' | '' = 'co
         throw new Error('Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID.');
     }
 
-    await loadGoogleIdentityScript();
+    if (!window.google?.accounts?.oauth2) {
+        throw new Error('Google Identity API script is not loaded.');
+    }
 
     return new Promise<string>((resolve, reject) => {
         const googleApi = window.google;
@@ -312,6 +314,18 @@ export async function uploadImageToGoogleDrive(options: {
         fileName: result.fileName,
         viewUrl: result.viewUrl,
         directImageUrl,
+    };
+}
+
+export async function uploadAudioToGoogleDrive(options: {
+    accessToken: string;
+    file: File;
+    folderId?: string;
+}): Promise<{ fileId: string; audioUrl: string }> {
+    const result = await _multipartUpload({ ...options, makePublic: true });
+    return {
+        fileId: result.fileId,
+        audioUrl: `https://drive.google.com/uc?export=download&id=${result.fileId}`
     };
 }
 

@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import ModuleGuard from '@/components/ModuleGuard';
 import ChannelHeader from '@/components/ChannelHeader';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, setDoc, doc, updateDoc, Timestamp as FirestoreTimestamp, where } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
@@ -24,6 +25,7 @@ interface Message {
     imageUrl?: string;
     reactions?: Record<string, string[]>;
     timestamp?: Timestamp | null;
+    expiresAt?: Timestamp | null;
     sessionId?: string;
     senderId?: string;
 }
@@ -55,9 +57,11 @@ export default function AnonymousChatPage() {
     };
 
     useEffect(() => {
+        const now = new Date();
         const q = query(
             collection(db, 'anonymous_public_chat'),
-            orderBy('timestamp', 'asc'),
+            where('expiresAt', '>', FirestoreTimestamp.fromDate(now)),
+            orderBy('expiresAt', 'asc'),
             limit(100)
         );
 
@@ -68,6 +72,7 @@ export default function AnonymousChatPage() {
                     id: doc.id,
                     ...doc.data()
                 })) as Message[];
+                data.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
                 setMessages(data);
                 scrollToBottom();
             },
@@ -89,6 +94,9 @@ export default function AnonymousChatPage() {
         const cleanMessage = sanitiseInput(payload.text);
         if ((!cleanMessage && !payload.gifUrl && !payload.imageUrl) || !userProfile || !user) return;
 
+        const expireDate = new Date();
+        expireDate.setHours(expireDate.getHours() + 48);
+
         // 1. Create Public Doc
         const docRef = await addDoc(collection(db, 'anonymous_public_chat'), {
             text: cleanMessage,
@@ -96,6 +104,7 @@ export default function AnonymousChatPage() {
             imageUrl: payload.imageUrl || null,
             anonymousName: sessionIdentity,
             timestamp: serverTimestamp(),
+            expiresAt: FirestoreTimestamp.fromDate(expireDate),
             sessionId,
         });
 
@@ -128,6 +137,7 @@ export default function AnonymousChatPage() {
 
     return (
         <DashboardLayout>
+            <ModuleGuard moduleKey="disableAnonymousChat" moduleName="Anonymous Chat">
             <div className="h-full flex flex-col">
                 <ChannelHeader name="shadow-realm" description="Anonymous public chat — admins have oversight">
                     <span className="badge text-[var(--ui-accent)]">
@@ -155,49 +165,51 @@ export default function AnonymousChatPage() {
                             const msgRef = doc(db, 'anonymous_public_chat', msg.id);
 
                             return (
-                                <div key={msg.id} className={`message-row group relative ${showHeader ? 'mt-4' : 'mt-0'}`}>
+                                <div key={msg.id} className={`group relative flex w-full px-2 py-1 transition-colors hover:bg-[var(--ui-bg-hover)]/30 rounded-xl ${showHeader ? 'mt-4' : 'mt-0.5'}`}>
                                     <MessageHoverToolbar onReact={(emoji) => handleReact(msg.id, emoji)} />
 
-                                    <div className="flex gap-4">
-                                        <div className="w-10 shrink-0 flex items-start pt-0.5">
+                                    <div className="flex gap-4 w-full">
+                                        <div className="w-10 shrink-0 flex items-start pt-1">
                                             {showHeader ? (
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${isMine ? 'bg-[var(--ui-accent-dim)] text-[var(--ui-accent)]' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)]'}`}>
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${isMine ? 'bg-[var(--ui-accent-dim)] text-[var(--ui-accent)]' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)]'}`}>
                                                     {msg.anonymousName.charAt(0)}
                                                 </div>
                                             ) : (
-                                                <span className="text-[10px] text-[var(--ui-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity w-full text-center pt-1">
+                                                <span className="text-[10px] text-[var(--ui-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity w-full text-center pt-1 font-medium">
                                                     {ts ? ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex-1 min-w-0">
+                                        <div className="flex-1 min-w-0 pt-0.5 pb-1">
                                             {showHeader && (
                                                 <div className="flex items-baseline gap-2 mb-0.5">
-                                                    <span className={`font-medium text-[15px] ${isMine ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text)]'}`}>
+                                                    <span className={`font-semibold text-[15px] ${isMine ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text)]'}`}>
                                                         {msg.anonymousName}
                                                         {isMine && <span className="text-xs text-[var(--ui-text-muted)] ml-1">(you)</span>}
                                                     </span>
-                                                    <span className="text-xs text-[var(--ui-text-muted)]">
-                                                        {ts ? formatDistanceToNow(ts, { addSuffix: true }) : 'Sending...'}
+                                                    <span className="text-xs text-[var(--ui-text-muted)] font-medium">
+                                                        {ts ? formatDistanceToNow(ts as Date, { addSuffix: true }) : 'Sending...'}
                                                     </span>
                                                 </div>
                                             )}
                                             {msg.gifUrl && (
-                                                <img src={msg.gifUrl} alt="GIF" className="max-w-[300px] rounded-lg mt-1 object-cover" />
+                                                <img src={msg.gifUrl} alt="GIF" className="max-w-[80%] sm:max-w-[340px] rounded-xl mt-1.5 mb-1 object-cover shadow-sm" />
                                             )}
                                             {msg.imageUrl && (
-                                                <img src={msg.imageUrl} alt="Photo" className="max-w-[300px] rounded-lg mt-1 object-cover border border-[var(--ui-border)]" />
+                                                <img src={msg.imageUrl} alt="Photo" className="max-w-[80%] sm:max-w-[340px] rounded-xl mt-1.5 mb-1 object-cover border border-[var(--ui-border)]/50 shadow-sm" />
                                             )}
                                             {msg.text && (
                                                 <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
-                                                    {filterProfanity(msg.text)}
+                                                    {renderMarkdown(filterProfanity(msg.text))}
                                                 </p>
                                             )}
-                                            <MessageReactions
-                                                messageRef={msgRef}
-                                                reactions={msg.reactions ?? {}}
-                                                currentUserId={user?.uid ?? ''}
-                                            />
+                                            <div className="mt-1">
+                                                <MessageReactions
+                                                    messageRef={msgRef}
+                                                    reactions={msg.reactions ?? {}}
+                                                    currentUserId={user?.uid ?? ''}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -211,9 +223,40 @@ export default function AnonymousChatPage() {
                 <ChatInput
                     onSend={handleSend}
                     placeholder={`Message as ${sessionIdentity}...`}
-                    features={{ emoji: true, gif: true, image: false, markdown: false }}
+                    features={{ emoji: true, gif: true, image: false, markdown: true }}
                 />
             </div>
+            </ModuleGuard>
         </DashboardLayout>
     );
+}
+
+/* Simple markdown renderer */
+function renderMarkdown(text: string): React.ReactNode {
+    const parts: React.ReactNode[] = [];
+    let remaining = text;
+    let key = 0;
+
+    const patterns = [
+        { regex: /\*\*(.+?)\*\*/g, render: (m: string) => <strong key={key++} className="font-bold text-[var(--ui-text)]">{m}</strong> },
+        { regex: /\*(.+?)\*/g, render: (m: string) => <em key={key++} className="italic">{m}</em> },
+        { regex: /`(.+?)`/g, render: (m: string) => <code key={key++} className="px-1.5 py-0.5 rounded bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)] text-[13px] font-mono">{m}</code> },
+    ];
+
+    for (const { regex, render } of patterns) {
+        if (typeof remaining !== 'string') { parts.push(remaining); return parts; }
+        const newParts: React.ReactNode[] = [];
+        let lastIndex = 0;
+        regex.lastIndex = 0;
+        let match: RegExpExecArray | null;
+        while ((match = regex.exec(remaining)) !== null) {
+            if (match.index > lastIndex) newParts.push(remaining.slice(lastIndex, match.index));
+            newParts.push(render(match[1]));
+            lastIndex = match.index + match[0].length;
+        }
+        if (lastIndex < remaining.length) newParts.push(remaining.slice(lastIndex));
+        if (newParts.some((n) => typeof n !== 'string')) return newParts;
+        remaining = newParts.join('');
+    }
+    return remaining || text;
 }

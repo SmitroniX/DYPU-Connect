@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import ModuleGuard from '@/components/ModuleGuard';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/lib/firebase';
 import {
@@ -16,7 +17,7 @@ import { sanitiseInput, hasDangerousContent, filterProfanity } from '@/lib/secur
 import {
     Send, Heart, MessageCircle, Flame, Sparkles, Ghost,
     Clock, TrendingUp, Filter, ChevronDown, X, Share2,
-    Bookmark, Quote,
+    Bookmark, Quote, Lock, Camera
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
@@ -79,6 +80,7 @@ function ConfessionCard({
     confession: Confession;
     onLike: (id: string) => void;
 }) {
+    const cardRef = useRef<HTMLDivElement>(null);
     const mood = getMood(confession.mood);
     const gradient = confession.mood ? mood.gradient : cardGradient(confession.id);
     const borderColor = confession.mood ? mood.border : 'border-[var(--ui-border)]';
@@ -98,82 +100,151 @@ function ConfessionCard({
         }
     };
 
+    const handleScreenshot = async () => {
+        if (!cardRef.current) return;
+        try {
+            toast.loading('Capturing confession...', { id: 'screenshot' });
+            
+            // Workaround for html2canvas in app router
+            const { default: html2canvas } = await import('html2canvas');
+            
+            // Ensure card is temporarily styled correctly for capture
+            const originalTransform = cardRef.current.style.transform;
+            cardRef.current.style.transform = 'none';
+
+            const canvas = await html2canvas(cardRef.current, {
+                backgroundColor: getComputedStyle(document.body).getPropertyValue('--ui-bg-base').trim() || '#000000',
+                scale: window.devicePixelRatio || 2,
+                logging: true,
+                useCORS: true,
+                allowTaint: true,
+                removeContainer: true,
+                onclone: (clonedDoc) => {
+                    const clonedCard = clonedDoc.querySelector('article');
+                    if (clonedCard) {
+                        // Remove hover effects just in case
+                        clonedCard.style.transform = 'none';
+                        clonedCard.style.transition = 'none';
+                        
+                        // Hide action buttons during capture
+                        const actionBar = clonedCard.querySelector('[data-html2canvas-ignore]');
+                        if (actionBar) {
+                            (actionBar as HTMLElement).style.display = 'none';
+                        }
+                    }
+                }
+            });
+
+            // Restore style
+            cardRef.current.style.transform = originalTransform;
+
+            const dataUrl = canvas.toDataURL('image/png', 1.0);
+            
+            // Trigger download
+            const link = document.createElement('a');
+            link.download = `dypu-confession-${confession.id}.png`;
+            link.href = dataUrl;
+            link.click();
+            
+            toast.success('Screenshot saved!', { id: 'screenshot' });
+        } catch (error) {
+            console.error('Screenshot failed:', error);
+            toast.error('Failed to capture screenshot. Check console for details.', { id: 'screenshot' });
+        }
+    };
+
     return (
         <article
-            className={`group relative rounded-2xl border ${borderColor} bg-[var(--ui-bg-surface)] overflow-hidden transition-all duration-200 hover:border-[var(--ui-accent)]/30 hover:shadow-lg hover:shadow-[var(--ui-accent)]/5`}
+            ref={cardRef}
+            className={`group relative rounded-3xl border ${borderColor} bg-[var(--ui-bg-surface)] overflow-hidden transition-all duration-300 hover:border-[var(--ui-accent)]/40 hover:shadow-xl hover:shadow-[var(--ui-accent)]/10 hover:-translate-y-0.5`}
         >
             {/* Gradient wash */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} pointer-events-none`} />
+            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity`} />
 
             {/* Content */}
-            <div className="relative p-5 sm:p-6">
+            <div className="relative p-6 sm:p-7">
                 {/* Top row: mood tag + time */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-2">
                         {confession.mood ? (
-                            <span className={`inline-flex items-center gap-1 rounded-full ${mood.bg} px-2.5 py-1 text-[11px] font-semibold ${mood.accent}`}>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full ${mood.bg} px-3 py-1 text-[12px] font-bold tracking-wide ${mood.accent}`}>
                                 {mood.label}
                             </span>
                         ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ui-accent)]/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--ui-accent)]">
-                                <Ghost className="h-3 w-3" /> Anonymous
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--ui-accent)]/10 px-3 py-1 text-[12px] font-bold tracking-wide text-[var(--ui-accent)]">
+                                <Ghost className="h-3.5 w-3.5" /> Anonymous
                             </span>
                         )}
                     </div>
-                    <span className="text-[11px] text-[var(--ui-text-muted)] flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
+                    <span className="text-xs font-medium text-[var(--ui-text-muted)] flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5" />
                         {timeAgo}
                     </span>
                 </div>
 
                 {/* Quote decoration */}
-                <Quote className="h-6 w-6 text-[var(--ui-accent)]/20 mb-2" />
+                <Quote className="h-8 w-8 text-[var(--ui-accent)]/20 mb-3" />
 
                 {/* Confession text */}
-                <p className="text-[15px] sm:text-base leading-relaxed text-[var(--ui-text)] whitespace-pre-wrap break-words min-h-[3rem]">
+                <p className="text-[16px] sm:text-[17px] leading-relaxed text-[var(--ui-text)] whitespace-pre-wrap break-words min-h-[4rem] font-medium">
                     {filterProfanity(confession.text)}
                 </p>
 
                 {/* Anonymous identity */}
-                <div className="mt-4 flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-full bg-[var(--ui-accent)]/15 flex items-center justify-center text-[var(--ui-accent)] text-xs font-bold">
+                <div className="mt-6 flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-[var(--ui-accent)]/15 flex items-center justify-center text-[var(--ui-accent)] text-xs font-bold shadow-sm">
                         {confession.anonymousName.charAt(0)}
                     </div>
-                    <span className="text-xs font-medium text-[var(--ui-text-secondary)]">
-                        {confession.anonymousName}
-                    </span>
+                    <div className="flex flex-col">
+                        <span className="text-[13px] font-bold text-[var(--ui-text)]">
+                            {confession.anonymousName}
+                        </span>
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--ui-text-muted)]">
+                            DYPU Connect
+                        </span>
+                    </div>
                 </div>
 
                 {/* Divider */}
-                <div className="h-px bg-[var(--ui-divider)] my-4" />
+                <div className="h-px bg-[var(--ui-divider)] my-5" />
 
                 {/* Action bar */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
+                <div className="flex items-center justify-between" data-html2canvas-ignore>
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={() => onLike(confession.id)}
-                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[var(--ui-text-muted)] hover:text-pink-400 hover:bg-pink-500/10 transition-all"
+                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-[var(--ui-text-muted)] hover:text-pink-400 hover:bg-pink-500/15 transition-all active:scale-95"
                         >
                             <Heart className="h-4 w-4" />
                             <span>{confession.likesCount || 0}</span>
                         </button>
                         <button
-                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[var(--ui-text-muted)] hover:text-blue-400 hover:bg-blue-500/10 transition-all"
+                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-[var(--ui-text-muted)] hover:text-blue-400 hover:bg-blue-500/15 transition-all active:scale-95"
                         >
                             <MessageCircle className="h-4 w-4" />
                             <span>{confession.commentsCount || 0}</span>
                         </button>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            onClick={handleScreenshot}
+                            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-indigo-400 hover:bg-indigo-500/15 transition-all active:scale-95 flex items-center gap-1.5"
+                            aria-label="Export as Image"
+                            title="Download Screenshot"
+                        >
+                            <Camera className="h-4 w-4" />
+                            <span className="text-[11px] font-bold uppercase tracking-wider">Snap</span>
+                        </button>
                         <button
                             onClick={handleShare}
-                            className="p-1.5 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] hover:bg-[var(--ui-accent)]/10 transition-all"
-                            aria-label="Share confession"
+                            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] hover:bg-[var(--ui-accent)]/15 transition-all active:scale-95"
+                            aria-label="Share text"
+                            title="Share as Text"
                         >
                             <Share2 className="h-4 w-4" />
                         </button>
                         <button
-                            className="p-1.5 rounded-full text-[var(--ui-text-muted)] hover:text-amber-400 hover:bg-amber-500/10 transition-all"
+                            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-amber-400 hover:bg-amber-500/15 transition-all active:scale-95 hidden sm:flex"
                             aria-label="Bookmark"
                         >
                             <Bookmark className="h-4 w-4" />
@@ -214,7 +285,8 @@ export default function ConfessionsPage() {
             const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Confession[];
             setConfessions(data);
         }, (error) => {
-            console.error('Confessions listener error:', error);
+            console.error('[Confessions] Listener error:', error);
+            toast.error('Failed to load confessions. Check your permissions.');
         });
         return () => unsubscribe();
     }, []);
@@ -300,8 +372,9 @@ export default function ConfessionsPage() {
 
     return (
         <DashboardLayout>
-            <div className="h-full flex flex-col">
-                <PageHeader
+            <ModuleGuard moduleKey="disableConfessions" moduleName="Confessions">
+                <div className="h-full flex flex-col">
+                    <PageHeader
                     title="Confessions"
                     description="Spill the tea anonymously"
                     icon={<Flame className="h-4.5 w-4.5 text-amber-400" />}
@@ -309,6 +382,14 @@ export default function ConfessionsPage() {
 
                 <div className="flex-1 overflow-y-auto">
                     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+
+                        {/* E2EE Notice */}
+                        <div className="flex justify-center mb-6">
+                            <div className="bg-[var(--ui-accent)]/10 text-[var(--ui-accent)] text-[11px] px-3 py-2 rounded-lg flex items-center gap-2 max-w-[340px] text-center shadow-sm ring-1 ring-[var(--ui-accent)]/20 animate-[fade-in-up_0.4s_ease-out]">
+                                <Lock className="w-3.5 h-3.5 shrink-0" />
+                                <span className="leading-tight">Confessions are end-to-end encrypted. No one, not even DYPU Connect, can trace them back to you.</span>
+                            </div>
+                        </div>
 
                         {/* ═══════ Compose Card ═══════ */}
                         <div className="relative rounded-2xl border border-[var(--ui-accent)]/20 bg-[var(--ui-bg-surface)] overflow-hidden">
@@ -494,6 +575,7 @@ export default function ConfessionsPage() {
                     </div>
                 </div>
             </div>
+            </ModuleGuard>
         </DashboardLayout>
     );
 }
