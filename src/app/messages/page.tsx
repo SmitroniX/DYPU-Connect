@@ -135,85 +135,96 @@ export default function InboxPage() {
 
                 <div className="flex-1 overflow-y-auto">
                     {showNewChat && (
-                        <div className="surface m-4 p-5 animate-[fade-in-up_0.3s_ease-out]">
-                            <h3 className="font-bold text-[var(--ui-text)] mb-4">Start a conversation</h3>
+                        <div className="surface mx-4 mt-6 mb-2 p-5 animate-[fade-in-up_0.3s_ease-out] border-[var(--ui-border)] shadow-lg">
+                            <h3 className="font-bold text-[var(--ui-text)] mb-4 text-lg">Start a conversation</h3>
                             <div className="relative mb-4">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--ui-text-muted)]" />
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--ui-text-muted)]" />
                                 <input
                                     type="text"
-                                    className="input pl-10"
+                                    className="input pl-10 bg-[var(--ui-bg-input)] border border-[var(--ui-border)] focus:border-[var(--ui-accent)] focus:ring-1 focus:ring-[var(--ui-accent)] transition-all rounded-lg"
                                     placeholder="Search students by name or field..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
-                            <div className="max-h-60 overflow-y-auto space-y-0.5">
+                            <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
                                 {filteredUsers.map((u) => (
                                     <button
                                         key={u.id}
                                         onClick={() => startChat(u)}
-                                        className="w-full flex items-center gap-3 p-2.5 hover:bg-[var(--ui-bg-hover)] rounded text-left transition-colors"
+                                        className="w-full flex items-center gap-3 p-3 hover:bg-[var(--ui-bg-hover)] rounded-lg text-left transition-colors group"
                                     >
                                         <img
                                             src={resolveProfileImage(u.profileImage || u.email, u.email, u.name || 'User')}
                                             alt=""
-                                            className="w-9 h-9 rounded-full object-cover object-center"
+                                            className="w-10 h-10 rounded-full object-cover object-center ring-2 ring-transparent group-hover:ring-[var(--ui-accent-dim)] transition-all"
                                         />
                                         <div>
-                                            <h4 className="text-sm font-medium text-[var(--ui-text)]">{u.name}</h4>
-                                            <p className="text-xs text-[var(--ui-text-muted)]">{u.field} - {u.year} - {u.division}</p>
+                                            <h4 className="text-[15px] font-medium text-[var(--ui-text)] group-hover:text-[var(--ui-accent)] transition-colors">{u.name}</h4>
+                                            <p className="text-xs text-[var(--ui-text-muted)] mt-0.5">{u.field} • {u.year} • {u.division}</p>
                                         </div>
                                     </button>
                                 ))}
                                 {filteredUsers.length === 0 && (
-                                    <p className="text-sm text-[var(--ui-text-muted)] text-center py-4">No students found.</p>
+                                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                                        <Search className="h-8 w-8 text-[var(--ui-text-muted)] mb-3 opacity-50" />
+                                        <p className="text-sm font-medium text-[var(--ui-text-secondary)]">No students found</p>
+                                        <p className="text-xs text-[var(--ui-text-muted)] mt-1">Try a different search term</p>
+                                    </div>
                                 )}
                             </div>
                         </div>
                     )}
 
-                    <div className="divide-y divide-[var(--ui-divider)]">
+                    <div className="p-4 space-y-3">
                         {chats.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-[calc(100vh-12rem)] text-center">
-                                <div className="w-16 h-16 rounded-full bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
-                                    <MessageSquare className="h-8 w-8 text-[var(--ui-text-muted)]" />
+                            <div className="flex flex-col items-center justify-center h-[calc(100vh-16rem)] text-center surface border border-[var(--ui-border)] mx-4 rounded-xl">
+                                <div className="w-20 h-20 rounded-full bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-6 shadow-sm border border-[var(--ui-border)]">
+                                    <MessageSquare className="h-10 w-10 text-[var(--ui-accent)] opacity-80" />
                                 </div>
                                 <h3 className="text-xl font-bold text-[var(--ui-text)]">No messages yet</h3>
-                                <p className="text-sm text-[var(--ui-text-muted)] mt-1">Get started by creating a new chat.</p>
+                                <p className="text-sm text-[var(--ui-text-muted)] mt-2 max-w-[250px] leading-relaxed">
+                                    Get started by creating a new chat and striking up a conversation.
+                                </p>
                             </div>
                         ) : (
                             chats.map((chat) => {
                                 const otherUserId = chat.participants.find(id => id !== user?.uid) || '';
                                 const otherName = chat.participantNames?.[otherUserId] || 'Unknown User';
                                 const otherImage = resolveProfileImage(chat.participantImages?.[otherUserId], undefined, otherName);
+                                const unreadCount = chat.unreadCount?.[user?.uid || ''] ?? 0;
+                                const isUnread = unreadCount > 0;
 
                                 return (
                                     <Link
                                         key={chat.id}
                                         href={`/messages/${chat.id}`}
-                                        className="flex items-center gap-4 px-4 py-3 hover:bg-[var(--ui-bg-hover)] transition-colors group cursor-pointer"
+                                        className="surface-interactive flex items-center gap-4 px-4 py-3.5 group cursor-pointer"
                                     >
                                         <div className="relative shrink-0">
-                                            <img src={otherImage} alt={otherName} className="w-10 h-10 rounded-full object-cover object-center" />
-                                            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[var(--ui-text-muted)] rounded-full ring-[3px] ring-[var(--ui-bg-base)]" />
+                                            <img src={otherImage} alt={otherName} className="w-12 h-12 rounded-full object-cover object-center ring-2 ring-[var(--ui-bg-base)] group-hover:ring-[var(--ui-bg-hover)] transition-all" />
+                                            {/* Online status indicator placeholder - currently random/static design for UI */}
+                                            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full ring-[3px] ring-[var(--ui-bg-surface)] group-hover:ring-[var(--ui-bg-hover)] transition-all" />
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-baseline mb-0.5">
-                                                <h3 className="text-[15px] font-medium text-[var(--ui-text)] truncate pr-4">{otherName}</h3>
-                                                <div className="flex items-center gap-2 shrink-0">
-                                                    {(chat.unreadCount?.[user?.uid || ''] ?? 0) > 0 && (
-                                                        <span className="bg-[var(--ui-accent)] text-[var(--ui-bg-elevated)] text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                                                            {chat.unreadCount![user!.uid] > 99 ? '99+' : chat.unreadCount![user!.uid]}
-                                                        </span>
-                                                    )}
-                                                    <span className="text-[10px] text-[var(--ui-text-muted)]">
-                                                        {chat.updatedAt?.toDate ? chat.updatedAt.toDate().toLocaleDateString() : ''}
-                                                    </span>
-                                                </div>
+                                        <div className="flex-1 min-w-0 pr-1">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <h3 className={`text-[15px] ${isUnread ? 'font-bold text-[var(--ui-text)]' : 'font-medium text-[var(--ui-text-secondary)]'} truncate pr-4 transition-colors group-hover:text-[var(--ui-text)]`}>
+                                                    {otherName}
+                                                </h3>
+                                                <span className={`text-xs whitespace-nowrap ${isUnread ? 'text-[var(--ui-accent)] font-medium' : 'text-[var(--ui-text-muted)]'}`}>
+                                                    {chat.updatedAt?.toDate ? chat.updatedAt.toDate().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''}
+                                                </span>
                                             </div>
-                                            <p className={`text-sm truncate ${((chat.unreadCount?.[user?.uid || ''] ?? 0) > 0) ? 'text-[var(--ui-text)] font-medium' : 'text-[var(--ui-text-secondary)]'}`}>
-                                                {chat.lastMessage || 'Say hello! 👋'}
-                                            </p>
+                                            <div className="flex justify-between items-center gap-4">
+                                                <p className={`text-sm truncate ${isUnread ? 'text-[var(--ui-text)] font-semibold' : 'text-[var(--ui-text-muted)]'}`}>
+                                                    {chat.lastMessage || 'Say hello! 👋'}
+                                                </p>
+                                                {isUnread && (
+                                                    <span className="shrink-0 bg-[var(--ui-accent)] text-[var(--ui-accent-text)] text-[11px] font-bold px-2 py-0.5 rounded-full min-w-[22px] text-center shadow-[0_0_12px_rgba(129,140,248,0.4)]">
+                                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </Link>
                                 );
