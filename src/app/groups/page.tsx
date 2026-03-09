@@ -88,7 +88,7 @@ export default function GroupsPage() {
 
             if (!groupSnap.exists()) {
                 // Initial creation by the first student to visit
-                const hierarchyInfo: any = { field: userProfile.field };
+                const hierarchyInfo: Record<string, string> = { field: userProfile.field };
                 if (group.type === 'Year Level' || group.type === 'Division Level') {
                     hierarchyInfo.year = userProfile.year;
                 }

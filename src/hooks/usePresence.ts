@@ -61,7 +61,7 @@ export function useUserPresence(uid: string | undefined): UserPresence | null {
 
     useEffect(() => {
         if (!uid || !rtdb) {
-            setPresence(null);
+            setTimeout(() => setPresence(null), 0);
             return;
         }
 

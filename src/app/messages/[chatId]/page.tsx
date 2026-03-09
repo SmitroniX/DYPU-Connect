@@ -16,11 +16,10 @@ import ProfilePopup from '@/components/ProfilePopup';
 import dynamic from 'next/dynamic';
 const VideoCall = dynamic(() => import('@/components/VideoCall'), { ssr: false });
 import ChatDetailsDrawer from '@/components/ChatDetailsDrawer';
-import { ArrowLeft, Lock, Search, X } from 'lucide-react';
+import { Lock, Search, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { sanitiseInput, filterProfanity } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
-import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { createNotification } from '@/lib/notifications';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -76,7 +75,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                 mutedEntities: Array.from(muted)
             });
             toast.success(isMuted ? 'Chat unmuted' : 'Chat muted');
-        } catch (error) {
+        } catch {
             toast.error('Failed to update mute settings');
         }
     };
@@ -161,7 +160,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                 [`unreadCount.${user.uid}`]: 0
             }).catch(() => {});
         }
-    }, [messages.length, user, chatInfo, chatId]);
+    }, [messages, messages.length, user, chatInfo, chatId]);
 
     const handleSend = useCallback(async (payload: ChatInputPayload) => {
         if (!user) return;
@@ -355,15 +354,13 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                             if (searchQuery.trim() && filteredMessages.length === 0) {
                                 return (
                                     <div className="flex flex-col items-center justify-center h-full text-[var(--ui-text-muted)] mt-10">
-                                        <p>No messages found for "{searchQuery}"</p>
+                                        <p>No messages found for &quot;{searchQuery}&quot;</p>
                                     </div>
                                 );
                             }
 
                             return filteredMessages.map((msg, i) => {
                                 const isMine = msg.senderId === user.uid;
-                                const isEditing = editingMessageId === msg.id;
-
                                 const senderName = isMine ? 'You' : otherName;
                                 const senderImage = isMine
                                     ? resolveProfileImage(chatInfo.participantImages?.[user.uid], undefined, 'You')
@@ -538,7 +535,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                 onClose={() => setIsDrawerOpen(false)}
                 otherName={otherName}
                 otherImage={otherImage}
-                messages={messages as any}
+                messages={messages}
                 onSearchClick={() => {
                     setIsDrawerOpen(false);
                     setIsSearching(true);

@@ -1,0 +1,63 @@
+﻿
+G:\Android\DYPU-Connect\src\app\admin\groups\page.tsx
+    4:8   warning  'DashboardLayout' is defined but never used  @typescript-eslint/no-unused-vars
+  115:36  warning  '_groupId' is defined but never used         @typescript-eslint/no-unused-vars
+
+G:\Android\DYPU-Connect\src\app\groups\[groupId]\page.tsx
+   43:12  warning  'loading' is assigned a value but never used     @typescript-eslint/no-unused-vars
+   43:21  warning  'setLoading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   48:40  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+   69:18  warning  'error' is defined but never used                @typescript-eslint/no-unused-vars
+  168:48  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  216:47  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  475:47  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  493:42  warning  'e' is defined but never used                    @typescript-eslint/no-unused-vars
+  510:42  warning  'e' is defined but never used                    @typescript-eslint/no-unused-vars
+
+G:\Android\DYPU-Connect\src\app\messages\[chatId]\page.tsx
+   19:10  warning  'ArrowLeft' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+   23:8   warning  'Link' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   79:18  warning  'error' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+  164:8   warning  React Hook useEffect has a missing dependency: 'messages'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  358:66  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  358:80  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  365:39  warning  'isEditing' is assigned a value but never used                                                               @typescript-eslint/no-unused-vars
+  541:39  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+
+G:\Android\DYPU-Connect\src\app\profile\edit\page.tsx
+   11:15  warning  'FirebaseError' is defined but never used                                                                    @typescript-eslint/no-unused-vars
+   14:5   warning  'Lock' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   14:11  warning  'Mail' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   14:42  warning  'Upload' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+   14:64  warning  'X' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+   25:31  warning  'listBackups' is defined but never used                                                                      @typescript-eslint/no-unused-vars
+   25:44  warning  'importProfileBackup' is defined but never used                                                              @typescript-eslint/no-unused-vars
+   27:32  warning  'UserProfile' is defined but never used                                                                      @typescript-eslint/no-unused-vars
+   76:10  warning  'PrimaryButton' is defined but never used                                                                    @typescript-eslint/no-unused-vars
+  103:12  warning  'backupFiles' is assigned a value but never used                                                             @typescript-eslint/no-unused-vars
+  103:25  warning  'setBackupFiles' is assigned a value but never used                                                          @typescript-eslint/no-unused-vars
+  104:12  warning  'showBackups' is assigned a value but never used                                                             @typescript-eslint/no-unused-vars
+  104:25  warning  'setShowBackups' is assigned a value but never used                                                          @typescript-eslint/no-unused-vars
+  137:98  warning  React Hook useMemo has a missing dependency: 'formData'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
+  142:8   warning  React Hook useEffect has a missing dependency: 'formData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  222:18  warning  'error' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+  239:39  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+  471:67  error    Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+
+G:\Android\DYPU-Connect\src\app\profile\page.tsx
+   33:5   warning  'PROFILE_DIVISIONS' is defined but never used                      @typescript-eslint/no-unused-vars
+   34:5   warning  'PROFILE_FIELDS' is defined but never used                         @typescript-eslint/no-unused-vars
+   35:5   warning  'PROFILE_GENDERS' is defined but never used                        @typescript-eslint/no-unused-vars
+   37:5   warning  'PROFILE_YEARS' is defined but never used                          @typescript-eslint/no-unused-vars
+   61:5   warning  'Save' is defined but never used                                   @typescript-eslint/no-unused-vars
+  295:12  warning  'saving' is assigned a value but never used                        @typescript-eslint/no-unused-vars
+  313:12  warning  'backupFiles' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  314:12  warning  'showBackups' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  397:11  warning  'handleSave' is assigned a value but never used                    @typescript-eslint/no-unused-vars
+  578:11  warning  'handleProfilePhotoFileChange' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  600:11  warning  'handleExportBackup' is assigned a value but never used            @typescript-eslint/no-unused-vars
+  612:11  warning  'handleListBackups' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  625:11  warning  'handleImportBackup' is assigned a value but never used            @typescript-eslint/no-unused-vars
+
+Γ£û 50 problems (9 errors, 41 warnings)
+

@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, getDocs, limit, where, deleteDoc, doc } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
-import { ShieldAlert, Search, User as UserIcon, MessageSquare, Lock, Info, Activity, Trash2, Ban, MicOff, Image as ImageIcon, ExternalLink, Users as UsersIcon } from 'lucide-react';
+import { ShieldAlert, Search, User as UserIcon, MessageSquare, Lock, Info, Activity, Trash2, Ban, MicOff, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow, format } from 'date-fns';
 import { resolveProfileImage } from '@/lib/profileImage';

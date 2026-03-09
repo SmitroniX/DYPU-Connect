@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { useStore } from '@/store/useStore';
-import { useAuth } from '@/components/AuthProvider';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Bell, MessageSquare, AtSign, Users, MessageCircle, Megaphone, ArrowLeft, Loader2 } from 'lucide-react';
+import { MessageSquare, AtSign, Users, MessageCircle, Megaphone, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
@@ -129,7 +128,7 @@ function ToggleRow({
     disabled?: boolean;
 }) {
     return (
-        <label className={`flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-[var(--ui-bg-hover)] transition-colors ${disabled ? 'opacity-70 pointer-events-none' : ''}`}>
+        <label onClick={(e) => { e.preventDefault(); onToggle(); }} className={`flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-[var(--ui-bg-hover)] transition-colors ${disabled ? 'opacity-70 pointer-events-none' : ''}`}>
             <div className={`p-2.5 rounded-xl shrink-0 ${enabled ? 'bg-[var(--ui-accent)] text-white shadow-md' : 'bg-[var(--ui-bg)] text-[var(--ui-text-muted)]'}`}>
                 <Icon className="w-5 h-5" />
             </div>

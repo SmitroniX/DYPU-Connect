@@ -4,8 +4,8 @@ import { use, useCallback, useEffect, useRef, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { db } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, limit, addDoc, serverTimestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
-import type { Timestamp } from 'firebase/firestore';
 import type { FirebaseError } from 'firebase/app';
+import type { Group, GroupMessage as Message } from '@/types/groups';
 import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
 import { resolveProfileImage } from '@/lib/profileImage';
@@ -25,27 +25,16 @@ import { rtdb } from '@/lib/firebase'; // Assuming rtdb is exported from here
 import { ref, onValue, set, onDisconnect, remove } from 'firebase/database';
 import ModuleGuard from '@/components/ModuleGuard'; // Assuming ModuleGuard is a new component
 
-interface Message {
-    id: string;
-    text: string;
-    senderId: string;
-    senderName: string;
-    senderProfileImage: string;
-    gifUrl?: string;
-    imageUrl?: string;
-    reactions?: Record<string, string[]>;
-    timestamp?: Timestamp | null;
-}
+
 
 export default function GroupChatDetail({ params }: { params: Promise<{ groupId: string }> }) {
     const { groupId } = use(params);
     const [messages, setMessages] = useState<Message[]>([]);
-    const [loading, setLoading] = useState(true);
     const [profilePopup, setProfilePopup] = useState<{ userId: string; rect: DOMRect } | null>(null);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [group, setGroup] = useState<any>(null); // Renamed from groupData to group
+    const [group, setGroup] = useState<Group | null>(null); // Renamed from groupData to group
     const [typingUsers, setTypingUsers] = useState<Array<{ uid: string; name: string }>>([]);
 
     const searchInputRef = useRef<HTMLInputElement>(null);
@@ -66,7 +55,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                 mutedEntities: Array.from(muted)
             });
             toast.success(isMuted ? 'Group unmuted' : 'Group muted');
-        } catch (error) {
+        } catch {
             toast.error('Failed to update mute settings');
         }
     };
@@ -107,7 +96,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
         // Also fetch the group document itself for the drawer
         const fetchGroupDoc = async () => {
             const snap = await getDoc(doc(db, 'groups', groupId));
-            if (snap.exists()) setGroup(snap.data()); // Update to setGroup
+            if (snap.exists()) setGroup({ id: snap.id, ...snap.data() } as Group);
         };
         fetchGroupDoc();
 
@@ -121,7 +110,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                         text: raw.text ?? '',
                         senderId: raw.senderId ?? '',
                         senderName: raw.senderName ?? 'User',
-                        senderProfileImage: raw.senderProfileImage ?? '',
+                        senderImage: raw.senderProfileImage ?? '',
                         gifUrl: typeof raw.gifUrl === 'string' ? raw.gifUrl : '',
                         imageUrl: typeof raw.imageUrl === 'string' ? raw.imageUrl : '',
                         reactions: raw.reactions ?? {},
@@ -165,7 +154,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                 const data = snapshot.val();
                 const typingObj = Object.entries(data)
                     .filter(([uid, val]) => val !== false && uid !== user.uid)
-                    .map(([uid, val]: [string, any]) => ({ uid, name: val.name as string }));
+                    .map(([uid, val]) => ({ uid, name: (val as { name: string })?.name as string }));
                 
                 setTypingUsers(typingObj);
             } else {
@@ -199,7 +188,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
             text: cleanMessage,
             senderId: user.uid,
             senderName: userProfile.name,
-            senderProfileImage: userProfile.profileImage,
+            senderImage: userProfile.profileImage,
             timestamp: serverTimestamp(),
         };
         if (payload.gifUrl) msgData.gifUrl = payload.gifUrl;
@@ -213,7 +202,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
             const groupSnap = await getDoc(groupRef);
             if (groupSnap.exists()) {
                 const groupData = groupSnap.data();
-                const updates: Record<string, any> = {
+                const updates: Record<string, unknown> = {
                     lastMessage: cleanMessage || (payload.imageUrl ? 'Sent an image' : 'Sent a GIF'),
                     updatedAt: serverTimestamp()
                 };
@@ -377,7 +366,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                             <div className="w-10 shrink-0 flex items-start pt-0.5">
                                                 {showMsgHeader ? (
                                                     <img
-                                                        src={resolveProfileImage(msg.senderProfileImage, undefined, msg.senderName)}
+                                                        src={resolveProfileImage(msg.senderImage || '', undefined, msg.senderName || 'User')}
                                                         alt=""
                                                         className="w-10 h-10 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-[var(--ui-accent)]/40 transition-all"
                                                         onClick={(e) => handleAvatarClick(msg.senderId, e)}
@@ -472,7 +461,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                         isOpen={detailsOpen}
                         onClose={() => setDetailsOpen(false)}
                         group={group}
-                        messages={messages as any}
+                        messages={messages}
                         onSearchClick={() => {
                             setDetailsOpen(false);
                             setIsSearching(true);
@@ -483,14 +472,14 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                             if (confirm('Are you sure you want to remove this member?')) {
                                 try {
                                     const groupRef = doc(db, 'groups', groupId);
-                                    const newMembers = group.memberIds.filter((id: string) => id !== uid);
-                                    const newAdmins = (group.adminIds || []).filter((id: string) => id !== uid);
+                                    const newMembers = (group.memberIds as string[]).filter((id: string) => id !== uid);
+                                    const newAdmins = ((group.adminIds as string[]) || []).filter((id: string) => id !== uid);
                                     await updateDoc(groupRef, { 
                                         memberIds: newMembers,
                                         adminIds: newAdmins
                                     });
                                     toast.success('Member removed');
-                                } catch (e) {
+                                } catch {
                                     toast.error('Failed to remove member');
                                 }
                             }
@@ -499,15 +488,15 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                             if (confirm('Are you sure you want to leave this group?')) {
                                 try {
                                     const groupRef = doc(db, 'groups', groupId);
-                                    const userIdx = group.memberIds.indexOf(user?.uid);
+                                    const userIdx = user ? (group.memberIds as string[]).indexOf(user.uid) : -1;
                                     if (userIdx > -1) {
-                                        const newMembers = [...group.memberIds];
+                                        const newMembers = [...(group.memberIds as string[])];
                                         newMembers.splice(userIdx, 1);
                                         await updateDoc(groupRef, { memberIds: newMembers });
                                         toast.success('Left group');
                                         window.location.href = '/groups';
                                     }
-                                } catch (e) {
+                                } catch {
                                     toast.error('Failed to leave group');
                                 }
                             }

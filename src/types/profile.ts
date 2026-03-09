@@ -1,4 +1,4 @@
-export type UserRole = 'user' | 'admin';
+export type UserRole = 'user' | 'admin' | 'moderator';
 export type UserStatus = 'active' | 'banned';
 export type ProfileGender = 'male' | 'female' | 'other';
 export type ProfileVisibility = 'public' | 'private';
@@ -32,6 +32,7 @@ export interface GoogleDriveConnection {
     connectedAt: number;
     folderId?: string;
     folderLink?: string;
+    accessToken?: string;
 }
 
 export type AutoBackupInterval = '24h' | '2d' | '7d' | '28d';

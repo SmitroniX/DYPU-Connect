@@ -8,10 +8,9 @@ import { useStore } from '@/store/useStore';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import toast from 'react-hot-toast';
-import type { FirebaseError } from 'firebase/app';
 import {
     ArrowLeft, Camera, Github, Globe, HardDriveUpload, Instagram, Linkedin,
-    Lock, Mail, Save, ShieldCheck, User, Upload, ChevronRight, X
+    Save, ShieldCheck, User, ChevronRight
 } from 'lucide-react';
 
 import {
@@ -22,9 +21,9 @@ import {
 } from '@/lib/googleDrive';
 import { resolveProfileImage } from '@/lib/profileImage';
 import { logActivity } from '@/lib/activityLog';
-import { exportProfileBackup, listBackups, importProfileBackup } from '@/lib/backup';
+import { exportProfileBackup } from '@/lib/backup';
 import type { GoogleDriveListFile } from '@/lib/googleDrive';
-import type { ProfileFormData, UserProfile } from '@/types/profile';
+import type { ProfileFormData } from '@/types/profile';
 import {
     getProfileBranchOptions,
     PROFILE_DIVISIONS,
@@ -73,17 +72,7 @@ function SelectField({ label, id, children, ...props }: { label: string; id: str
     );
 }
 
-function PrimaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-    return (
-        <button
-            className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-            {...props}
-        >
-            <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 transition-opacity group-hover:opacity-100" />
-            <span className="relative z-10 flex items-center gap-2">{children}</span>
-        </button>
-    );
-}
+
 
 export default function AccountsCenterPage() {
     const { user } = useAuth();
@@ -100,8 +89,6 @@ export default function AccountsCenterPage() {
     const [uploadingTarget, setUploadingTarget] = useState<'profile' | null>(null);
 
     const [backupBusy, setBackupBusy] = useState(false);
-    const [backupFiles, setBackupFiles] = useState<GoogleDriveListFile[]>([]);
-    const [showBackups, setShowBackups] = useState(false);
 
     useEffect(() => {
         if (!user) { router.replace('/login'); return; }
@@ -134,12 +121,12 @@ export default function AccountsCenterPage() {
     }, [user, userProfile, router, initialData]);
 
     // Handle cascading dropdowns
-    const branchOptions = useMemo(() => formData ? getProfileBranchOptions(formData.field) : [], [formData?.field]);
+    const branchOptions = useMemo(() => formData ? getProfileBranchOptions(formData.field) : [], [formData, formData?.field]);
     useEffect(() => {
         if (formData && !branchOptions.includes(formData.branch)) {
             setFormData(prev => prev ? { ...prev, branch: branchOptions[0] || '' } : null);
         }
-    }, [branchOptions, formData?.branch]);
+    }, [formData, branchOptions, formData?.branch]);
 
     if (!user || !userProfile || !formData || !initialData) {
         return (
@@ -219,7 +206,7 @@ export default function AccountsCenterPage() {
             const uploadResult = await uploadImageToGoogleDrive({ accessToken, file, folderId: userProfile?.googleDrive?.folderId });
             setFormData(prev => prev ? { ...prev, profileImage: uploadResult.directImageUrl } : null);
             toast.success('Photo uploaded instantly!');
-        } catch (error) {
+        } catch {
             setDriveAccessToken(null);
             toast.error('Failed to upload photo.');
         } finally {
@@ -236,7 +223,7 @@ export default function AccountsCenterPage() {
     ] as const;
 
     // A hacky graduation cap icon for inline use since we didn't import one 
-    function GraduationCapIcon(props: any) {
+    function GraduationCapIcon(props: React.SVGProps<SVGSVGElement>) {
         return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.42 10.922a2 2 0 0 1-.019 3.138l-4.223 3.42A2 2 0 0 1 15.3 18l-8.6-4.6"/><path d="M22 10 12 3 2 10l10 7 10-7v5"/><path d="M6 12.2V18a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-5.8"/></svg>;
     }
 
@@ -468,7 +455,7 @@ export default function AccountsCenterPage() {
                                                     try {
                                                         const name = await exportProfileBackup(userProfile, driveAccessToken);
                                                         toast.success(`Exported: ${name}`);
-                                                    } catch (err: any) { toast.error(err.message); }
+                                                    } catch (err) { toast.error(err instanceof Error ? err.message : String(err)); }
                                                     finally { setBackupBusy(false); }
                                                 }}
                                                 disabled={backupBusy}

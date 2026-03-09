@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Search, Image as ImageIcon, Video, File, Bell, BellOff, Ban, Trash2, MoreVertical } from 'lucide-react';
+import { X, Search, Image as ImageIcon, Bell, BellOff, Ban, Trash2, MoreVertical } from 'lucide-react';
 import type { Timestamp } from 'firebase/firestore';
 
 interface Message {

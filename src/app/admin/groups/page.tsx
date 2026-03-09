@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { Users, ChevronRight, ChevronDown, BookOpen, GraduationCap, Building, ShieldAlert, Trash2 } from 'lucide-react';
@@ -112,7 +111,7 @@ export default function AdminGroupsPage() {
         setExpandedNodes(newExpanded);
     };
 
-    const handleClearChat = async (groupId: string) => {
+    const handleClearChat = async () => {
         if (!confirm('Are you sure you want to clear the chat history for this group? This cannot be undone.')) return;
         
         toast.error('Chat clearing logic will be implemented here (Requires Cloud Function to delete subcollection).');
@@ -226,7 +225,7 @@ export default function AdminGroupsPage() {
                                         Jump to Chat
                                     </a>
                                     <button 
-                                        onClick={() => handleClearChat(selectedGroup.id)}
+                                        onClick={() => handleClearChat()}
                                         className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-500/20 transition-colors"
                                     >
                                         <Trash2 className="h-3.5 w-3.5" />

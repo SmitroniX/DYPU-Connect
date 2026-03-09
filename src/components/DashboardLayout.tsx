@@ -95,8 +95,8 @@ function PushPromptBanner() {
 
     const handleEnable = async () => {
         if (!user) return;
-        const { requestPushPermission } = await import('@/lib/fcm');
-        const success = await requestPushPermission(user.uid);
+        const { setupPushNotifications } = await import('@/lib/fcm');
+        const success = await setupPushNotifications(user.uid);
         if (success) {
             toast.success('Push notifications enabled!');
         } else {

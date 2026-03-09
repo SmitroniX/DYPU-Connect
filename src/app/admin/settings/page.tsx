@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
-import { Settings, ShieldAlert, Power, AlertTriangle, Save, RefreshCw } from 'lucide-react';
+import { Settings, Power, AlertTriangle, Save, RefreshCw } from 'lucide-react';
 
 interface SystemSettings {
     maintenanceMode: boolean;

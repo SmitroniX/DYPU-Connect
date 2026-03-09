@@ -15,7 +15,7 @@ interface ChatHeaderProps {
     children?: React.ReactNode;
 }
 
-export default function ChatHeader({ chatId, otherUserId, otherName, otherImage, onAvatarClick, onActionClick, children }: ChatHeaderProps) {
+export default function ChatHeader({ otherUserId, otherName, otherImage, onAvatarClick, onActionClick, children }: ChatHeaderProps) {
     const presence = useUserPresence(otherUserId);
     
     let statusText = 'Offline';

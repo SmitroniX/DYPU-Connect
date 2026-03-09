@@ -1,13 +1,11 @@
 'use client';
 
-import { X, Search, Image as ImageIcon, Video, File, Bell, BellOff, Ban, Trash2, MoreVertical, LogOut } from 'lucide-react';
-import type { Timestamp } from 'firebase/firestore';
+import { X, Search, Image as ImageIcon, Bell, BellOff, Trash2, LogOut, Shield } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Group, GroupMessage } from '@/types/groups';
 import { useAuth } from '@/components/AuthProvider';
 import { useEffect, useState } from 'react';
-import { Shield } from 'lucide-react';
 import { resolveProfileImage } from '@/lib/profileImage';
 
 interface GroupDetailsDrawerProps {
@@ -34,7 +32,7 @@ export default function GroupDetailsDrawer({
     onToggleMute
 }: GroupDetailsDrawerProps) {
     const { user } = useAuth();
-    const [memberProfiles, setMemberProfiles] = useState<Record<string, any>>({});
+    const [memberProfiles, setMemberProfiles] = useState<Record<string, {name?: string, profileImage?: string, email?: string, field?: string, year?: string}>>({});
     const [loadingMembers, setLoadingMembers] = useState(false);
 
     useEffect(() => {
@@ -43,7 +41,7 @@ export default function GroupDetailsDrawer({
         const fetchMembers = async () => {
             setLoadingMembers(true);
             try {
-                const profiles: Record<string, any> = {};
+                const profiles: Record<string, {name?: string, profileImage?: string, email?: string, field?: string, year?: string}> = {};
                 // Ideally, do this in chunks or from a batched query if member list is huge
                 // For MVP, fetch individually 
                 const promises = group.memberIds.slice(0, 50).map(uid => 
@@ -53,7 +51,7 @@ export default function GroupDetailsDrawer({
                 const snaps = await Promise.all(promises);
                 snaps.forEach(snap => {
                     if (snap.exists()) {
-                        profiles[snap.id] = snap.data();
+                        profiles[snap.id] = snap.data() as {name?: string, profileImage?: string, email?: string, field?: string, year?: string};
                     }
                 });
                 

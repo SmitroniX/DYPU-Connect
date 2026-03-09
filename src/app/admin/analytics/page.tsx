@@ -176,12 +176,12 @@ export default function AdminAnalyticsPage() {
         fetchAnalytics(false, dateRange);
     }, [fetchAnalytics, dateRange]);
 
-    const CustomTooltip = ({ active, payload, label }: any) => {
+    const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ color?: string; name?: string; value?: number }>; label?: string; }) => {
         if (active && payload && payload.length) {
             return (
                 <div className="surface p-3 ring-1 ring-[var(--ui-border)] shadow-xl rounded-lg min-w-[150px]">
                     <p className="text-sm font-bold text-[var(--ui-text)] mb-2">{label}</p>
-                    {payload.map((entry: any, index: number) => (
+                    {payload.map((entry: { color?: string; name?: string; value?: number }, index: number) => (
                         <div key={index} className="flex items-center justify-between gap-4 text-xs">
                             <span className="flex items-center gap-1.5 text-[var(--ui-text-muted)]">
                                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
