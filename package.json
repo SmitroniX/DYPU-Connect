@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
@@ -34,7 +34,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.15.8",
+    "@netlify/plugin-nextjs": "^5.15.9",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
