@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, deleteUser } from 'firebase/auth';
+import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, deleteUser } from 'firebase/auth';
 import type { FirebaseError } from 'firebase/app';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -23,6 +23,7 @@ interface AuthContextType {
     sendLoginLink: (email: string) => Promise<void>;
     verifyLoginLink: (email: string, link: string) => Promise<void>;
     signInWithGoogle: () => Promise<void>;
+    signInWithGithub: () => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -297,6 +298,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const signInWithGithub = async () => {
+        const provider = new GithubAuthProvider();
+        try {
+            if (isAndroidApp()) {
+                await signInWithRedirect(auth, provider);
+                return;
+            }
+
+            const result = await signInWithPopup(auth, provider);
+            const email = result.user.email;
+
+            // Enforce @dypatil.edu restriction
+            if (!email || !email.endsWith('@dypatil.edu')) {
+                await deleteUser(result.user).catch(() => {});
+                await signOut(auth);
+                throw new Error('Only @dypatil.edu GitHub accounts are allowed. Please ensure your GitHub email is verified and university-issued.');
+            }
+
+            // Log sign-in activity with device info (fire-and-forget)
+            const deviceInfo = collectDeviceInfo();
+            logActivity(
+                result.user.uid,
+                'login',
+                `Signed in with GitHub (${email}) · ${deviceInfo.browser} on ${deviceInfo.os} · ${deviceInfo.device}`,
+            );
+            registerDeviceSession(result.user.uid).catch(() => {});
+        } catch (error) {
+            if (error instanceof Error && error.message.includes('@dypatil.edu')) {
+                throw error;
+            }
+            throw mapAuthError(error);
+        }
+    };
+
     const logout = async () => {
         stopAutoBackupScheduler();
         setDriveAccessToken(null);
@@ -334,7 +369,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <AuthContext.Provider value={{ user, loading, sendLoginLink, verifyLoginLink, signInWithGoogle, logout }}>
+        <AuthContext.Provider value={{ user, loading, sendLoginLink, verifyLoginLink, signInWithGoogle, signInWithGithub, logout }}>
             {loading ? <PremiumLoadingScreen /> : children}
         </AuthContext.Provider>
     );
