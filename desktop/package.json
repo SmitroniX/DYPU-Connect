@@ -2,6 +2,7 @@
   "name": "dypu-connect-desktop",
   "version": "1.0.0",
   "description": "Desktop app for DYPU Connect",
+  "repository": "https://github.com/SmitroniX/DYPU-Connect.git",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
