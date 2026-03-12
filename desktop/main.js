@@ -1,5 +1,11 @@
-const { app, BrowserWindow, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const path = require('path');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
+
+// Configure logging
+log.transports.file.level = 'info';
+autoUpdater.logger = log;
 
 let mainWindow;
 
@@ -35,6 +41,11 @@ function createWindow() {
 
   mainWindow.loadURL('https://dypu-connect.netlify.app/');
 
+  // Check for updates once window is ready
+  mainWindow.once('ready-to-show', () => {
+    autoUpdater.checkForUpdatesAndNotify();
+  });
+
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     // Force auth popups to open in the system browser
     if (url.includes('google.com') || url.includes('github.com') || url.includes('firebaseapp.com')) {
@@ -45,6 +56,29 @@ function createWindow() {
     return { action: 'deny' };
   });
 }
+
+// ── Auto Update Events ──
+autoUpdater.on('update-available', () => {
+  log.info('Update available.');
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  log.info('Update downloaded.');
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Update Ready',
+    message: 'A new version of DYPU Connect has been downloaded. Restart the app to apply the update?',
+    buttons: ['Restart Now', 'Later']
+  }).then((result) => {
+    if (result.response === 0) {
+      autoUpdater.quitAndInstall();
+    }
+  });
+});
+
+autoUpdater.on('error', (err) => {
+  log.error('Update error:', err);
+});
 
 // Handle protocol activation
 app.on('open-url', (event, url) => {

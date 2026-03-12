@@ -13,6 +13,13 @@
   "build": {
     "appId": "com.dypu.connect",
     "productName": "DYPU Connect",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "SmitroniX",
+        "repo": "DYPU-Connect"
+      }
+    ],
     "directories": {
       "output": "dist"
     },
@@ -26,6 +33,10 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     }
+  },
+  "dependencies": {
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.8.3"
   },
   "devDependencies": {
     "electron": "^34.0.0",
