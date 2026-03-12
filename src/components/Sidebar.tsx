@@ -88,12 +88,12 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     return (
         <div className="flex h-full flex-col bg-[var(--ui-bg-surface)] border-r border-[var(--ui-divider)]">
             {/* App header */}
-            <div className="flex h-14 shrink-0 items-center justify-between px-5">
-                <h1 className="text-base font-semibold text-[var(--ui-text)] tracking-tight">
+            <div className="flex h-14 shrink-0 items-center justify-between px-5 titlebar-drag">
+                <h1 className="text-base font-semibold text-[var(--ui-text)] tracking-tight no-select">
                     <span className="text-[var(--ui-accent)]">✦</span> DYPU Connect
                 </h1>
                 {/* Actions (Desktop Only) */}
-                <div className="relative hidden lg:flex items-center gap-1.5">
+                <div className="relative hidden lg:flex items-center gap-1.5 titlebar-no-drag">
                     <button
                         onClick={() => setSearchModalOpen(true)}
                         className="p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"

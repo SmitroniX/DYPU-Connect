@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* ── Draggable Area for Electron ── */
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+}
+
 /* ── Native Design Tokens ───────────────────────── */
 
 :root {

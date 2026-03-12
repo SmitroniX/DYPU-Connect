@@ -16,6 +16,16 @@ import { loadGoogleIdentityScript, isGoogleDriveConfigured } from '@/lib/googleD
 import PremiumLoadingScreen from './PremiumLoadingScreen';
 import { usePresence } from '@/hooks/usePresence';
 import { isAndroidApp } from '@/lib/android';
+import { signInWithCustomToken } from 'firebase/auth';
+
+declare global {
+    interface Window {
+        electron?: {
+            onAuthCallback: (callback: (url: string) => void) => void;
+            isElectron: boolean;
+        };
+    }
+}
 
 interface AuthContextType {
     user: User | null;
@@ -171,6 +181,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         return () => unsubscribe();
     }, [firebaseReady, setCurrentUser, setUserProfile, setStoreLoading]);
+
+    // Electron Deep Link Auth Listener
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.electron) {
+            window.electron.onAuthCallback(async (url) => {
+                const urlObj = new URL(url);
+                const token = urlObj.searchParams.get('token');
+                if (token) {
+                    try {
+                        await signInWithCustomToken(auth, token);
+                        toast.success('Successfully authenticated from browser!');
+                    } catch (error) {
+                        console.error('Electron auth error:', error);
+                        toast.error('Authentication failed.');
+                    }
+                }
+            });
+        }
+    }, []);
 
     // Preload Google Identity Services script early (only if user has Drive connected)
     useEffect(() => {
