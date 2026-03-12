@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     usePresence(); // Track user online/offline status in RTDB
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const { setCurrentUser, setUserProfile, setLoading: setStoreLoading, setDriveAccessToken } = useStore();
+    const { setCurrentUser, userProfile, setUserProfile, setLoading: setStoreLoading, setDriveAccessToken } = useStore();
     const router = useRouter();
 
     // Guard: if Firebase wasn't initialised (env vars missing at build time)
