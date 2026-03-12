@@ -16,7 +16,7 @@
       "output": "dist"
     },
     "win": {
-      "icon": "../public/logo.png",
+      "icon": "icon.png",
       "target": "nsis"
     },
     "nsis": {

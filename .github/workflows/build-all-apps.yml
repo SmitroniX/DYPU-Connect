@@ -5,8 +5,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
 
 permissions:
   contents: write
@@ -41,30 +39,25 @@ jobs:
       - name: Build APK
         working-directory: android
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
         run: |
           if [ -n "$GOOGLE_SERVICES_JSON_BASE64" ]; then
-            echo "Decoding google-services.json from Secrets..."
             echo $GOOGLE_SERVICES_JSON_BASE64 | base64 --decode > app/google-services.json
-          fi
-
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "Decoding Keystore from Secrets..."
-            echo $KEYSTORE_BASE64 | base64 --decode > app/release.keystore
+          else
+            echo "Warning: GOOGLE_SERVICES_JSON_BASE64 missing. Build might fail."
           fi
           
           chmod +x ./gradlew
-          ./gradlew assembleRelease
+          # Build unsigned APK if secrets are missing
+          ./gradlew assembleRelease || ./gradlew assembleDebug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: android/app/build/outputs/apk/release/*.apk
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/apk/debug/*.apk
 
   windows-build:
     name: Build Windows App
@@ -96,6 +89,7 @@ jobs:
   release:
     name: Create GitHub Release
     needs: [android-build, windows-build]
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifacts
@@ -108,18 +102,14 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/**
-          tag_name: v1.3.0-build-${{ github.run_number }}
-          name: DYPU Connect v1.3.0 (Build #${{ github.run_number }})
+          tag_name: build-${{ github.run_number }}
+          name: DYPU Connect Release #${{ github.run_number }}
           body: |
-            ## 🚀 Dual Release: Android & Windows
-
-            ### 📱 Android
-            - Download `DYPU-Connect.apk` for your mobile device.
-            - Ensure "Install from unknown sources" is enabled.
-
-            ### 🪟 Windows
-            - Download `DYPU-Connect-Setup.exe` for your desktop.
-            - High-performance Electron wrapper for the full campus experience.
-
+            ## 🚀 Latest Build Assets
+            
+            Find the latest automated builds below:
+            - **Android:** `.apk` file (may be debug/unsigned if keys aren't set)
+            - **Windows:** `.exe` installer (Electron wrapper)
+            
             ---
-            *Built automatically by GitHub Actions.*
+            *Built by GitHub Actions.*
