@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { MessageSquare, Plus, Search, X } from 'lucide-react';
 import { cacheGet } from '@/lib/cache';
 import toast from 'react-hot-toast';
+import UserStatus from '@/components/UserStatus';
 
 interface PrivateChat {
     id: string;
@@ -203,8 +204,7 @@ export default function InboxPage() {
                                     >
                                         <div className="relative shrink-0">
                                             <img src={otherImage} alt={otherName} className="w-12 h-12 rounded-full object-cover object-center ring-2 ring-[var(--ui-bg-base)] group-hover:ring-[var(--ui-bg-hover)] transition-all" />
-                                            {/* Online status indicator placeholder - currently random/static design for UI */}
-                                            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full ring-[3px] ring-[var(--ui-bg-surface)] group-hover:ring-[var(--ui-bg-hover)] transition-all" />
+                                            <UserStatus userId={otherUserId} />
                                         </div>
                                         <div className="flex-1 min-w-0 pr-1">
                                             <div className="flex justify-between items-center mb-1">

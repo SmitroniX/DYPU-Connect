@@ -18,9 +18,13 @@ function buildBackupFileName(): string {
 
 /**
  * Obtain a Drive access token, preferring the in-memory one.
+ * If 'silent' is true, it will not trigger a popup.
  */
-async function getToken(driveAccessToken: string | null): Promise<string> {
+async function getToken(driveAccessToken: string | null, silent = false): Promise<string> {
     if (driveAccessToken) return driveAccessToken;
+    if (silent) {
+        throw new Error('No access token available for silent backup.');
+    }
     try {
         return await requestGoogleDriveAccessToken('');
     } catch {
@@ -34,8 +38,9 @@ async function getToken(driveAccessToken: string | null): Promise<string> {
 export async function exportProfileBackup(
     userProfile: UserProfile,
     driveAccessToken: string | null,
+    silent = false,
 ): Promise<string> {
-    const accessToken = await getToken(driveAccessToken);
+    const accessToken = await getToken(driveAccessToken, silent);
 
     const backupData = {
         _type: 'dypu-connect-backup',
@@ -150,7 +155,7 @@ export async function checkAndRunAutoBackup(
         }
 
         // Perform backup
-        const fileName = await exportProfileBackup(userProfile, driveAccessToken);
+        const fileName = await exportProfileBackup(userProfile, driveAccessToken, true);
 
         // Save last-backup timestamp locally as fallback
         localStorage.setItem(AUTO_BACKUP_STORAGE_KEY, now.toString());

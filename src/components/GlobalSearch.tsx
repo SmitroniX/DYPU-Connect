@@ -168,7 +168,7 @@ export default function GlobalSearch() {
 
                     {searchQuery.trim().length >= 2 && !isSearching && userResults.length === 0 && groupResults.length === 0 && (
                         <div className="px-4 py-12 text-center text-zinc-500 text-sm">
-                            No results found for "{searchQuery}"
+                            No results found for &quot;{searchQuery}&quot;
                         </div>
                     )}
 

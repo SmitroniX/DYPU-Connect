@@ -1,9 +1,13 @@
 import type { NextConfig } from "next";
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development'
+});
 
 const nextConfig: NextConfig = {
   /* ── Deployment ────────────────────────────────────────── */
-  // `output: "standalone"` produces a minimal self-contained build that works
-  // on Vercel (default), Netlify (@netlify/plugin-nextjs), Docker, etc.
   output: "standalone",
 
   /* ── Images ────────────────────────────────────────────── */
@@ -16,18 +20,16 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "media*.giphy.com" },
       { protocol: "https", hostname: "ui-avatars.com" },
     ],
-    // Netlify & Vercel both support their own image CDNs automatically,
-    // but keeping unoptimized=false (default) lets them handle it.
   },
 
   /* ── Performance ───────────────────────────────────────── */
   reactStrictMode: true,
-  poweredByHeader: false, // hide "X-Powered-By: Next.js" header (Apache ServerTokens Prod)
+  poweredByHeader: false, 
 
-  /* ── Trailing slashes (consistent URLs across hosts) ──── */
+  /* ── Trailing slashes ──────────────────────────────────── */
   trailingSlash: false,
 
-  /* ── Security Headers — CrowdStrike Falcon / Apache mod_security grade ── */
+  /* ── Security Headers ──────────────────────────────────── */
   async headers() {
     return [
       {
@@ -90,4 +92,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = withPWA(nextConfig);

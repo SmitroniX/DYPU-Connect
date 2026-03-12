@@ -6,13 +6,11 @@ import { Fingerprint, Lock } from 'lucide-react';
 
 export default function SessionGuard({ children }: { children: React.ReactNode }) {
   const [isLocked, setIsLocked] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
 
   useEffect(() => {
     const lockEnabled = localStorage.getItem('dypu_biometric_lock') === 'true';
     
     if (lockEnabled && isAndroidApp()) {
-      setIsSupported(true);
       if (isBiometricAvailable()) {
         setIsLocked(true);
         

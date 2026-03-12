@@ -25,8 +25,7 @@ import { createNotification } from '@/lib/notifications';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useTypingStatus } from '@/hooks/useTypingStatus';
 import TypingIndicator from '@/components/TypingIndicator';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import MessageItem from '@/components/MessageItem';
 
 interface Message {
     id: string;
@@ -149,20 +148,15 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 
     // Clear unread count when viewing messages
     useEffect(() => {
-        if (!user || messages.length === 0 || !chatInfo) return;
-        const lastMsg = messages[messages.length - 1];
-        // If the last message was from someone else, clear our unread count
-        if (lastMsg.senderId !== user.uid) {
+        if (!user || !chatInfo) return;
+        
+        const myUnreadCount = chatInfo.unreadCount?.[user.uid] ?? 0;
+        if (myUnreadCount > 0) {
             updateDoc(doc(db, 'private_chats', chatId), {
                 [`unreadCount.${user.uid}`]: 0
             }).catch(() => {});
-        } else if (chatInfo.unreadCount?.[user.uid]) {
-             // Also clear if we just loaded the chat and had unread messages previously
-             updateDoc(doc(db, 'private_chats', chatId), {
-                [`unreadCount.${user.uid}`]: 0
-            }).catch(() => {});
         }
-    }, [messages, messages.length, user, chatInfo, chatId]);
+    }, [chatId, user, chatInfo?.unreadCount?.[user?.uid || '']]);
 
     const handleSend = useCallback(async (payload: ChatInputPayload) => {
         if (!user) return;
@@ -374,150 +368,32 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                     msg.timestamp?.toDate?.() ?? null,
                                     prev?.timestamp?.toDate?.() ?? null
                                 );
-                                const ts = msg.timestamp?.toDate?.();
-                                const msgRef = doc(db, 'private_messages', chatId, 'messages', msg.id);
 
                                 return (
-                                    <div
-                                    key={msg.id}
-                                    className={`group relative flex w-full ${isMine ? 'justify-end' : 'justify-start'} ${showMsgHeader ? 'mt-6' : 'mt-1'} animate-[fade-in-up_0.3s_ease-out]`}
-                                >
-                                    <div className={`flex gap-3 max-w-[85%] sm:max-w-[70%] ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
-                                        
-                                        {/* Avatar Column */}
-                                        <div className="w-8 shrink-0 flex flex-col items-center justify-end pb-1">
-                                            {(!prev || prev.senderId !== msg.senderId) && !isMine && (
-                                                <img
-                                                    src={senderImage}
-                                                    alt=""
-                                                    className="w-8 h-8 rounded-full object-cover cursor-pointer shadow-sm ring-1 ring-[var(--ui-border)] hover:ring-[var(--ui-accent)]/50 transition-all"
-                                                    onClick={(e) => handleAvatarClick(msg.senderId, e)}
-                                                />
-                                            )}
-                                        </div>
-
-                                        {/* Message bubble container */}
-                                        <div className={`relative flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                                            {/* Hover Toolbar - floats outside the bubble */}
-                                            <div className={`absolute top-0 -mt-8 z-10 ${isMine ? 'right-0' : 'left-0'}`}>
-                                                <MessageHoverToolbar onReact={(emoji) => handleReact(msg.id, emoji)} />
-                                            </div>
-                                            
-                                            {/* Header row (name) */}
-                                            {showMsgHeader && !isMine && (
-                                                <div className="flex items-baseline gap-2 mb-1 ml-1 pl-1">
-                                                    <span
-                                                        className="font-semibold text-[13px] text-[var(--ui-text)] cursor-pointer hover:underline"
-                                                        onClick={(e) => handleAvatarClick(msg.senderId, e)}
-                                                    >
-                                                        {senderName}
-                                                    </span>
-                                                </div>
-                                            )}
-
-                                            {/* Actual Bubble */}
-                                            <div
-                                                className={`
-                                                    relative px-3.5 py-2.5 flex flex-col min-w-[75px] backdrop-blur-sm
-                                                    ${isMine 
-                                                        ? 'bg-gradient-to-br from-[var(--ui-accent)] to-[#4f46e5] text-white rounded-[20px] rounded-br-[4px] shadow-sm shadow-[var(--ui-accent)]/10' 
-                                                        : 'bg-[#18181b] text-[#fafafa] rounded-[20px] rounded-bl-[4px] border border-[#3f3f46]/40 shadow-sm'}
-                                                `}
-                                            >
-                                                {/* Reply snippet inside the bubble */}
-                                                {msg.replyToId && (
-                                                    <div className={`mb-2 pl-2.5 border-l-[3px] rounded-r-md text-[12px] opacity-85 cursor-pointer transition-opacity hover:opacity-100 ${isMine ? 'border-white/60 bg-white/10 p-1.5' : 'border-[var(--ui-accent)] bg-[var(--ui-accent)]/10 p-1.5'}`}>
-                                                        <div className="font-semibold tracking-wide text-[11px] uppercase mb-0.5">{messages.find(m => m.id === msg.replyToId)?.senderId === user.uid ? 'You' : otherName}</div>
-                                                        <div className="truncate max-w-[200px] text-xs">
-                                                            {messages.find(m => m.id === msg.replyToId)?.text || 'Attachment'}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {msg.gifUrl && (
-                                                    <img src={msg.gifUrl} alt="GIF" className="max-w-full sm:max-w-[280px] rounded-[14px] mb-1 z-10 relative object-cover ring-1 ring-black/10" />
-                                                )}
-                                                {msg.imageUrl && (
-                                                    <img src={msg.imageUrl} alt="Photo" className={`max-w-full sm:max-w-[280px] rounded-[14px] mb-1 z-10 relative object-cover ring-1 ring-black/10`} />
-                                                )}
-                                                {msg.audioUrl && (
-                                                    <div className="mb-1">
-                                                        <audio src={msg.audioUrl} controls className={`h-10 w-full sm:w-48 rounded-md ${isMine ? 'opacity-90' : 'opacity-100'}`} />
-                                                    </div>
-                                                )}
-                                                {editingMessageId === msg.id ? (
-                                                    <div className="flex flex-col w-full min-w-[200px] mt-1 z-20 relative">
-                                                        <input
-                                                            autoFocus
-                                                            className={`bg-transparent border-b ${isMine ? 'border-white/40 text-white' : 'border-[#3f3f46] text-[#fafafa]'} focus:outline-none pb-1`}
-                                                            value={editValue}
-                                                            onChange={(e) => setEditValue(e.target.value)}
-                                                            onKeyDown={(e) => {
-                                                                if (e.key === 'Enter') handleSaveEdit(msg.id);
-                                                                if (e.key === 'Escape') setEditingMessageId(null);
-                                                            }}
-                                                        />
-                                                        <div className={`text-[10px] mt-1.5 font-medium ${isMine ? 'text-white/70' : 'text-[#71717a]'}`}>
-                                                            Esc to cancel, Enter to save
-                                                        </div>
-                                                    </div>
-                                                ) : msg.text && (
-                                                    <div className={`text-[15px] leading-[1.4] break-words whitespace-pre-wrap ${isMine ? 'text-white' : 'text-[#fafafa]'} ${msg.text.length < 20 ? 'pr-12' : 'pb-4'} ${msg.isDeleted ? 'italic opacity-60' : ''}`}>
-                                                        <ReactMarkdown
-                                                            remarkPlugins={[remarkGfm]}
-                                                            components={{
-                                                                p: ({node, ...props}) => <span {...props} />,
-                                                                a: ({node, ...props}) => <a className={`${isMine ? 'text-white underline font-semibold' : 'text-[var(--ui-accent)] hover:underline'}`} target="_blank" rel="noopener noreferrer" {...props} />,
-                                                                strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
-                                                                em: ({node, ...props}) => <em className="italic" {...props} />,
-                                                                code: ({node, ...props}) => <code className={`px-1.5 py-0.5 rounded text-[13px] font-mono ${isMine ? 'bg-white/20 text-white' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)]'}`} {...props} />,
-                                                                pre: ({node, ...props}) => <pre className={`p-3 my-2 rounded-lg ${isMine ? 'bg-black/20 text-white/90' : 'bg-[#1e1e1e] text-[#d4d4d4]'} overflow-x-auto text-[13px] font-mono shadow-inner border border-white/10 scrollbar-thin`} {...props} />,
-                                                                blockquote: ({node, ...props}) => <blockquote className={`border-l-4 pl-3 my-2 italic ${isMine ? 'border-white/50 bg-white/10 text-white/90' : 'border-[var(--ui-accent)]/50 bg-[var(--ui-bg-elevated)]/50 text-[var(--ui-text-muted)]'} py-1 pr-2 rounded-r`} {...props} />,
-                                                                ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
-                                                                ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
-                                                                li: ({node, ...props}) => <li className="mb-1" {...props} />
-                                                            }}
-                                                        >
-                                                            {filterProfanity(msg.text)}
-                                                        </ReactMarkdown>
-                                                        {msg.isEdited && !msg.isDeleted && <span className="text-[10px] ml-1.5 opacity-70 font-medium">(edited)</span>}
-                                                    </div>
-                                                )}
-
-                                                {/* Timestamp & Read Receipt */}
-                                                <div className={`absolute bottom-1.5 right-2.5 flex items-center gap-0.5 text-[9px] font-medium tracking-wide ${isMine ? 'text-white/80' : 'text-[#71717a]'}`}>
-                                                    <span>{ts ? format(ts, 'HH:mm') : '...'}</span>
-                                                    {isMine && (
-                                                        <svg className="w-[14px] h-[14px] ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                            <path d="m18 6-11 11-5-5"></path>
-                                                            <path d="m22 10-7.5 7.5L13 16"></path>
-                                                        </svg>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Reactions underneath the bubble directly */}
-                                            <div className={`mt-0.5 ${isMine ? 'pr-1' : 'pl-1'}`}>
-                                                <MessageReactions
-                                                    messageRef={msgRef}
-                                                    reactions={msg.reactions ?? {}}
-                                                    currentUserId={user.uid}
-                                                />
-                                               {/* Hover Toolbar for reactions, edit, delete, etc */}
-                                            {(!msg.text || msg.text !== 'This message was deleted.') && (
-                                                <MessageHoverToolbar
-                                                    onReact={(emoji) => handleReact(msg.id, emoji)}
-                                                    isMine={isMine}
-                                                    onEdit={() => handleStartEdit(msg)}
-                                                    onDelete={() => handleDelete(msg.id)}
-                                                    onReply={() => handleStartReply(msg)}
-                                                />
-                                            )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })
+                                    <MessageItem
+                                        key={msg.id}
+                                        msg={msg}
+                                        chatId={chatId}
+                                        isMine={isMine}
+                                        senderName={senderName}
+                                        senderImage={senderImage}
+                                        showMsgHeader={showMsgHeader}
+                                        otherName={otherName}
+                                        messages={messages}
+                                        currentUserId={user.uid}
+                                        editingMessageId={editingMessageId}
+                                        editValue={editValue}
+                                        setEditValue={setEditValue}
+                                        onStartEdit={handleStartEdit}
+                                        onSaveEdit={handleSaveEdit}
+                                        onCancelEdit={() => setEditingMessageId(null)}
+                                        onDelete={handleDelete}
+                                        onReply={handleStartReply}
+                                        onReact={handleReact}
+                                        onAvatarClick={handleAvatarClick}
+                                    />
+                                );
+                            });
                         })()
                     )}
                     {isPartnerTyping && (

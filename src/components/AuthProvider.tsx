@@ -171,12 +171,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => unsubscribe();
     }, [firebaseReady, setCurrentUser, setUserProfile, setStoreLoading]);
 
-    // Preload Google Identity Services script early
+    // Preload Google Identity Services script early (only if user has Drive connected)
     useEffect(() => {
-        if (isGoogleDriveConfigured()) {
+        if (isGoogleDriveConfigured() && userProfile?.googleDrive) {
             loadGoogleIdentityScript().catch(() => {});
         }
-    }, []);
+    }, [userProfile?.googleDrive]);
 
     // Handle Redirect Result (for Android App)
     useEffect(() => {

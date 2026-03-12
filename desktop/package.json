@@ -1,0 +1,33 @@
+{
+  "name": "dypu-connect-desktop",
+  "version": "1.0.0",
+  "description": "Desktop app for DYPU Connect",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis"
+  },
+  "author": "SmitroniX",
+  "license": "MIT",
+  "build": {
+    "appId": "com.dypu.connect",
+    "productName": "DYPU Connect",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "../public/logo.png",
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}
