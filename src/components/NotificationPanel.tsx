@@ -27,6 +27,7 @@ import {
 import { resolveProfileImage } from '@/lib/profileImage';
 import { formatDistanceToNowStrict } from 'date-fns';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /* ── Type icon mapping ── */
 
@@ -118,8 +119,6 @@ export default function NotificationPanel({ align = 'sidebar' }: NotificationPan
         return () => window.removeEventListener('keydown', handler);
     }, [open, setOpen]);
 
-    if (!open) return null;
-
     const grouped = groupNotifications(notifications);
 
     const handleClick = async (notif: AppNotification) => {
@@ -163,133 +162,180 @@ export default function NotificationPanel({ align = 'sidebar' }: NotificationPan
         }
     };
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.05,
+            },
+        },
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, x: -10 },
+        visible: { opacity: 1, x: 0 },
+    };
+
     return (
-        <div
-            ref={panelRef}
-            role="dialog"
-            aria-label="Notifications"
-            aria-modal="true"
-            className={`absolute z-[100] bg-[var(--ui-bg-surface)] border border-[var(--ui-divider)] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-[fade-in-up_0.15s_ease-out] ${
-                align === 'sidebar'
-                    ? 'left-full top-0 ml-2 w-[360px] max-h-[calc(100vh-6rem)]'
-                    : 'right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-[360px] max-h-[80vh] sm:max-h-[calc(100vh-6rem)] origin-top-right'
-            }`}
-        >
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--ui-divider)] shrink-0">
-                <div className="flex items-center gap-2">
-                    <Bell className="h-4 w-4 text-[var(--ui-accent)]" />
-                    <h3 className="text-sm font-semibold text-[var(--ui-text)]">Notifications</h3>
-                    {unreadCount > 0 && (
-                        <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-[var(--ui-accent)] px-1.5 text-[10px] font-bold text-white">
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                    )}
-                </div>
-                <div className="flex items-center gap-1">
-                    {unreadCount > 0 && (
-                        <button
-                            onClick={handleMarkAllRead}
-                            className="p-1.5 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] hover:bg-[var(--ui-bg-hover)] transition-colors"
-                            title="Mark all as read"
-                        >
-                            <CheckCheck className="h-4 w-4" />
-                        </button>
-                    )}
-                    {notifications.length > 0 && (
-                        <button
-                            onClick={handleClearAll}
-                            className="p-1.5 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-danger)] hover:bg-[var(--ui-bg-hover)] transition-colors"
-                            title="Clear all"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
-                    )}
-                    <button
-                        onClick={() => setOpen(false)}
-                        className="p-1.5 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
-                </div>
-            </div>
-
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto">
-                {notifications.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 px-4">
-                        <div className="h-12 w-12 rounded-2xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-3">
-                            <Bell className="h-6 w-6 text-[var(--ui-text-muted)]" />
+        <AnimatePresence>
+            {open && (
+                <motion.div
+                    ref={panelRef}
+                    role="dialog"
+                    aria-label="Notifications"
+                    aria-modal="true"
+                    initial={{ 
+                        opacity: 0, 
+                        y: align === 'header' ? 10 : 0, 
+                        x: align === 'sidebar' ? -10 : 10,
+                        scale: 0.95 
+                    }}
+                    animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+                    exit={{ 
+                        opacity: 0, 
+                        y: align === 'header' ? 10 : 0, 
+                        x: align === 'sidebar' ? -10 : 10,
+                        scale: 0.95 
+                    }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className={`absolute z-[100] bg-[var(--ui-bg-surface)] border border-[var(--ui-divider)] rounded-xl shadow-2xl flex flex-col overflow-hidden ${
+                        align === 'sidebar'
+                            ? 'left-full top-0 ml-2 w-[360px] max-h-[calc(100vh-6rem)]'
+                            : 'right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-[360px] max-h-[80vh] sm:max-h-[calc(100vh-6rem)] origin-top-right'
+                    }`}
+                >
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--ui-divider)] shrink-0">
+                        <div className="flex items-center gap-2">
+                            <Bell className="h-4 w-4 text-[var(--ui-accent)]" />
+                            <h3 className="text-sm font-semibold text-[var(--ui-text)]">Notifications</h3>
+                            {unreadCount > 0 && (
+                                <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-[var(--ui-accent)] px-1.5 text-[10px] font-bold text-white">
+                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                </span>
+                            )}
                         </div>
-                        <p className="text-sm text-[var(--ui-text-muted)]">No notifications yet</p>
-                        <p className="text-xs text-[var(--ui-text-muted)] mt-1">You&apos;re all caught up!</p>
+                        <div className="flex items-center gap-1">
+                            {unreadCount > 0 && (
+                                <button
+                                    onClick={handleMarkAllRead}
+                                    className="p-1.5 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                                    title="Mark all as read"
+                                >
+                                    <CheckCheck className="h-4 w-4" />
+                                </button>
+                            )}
+                            {notifications.length > 0 && (
+                                <button
+                                    onClick={handleClearAll}
+                                    className="p-1.5 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-danger)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                                    title="Clear all"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+                            )}
+                            <button
+                                onClick={() => setOpen(false)}
+                                className="p-1.5 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
                     </div>
-                ) : (
-                    grouped.map((group) => (
-                        <div key={group.label}>
-                            <div className="px-4 pt-3 pb-1.5">
-                                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--ui-text-muted)]">
-                                    {group.label}
-                                </p>
-                            </div>
-                            {group.items.map((notif) => {
-                                const Icon = TYPE_ICONS[notif.type] || Info;
-                                const colorClass = TYPE_COLORS[notif.type] || TYPE_COLORS.system;
-                                return (
-                                    <button
-                                        key={notif.id}
-                                        onClick={() => handleClick(notif)}
-                                        className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--ui-bg-hover)] group ${
-                                            !notif.read ? 'bg-[var(--ui-accent)]/[0.03]' : ''
-                                        }`}
-                                    >
-                                        {/* Avatar or icon */}
-                                        {notif.senderImage ? (
-                                            <img
-                                                src={resolveProfileImage(notif.senderImage, '', notif.senderName || '')}
-                                                alt=""
-                                                className="h-9 w-9 rounded-full object-cover shrink-0"
-                                            />
-                                        ) : (
-                                            <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${colorClass}`}>
-                                                <Icon className="h-4 w-4" />
-                                            </div>
-                                        )}
 
-                                        {/* Content */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <p className={`text-[13px] font-medium truncate ${notif.read ? 'text-[var(--ui-text-secondary)]' : 'text-[var(--ui-text)]'}`}>
-                                                    {notif.title}
-                                                </p>
-                                                {!notif.read && (
-                                                    <span className="h-2 w-2 rounded-full bg-[var(--ui-accent)] shrink-0" />
-                                                )}
-                                            </div>
-                                            <p className="text-xs text-[var(--ui-text-muted)] truncate mt-0.5">
-                                                {notif.body}
-                                            </p>
-                                            <p className="text-[10px] text-[var(--ui-text-muted)] mt-1">
-                                                {formatDistanceToNowStrict(new Date(notif.createdAt), { addSuffix: true })}
-                                            </p>
-                                        </div>
+                    {/* Body */}
+                    <motion.div 
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="flex-1 overflow-y-auto"
+                    >
+                        {notifications.length === 0 ? (
+                            <motion.div 
+                                variants={itemVariants}
+                                className="flex flex-col items-center justify-center py-12 px-4"
+                            >
+                                <div className="h-12 w-12 rounded-2xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-3">
+                                    <Bell className="h-6 w-6 text-[var(--ui-text-muted)]" />
+                                </div>
+                                <p className="text-sm text-[var(--ui-text-muted)]">No notifications yet</p>
+                                <p className="text-xs text-[var(--ui-text-muted)] mt-1">You&apos;re all caught up!</p>
+                            </motion.div>
+                        ) : (
+                            grouped.map((group) => (
+                                <div key={group.label}>
+                                    <div className="px-4 pt-3 pb-1.5">
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--ui-text-muted)]">
+                                            {group.label}
+                                        </p>
+                                    </div>
+                                    <AnimatePresence mode="popLayout">
+                                        {group.items.map((notif) => {
+                                            const Icon = TYPE_ICONS[notif.type] || Info;
+                                            const colorClass = TYPE_COLORS[notif.type] || TYPE_COLORS.system;
+                                            return (
+                                                <motion.button
+                                                    layout
+                                                    variants={itemVariants}
+                                                    initial="hidden"
+                                                    animate="visible"
+                                                    exit={{ opacity: 0, x: 20 }}
+                                                    key={notif.id}
+                                                    onClick={() => handleClick(notif)}
+                                                    className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--ui-bg-hover)] group ${
+                                                        !notif.read ? 'bg-[var(--ui-accent)]/[0.03]' : ''
+                                                    }`}
+                                                >
+                                                    {/* Avatar or icon */}
+                                                    {notif.senderImage ? (
+                                                        <img
+                                                            src={resolveProfileImage(notif.senderImage, '', notif.senderName || '')}
+                                                            alt=""
+                                                            className="h-9 w-9 rounded-full object-cover shrink-0"
+                                                        />
+                                                    ) : (
+                                                        <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${colorClass}`}>
+                                                            <Icon className="h-4 w-4" />
+                                                        </div>
+                                                    )}
 
-                                        {/* Delete button (on hover) */}
-                                        <button
-                                            onClick={(e) => handleDelete(e, notif.id)}
-                                            className="p-1 rounded text-[var(--ui-text-muted)] hover:text-[var(--ui-danger)] opacity-0 group-hover:opacity-100 transition-all shrink-0 mt-1"
-                                            title="Remove"
-                                        >
-                                            <X className="h-3.5 w-3.5" />
-                                        </button>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    ))
-                )}
-            </div>
-        </div>
+                                                    {/* Content */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <p className={`text-[13px] font-medium truncate ${notif.read ? 'text-[var(--ui-text-secondary)]' : 'text-[var(--ui-text)]'}`}>
+                                                                {notif.title}
+                                                            </p>
+                                                            {!notif.read && (
+                                                                <span className="h-2 w-2 rounded-full bg-[var(--ui-accent)] shrink-0" />
+                                                            )}
+                                                        </div>
+                                                        <p className="text-xs text-[var(--ui-text-muted)] truncate mt-0.5">
+                                                            {notif.body}
+                                                        </p>
+                                                        <p className="text-[10px] text-[var(--ui-text-muted)] mt-1">
+                                                            {formatDistanceToNowStrict(new Date(notif.createdAt), { addSuffix: true })}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Delete button (on hover) */}
+                                                    <button
+                                                        onClick={(e) => handleDelete(e, notif.id)}
+                                                        className="p-1 rounded text-[var(--ui-text-muted)] hover:text-[var(--ui-danger)] opacity-0 group-hover:opacity-100 transition-all shrink-0 mt-1"
+                                                        title="Remove"
+                                                    >
+                                                        <X className="h-3.5 w-3.5" />
+                                                    </button>
+                                                </motion.button>
+                                            );
+                                        })}
+                                    </AnimatePresence>
+                                </div>
+                            ))
+                        )}
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }
-
