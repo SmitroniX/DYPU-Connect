@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Info, Menu, X, Zap, Bell, Search } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import NotificationPanel from '@/components/NotificationPanel';
@@ -145,6 +147,7 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const pathname = usePathname();
     const { user } = useAuth();
     const {
         setNotifications,
@@ -405,9 +408,21 @@ export default function DashboardLayout({
                     <GlobalSearch />
 
                     {/* Page content */}
-                    <main className="flex-1 overflow-y-auto w-full max-w-[100vw]" role="main" aria-label="Page content">
-                        {children}
-                    </main>
+                    <AnimatePresence mode="wait" initial={false}>
+                        <motion.main
+                            key={pathname}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                            className="flex-1 overflow-y-auto w-full max-w-[100vw]"
+                            role="main"
+                            aria-label="Page content"
+                            layout
+                        >
+                            {children}
+                        </motion.main>
+                    </AnimatePresence>
                 </div>
             </div>
         </ProtectedRoute>
