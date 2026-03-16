@@ -1,4 +1,4 @@
-type Student @table {
+type Student @table(key: "studentId") {
   studentId: String!
   firstName: String!
   lastName: String!
@@ -12,7 +12,7 @@ type Student @table {
   contactNumber: String
 }
 
-type Group @table {
+type Group @table(key: "name") {
   name: String!
   description: String!
   groupType: String!
@@ -40,7 +40,41 @@ type DirectMessage @table {
   sender: Student!
   receiver: Student!
   messageContent: String!
-  sentAt: Timestamp!
+  sentAt: Timestamp! @default(expr: "request.time")
+  imageUrl: String
+  gifUrl: String
+  audioUrl: String
+  reactions: Any
+  isEdited: Boolean @default(value: false)
+  isDeleted: Boolean @default(value: false)
+  replyTo: DirectMessage
+}
+
+type GroupMessage @table {
+  sender: Student!
+  group: Group!
+  messageContent: String!
+  sentAt: Timestamp! @default(expr: "request.time")
+  imageUrl: String
+  gifUrl: String
+  audioUrl: String
+  reactions: Any
+  isEdited: Boolean @default(value: false)
+  isDeleted: Boolean @default(value: false)
+  replyTo: GroupMessage
+}
+
+type PublicMessage @table {
+  sender: Student!
+  messageContent: String!
+  sentAt: Timestamp! @default(expr: "request.time")
+  imageUrl: String
+  gifUrl: String
+  audioUrl: String
+  reactions: Any
+  isEdited: Boolean @default(value: false)
+  isDeleted: Boolean @default(value: false)
+  expiresAt: Timestamp!
 }
 
 type Comment @table {
