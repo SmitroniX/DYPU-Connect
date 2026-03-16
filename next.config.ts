@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
   /* ── Deployment ────────────────────────────────────────── */
   output: "standalone",
 
+  /* ── Performance ───────────────────────────────────────── */
+  experimental: {
+    ppr: true,
+  },
+  reactStrictMode: true,
+  poweredByHeader: false, 
+
   /* ── Images ────────────────────────────────────────────── */
   images: {
     remotePatterns: [
@@ -21,10 +28,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "ui-avatars.com" },
     ],
   },
-
-  /* ── Performance ───────────────────────────────────────── */
-  reactStrictMode: true,
-  poweredByHeader: false, 
 
   /* ── Trailing slashes ──────────────────────────────────── */
   trailingSlash: false,
