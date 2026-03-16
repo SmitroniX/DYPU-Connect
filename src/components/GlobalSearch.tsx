@@ -7,9 +7,9 @@ import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Search, X, User as UserIcon, Users } from 'lucide-react';
 import Image from 'next/image';
-import clsx from 'clsx';
 import type { UserProfile } from '@/types/profile';
 import type { Group } from '@/types/groups';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function GlobalSearch() {
     const { searchModalOpen, setSearchModalOpen, currentUser } = useStore();
@@ -60,13 +60,6 @@ export default function GlobalSearch() {
         setIsSearching(true);
         try {
             // Case sensitive prefix search (Firestore limitation, but good enough for simple starts)
-            // Ideally we'd use a dedicated search service (like Algolia or Typesense) for full-text.
-            // But for now, a case-sensitive prefix string search on "name"
-            const queryUpper = q.charAt(0).toUpperCase() + q.slice(1);
-            const queryLower = q.toLowerCase();
-
-            // To make it slightly better, search twice or standardise on lower bounds
-            // Assuming users input exact case, or close to it. We'll search by the exact query for simplicity
             
             // Users Query
             const usersRef = collection(db, 'users');
@@ -103,13 +96,8 @@ export default function GlobalSearch() {
         }
     };
 
-    if (!searchModalOpen) return null;
-
     const handleUserClick = (userId: string) => {
         setSearchModalOpen(false);
-        // Using chat route pattern based on users logic you might have
-        // Usually clicking user routes to profile or starts private chat. Let's route to their profile view if exists, or private chat.
-        // I will route to /profile/[userId] by assumption.
         router.push(`/profile/${userId}`);
     };
 
@@ -119,140 +107,194 @@ export default function GlobalSearch() {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] sm:pt-[15vh] px-4">
-            {/* Backdrop */}
-            <div 
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" 
-                onClick={() => setSearchModalOpen(false)}
-            />
-            
-            {/* Modal */}
-            <div className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-                {/* Search Input Bar */}
-                <div className="flex items-center px-4 py-3 border-b border-zinc-800">
-                    <Search className="w-5 h-5 text-zinc-400 shrink-0" />
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        placeholder="Search users and groups..."
-                        className="flex-1 bg-transparent border-none outline-none px-3 text-zinc-100 placeholder-zinc-500 font-medium text-base"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    {isSearching && (
-                        <div className="w-4 h-4 rounded-full border-2 border-zinc-500 border-t-transparent animate-spin mr-2 shrink-0" />
-                    )}
-                    <button 
+        <AnimatePresence>
+            {searchModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] sm:pt-[15vh] px-4 pointer-events-none">
+                    {/* Backdrop */}
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" 
                         onClick={() => setSearchModalOpen(false)}
-                        className="p-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
-                        title="Close (Esc)"
+                    />
+                    
+                    {/* Modal */}
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95, y: -20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
                     >
-                        <X className="w-5 h-5" />
-                    </button>
+                        {/* Search Input Bar */}
+                        <div className="flex items-center px-4 py-3 border-b border-zinc-800">
+                            <Search className="w-5 h-5 text-zinc-400 shrink-0" />
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                placeholder="Search users and groups..."
+                                className="flex-1 bg-transparent border-none outline-none px-3 text-zinc-100 placeholder-zinc-500 font-medium text-base"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            {isSearching && (
+                                <motion.div 
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="w-4 h-4 rounded-full border-2 border-zinc-500 border-t-transparent animate-spin mr-2 shrink-0" 
+                                />
+                            )}
+                            <button 
+                                onClick={() => setSearchModalOpen(false)}
+                                className="p-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                                title="Close (Esc)"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Search Results */}
+                        <motion.div 
+                            layout
+                            className="max-h-[60vh] overflow-y-auto overscroll-contain p-2 space-y-4"
+                        >
+                            <AnimatePresence mode="popLayout">
+                                {!searchQuery.trim() && (
+                                    <motion.div 
+                                        key="empty"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="px-4 py-12 text-center text-zinc-500 text-sm"
+                                    >
+                                        Type to start searching across DYPU Connect.
+                                        <div className="mt-2 text-xs opacity-60">Press Ctrl+K (or Cmd+K) anywhere to search.</div>
+                                    </motion.div>
+                                )}
+
+                                {searchQuery.trim().length > 0 && searchQuery.trim().length < 2 && (
+                                    <motion.div 
+                                        key="typing"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="px-4 py-6 text-center text-zinc-500 text-sm"
+                                    >
+                                        Keep typing...
+                                    </motion.div>
+                                )}
+
+                                {searchQuery.trim().length >= 2 && !isSearching && userResults.length === 0 && groupResults.length === 0 && (
+                                    <motion.div 
+                                        key="no-results"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="px-4 py-12 text-center text-zinc-500 text-sm"
+                                    >
+                                        No results found for &quot;{searchQuery}&quot;
+                                    </motion.div>
+                                )}
+
+                                {/* Users Section */}
+                                {userResults.length > 0 && (
+                                    <motion.div 
+                                        key="users"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="space-y-1"
+                                    >
+                                        <div className="px-3 py-1 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                                            Users
+                                        </div>
+                                        {userResults.map((user) => (
+                                            <motion.div
+                                                layout
+                                                key={user.userId}
+                                                onClick={() => handleUserClick(user.userId)}
+                                                className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-zinc-800/50 transition-colors group"
+                                            >
+                                                {user.profileImage ? (
+                                                    <Image
+                                                        src={user.profileImage}
+                                                        alt={user.name}
+                                                        width={36}
+                                                        height={36}
+                                                        className="rounded-full object-cover w-9 h-9 border border-zinc-800 group-hover:border-zinc-700"
+                                                    />
+                                                ) : (
+                                                    <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
+                                                        <UserIcon className="w-4 h-4 text-zinc-400" />
+                                                    </div>
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-medium text-zinc-200 truncate group-hover:text-white transition-colors">
+                                                        {user.name}
+                                                    </div>
+                                                    {user.field && (
+                                                        <div className="text-xs text-zinc-500 truncate">
+                                                            {user.field} • {user.year}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </motion.div>
+                                )}
+
+                                {/* Groups Section */}
+                                {groupResults.length > 0 && (
+                                    <motion.div 
+                                        key="groups"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="space-y-1"
+                                    >
+                                        <div className="px-3 py-1 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                                            Groups
+                                        </div>
+                                        {groupResults.map((group) => (
+                                            <motion.div
+                                                layout
+                                                key={group.id}
+                                                onClick={() => handleGroupClick(group.id)}
+                                                className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-zinc-800/50 transition-colors group"
+                                            >
+                                                {group.avatarUrl ? (
+                                                    <Image
+                                                        src={group.avatarUrl}
+                                                        alt={group.name}
+                                                        width={36}
+                                                        height={36}
+                                                        className="rounded-md object-cover w-9 h-9 border border-zinc-800 group-hover:border-zinc-700"
+                                                    />
+                                                ) : (
+                                                    <div className="w-9 h-9 rounded-md bg-zinc-800 flex items-center justify-center border border-zinc-700">
+                                                        <Users className="w-4 h-4 text-zinc-400" />
+                                                    </div>
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-medium text-zinc-200 truncate group-hover:text-white transition-colors">
+                                                        {group.name}
+                                                    </div>
+                                                    {group.type && (
+                                                        <div className="text-xs text-zinc-500 truncate capitalize">
+                                                            {group.type} {group.memberIds ? `• ${group.memberIds.length} members` : ''}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
+                    </motion.div>
                 </div>
-
-                {/* Search Results */}
-                <div className="max-h-[60vh] overflow-y-auto overscroll-contain p-2 space-y-4">
-                    {!searchQuery.trim() && (
-                        <div className="px-4 py-12 text-center text-zinc-500 text-sm">
-                            Type to start searching across DYPU Connect.
-                            <div className="mt-2 text-xs opacity-60">Press Ctrl+K (or Cmd+K) anywhere to search.</div>
-                        </div>
-                    )}
-
-                    {searchQuery.trim().length > 0 && searchQuery.trim().length < 2 && (
-                        <div className="px-4 py-6 text-center text-zinc-500 text-sm">
-                            Keep typing...
-                        </div>
-                    )}
-
-                    {searchQuery.trim().length >= 2 && !isSearching && userResults.length === 0 && groupResults.length === 0 && (
-                        <div className="px-4 py-12 text-center text-zinc-500 text-sm">
-                            No results found for &quot;{searchQuery}&quot;
-                        </div>
-                    )}
-
-                    {/* Users Section */}
-                    {userResults.length > 0 && (
-                        <div className="space-y-1">
-                            <div className="px-3 py-1 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                                Users
-                            </div>
-                            {userResults.map((user) => (
-                                <div
-                                    key={user.userId}
-                                    onClick={() => handleUserClick(user.userId)}
-                                    className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-zinc-800/50 transition-colors group"
-                                >
-                                    {user.profileImage ? (
-                                        <Image
-                                            src={user.profileImage}
-                                            alt={user.name}
-                                            width={36}
-                                            height={36}
-                                            className="rounded-full object-cover w-9 h-9 border border-zinc-800 group-hover:border-zinc-700"
-                                        />
-                                    ) : (
-                                        <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                                            <UserIcon className="w-4 h-4 text-zinc-400" />
-                                        </div>
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-medium text-zinc-200 truncate group-hover:text-white transition-colors">
-                                            {user.name}
-                                        </div>
-                                        {user.field && (
-                                            <div className="text-xs text-zinc-500 truncate">
-                                                {user.field} • {user.year}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Groups Section */}
-                    {groupResults.length > 0 && (
-                        <div className="space-y-1">
-                            <div className="px-3 py-1 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                                Groups
-                            </div>
-                            {groupResults.map((group) => (
-                                <div
-                                    key={group.id}
-                                    onClick={() => handleGroupClick(group.id)}
-                                    className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-zinc-800/50 transition-colors group"
-                                >
-                                    {group.avatarUrl ? (
-                                        <Image
-                                            src={group.avatarUrl}
-                                            alt={group.name}
-                                            width={36}
-                                            height={36}
-                                            className="rounded-md object-cover w-9 h-9 border border-zinc-800 group-hover:border-zinc-700"
-                                        />
-                                    ) : (
-                                        <div className="w-9 h-9 rounded-md bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                                            <Users className="w-4 h-4 text-zinc-400" />
-                                        </div>
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-medium text-zinc-200 truncate group-hover:text-white transition-colors">
-                                            {group.name}
-                                        </div>
-                                        {group.type && (
-                                            <div className="text-xs text-zinc-500 truncate capitalize">
-                                                {group.type} {group.memberIds ? `• ${group.memberIds.length} members` : ''}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
+            )}
+        </AnimatePresence>
     );
 }
