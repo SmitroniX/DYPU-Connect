@@ -64,6 +64,12 @@ import java.util.List;
 import java.util.Locale;
 
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -95,11 +101,15 @@ public class MainActivity extends AppCompatActivity {
     // ── Splash ────────────────────────────────────────────────
     private boolean isWebViewReady = false;
 
+    // ── Google Sign In ────────────────────────────────────────
+    private GoogleSignInClient mGoogleSignInClient;
+
     // ── Permission Launchers ──────────────────────────────────
     private ActivityResultLauncher<String[]> cameraPermissionLauncher;
     private ActivityResultLauncher<Intent> fileChooserLauncher;
     private ActivityResultLauncher<String> notificationPermissionLauncher;
     private ActivityResultLauncher<String[]> webrtcPermissionLauncher;
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
 
     // Pending WebView permission request
     private PermissionRequest pendingPermissionRequest;
@@ -127,6 +137,9 @@ public class MainActivity extends AppCompatActivity {
         errorView = findViewById(R.id.errorView);
         fullscreenContainer = findViewById(R.id.fullscreenContainer);
 
+        // Configure Google Sign In
+        setupGoogleSignIn();
+
         // Register activity result launchers
         registerLaunchers();
 
@@ -147,6 +160,14 @@ public class MainActivity extends AppCompatActivity {
 
         // Load the web app (or handle deep link)
         handleIntent(getIntent());
+    }
+
+    private void setupGoogleSignIn() {
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
     }
 
     private void checkForUpdates() {
@@ -255,6 +276,28 @@ public class MainActivity extends AppCompatActivity {
     // ──────────────────────────────────────────────────────────
 
     private void registerLaunchers() {
+        // Google Sign In result
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                        try {
+                            GoogleSignInAccount account = task.getResult(ApiException.class);
+                            if (account != null) {
+                                String idToken = account.getIdToken();
+                                emitToWeb("google_auth_success", idToken);
+                            }
+                        } catch (ApiException e) {
+                            Log.w(TAG, "Google sign in failed", e);
+                            emitToWeb("google_auth_error", e.getMessage());
+                        }
+                    } else {
+                        emitToWeb("google_auth_error", "Canceled");
+                    }
+                }
+        );
+
         // File chooser result
         fileChooserLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -498,7 +541,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onHideCustomView() {
                 fullscreenContainer.removeView(fullscreenView);
-                fullscreenContainer.setVisibility(GONE);
+                fullscreenContainer.setVisibility(View.GONE);
                 webView.setVisibility(View.VISIBLE);
                 fullscreenView = null;
                 if (fullscreenCallback != null) fullscreenCallback.onCustomViewHidden();
@@ -784,6 +827,14 @@ public class MainActivity extends AppCompatActivity {
                     String token = task.getResult();
                     mActivity.emitToWeb("fcm_token_ready", token);
                 });
+        }
+
+        @JavascriptInterface
+        public void signInWithGoogle() {
+            mActivity.runOnUiThread(() -> {
+                Intent signInIntent = mActivity.mGoogleSignInClient.getSignInIntent();
+                mActivity.googleSignInLauncher.launch(signInIntent);
+            });
         }
 
         @JavascriptInterface

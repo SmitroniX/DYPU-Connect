@@ -27,6 +27,7 @@ interface AndroidInterface {
   share(text: string, title: string): void;
   getAppVersion(): string;
   getFCMToken(): void;
+  signInWithGoogle(): void;
   onWebReady(): void;
 }
 
@@ -104,6 +105,15 @@ export const shareToAndroid = (text: string, title: string = 'Share via') => {
     navigator.share({ title, text }).catch(console.error);
   } else {
     console.log('Android Share:', title, text);
+  }
+};
+
+/**
+ * Triggers native Google Sign-In on Android
+ */
+export const triggerNativeGoogleSignIn = () => {
+  if (window.AndroidApp?.signInWithGoogle) {
+    window.AndroidApp.signInWithGoogle();
   }
 };
 

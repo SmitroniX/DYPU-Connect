@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, deleteUser, signInWithCustomToken } from 'firebase/auth';
+import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, deleteUser, signInWithCustomToken, signInWithCredential } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
@@ -14,7 +14,7 @@ import { startAutoBackupScheduler, stopAutoBackupScheduler } from '@/lib/backup'
 import { loadGoogleIdentityScript, isGoogleDriveConfigured } from '@/lib/googleDrive';
 import PremiumLoadingScreen from './PremiumLoadingScreen';
 import { usePresence } from '@/hooks/usePresence';
-import { isAndroidApp } from '@/lib/android';
+import { isAndroidApp, registerAndroidEventListener, triggerNativeGoogleSignIn } from '@/lib/android';
 import { toast } from 'react-hot-toast';
 import { AppError, AppErrorCode, handleError, mapToAppError } from '@/lib/errors';
 
@@ -164,6 +164,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
+    // Android Native Auth Listener
+    useEffect(() => {
+        if (!firebaseReady || !isAndroidApp()) return;
+
+        const unsubscribe = registerAndroidEventListener(async (event, data) => {
+            if (event === 'google_auth_success') {
+                try {
+                    const credential = GoogleAuthProvider.credential(data);
+                    const result = await signInWithCredential(auth, credential);
+                    const email = result.user.email;
+
+                    if (!email || !email.endsWith('@dypatil.edu')) {
+                        await deleteUser(result.user).catch(() => {});
+                        await signOut(auth);
+                        toast.error('Only @dypatil.edu emails are allowed.');
+                        return;
+                    }
+
+                    toast.success('Native login successful!');
+                    const deviceInfo = collectDeviceInfo();
+                    logActivity(
+                        result.user.uid,
+                        'login',
+                        `Signed in with Native Google (${email}) · ${deviceInfo.browser} on ${deviceInfo.os} · ${deviceInfo.device}`,
+                    );
+                    registerDeviceSession(result.user.uid).catch(() => {});
+                } catch (error) {
+                    handleError(error, 'Native Google Auth');
+                }
+            } else if (event === 'google_auth_error') {
+                toast.error(`Login failed: ${data}`);
+            }
+        });
+
+        return () => unsubscribe();
+    }, [firebaseReady]);
+
     // Preload Google Identity Services script early (only if user has Drive connected)
     useEffect(() => {
         if (isGoogleDriveConfigured() && userProfile?.googleDrive) {
@@ -171,7 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [userProfile?.googleDrive]);
 
-    // Handle Redirect Result (for Android App)
+    // Handle Redirect Result (for Android App Fallback)
     useEffect(() => {
         if (!firebaseReady || !isAndroidApp()) return;
 
@@ -234,17 +271,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const signInWithGoogle = async () => {
+        if (isAndroidApp()) {
+            triggerNativeGoogleSignIn();
+            return;
+        }
+
         const provider = new GoogleAuthProvider();
         provider.addScope('email');
         provider.addScope('profile');
         provider.setCustomParameters({ hd: 'dypatil.edu', prompt: 'select_account' });
 
         try {
-            if (isAndroidApp()) {
-                await signInWithRedirect(auth, provider);
-                return; // The page will redirect
-            }
-
             const result = await signInWithPopup(auth, provider);
             const email = result.user.email;
 
