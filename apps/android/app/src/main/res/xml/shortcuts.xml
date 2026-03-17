@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="public_chat"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_public_chat"
+        android:shortcutLongLabel="@string/shortcut_public_chat_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.dypu.connect"
+            android:targetClass="com.dypu.connect.MainActivity"
+            android:data="https://dypu-connect.netlify.app/public-chat" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="messages"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_messages"
+        android:shortcutLongLabel="@string/shortcut_messages_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.dypu.connect"
+            android:targetClass="com.dypu.connect.MainActivity"
+            android:data="https://dypu-connect.netlify.app/messages" />
+    </shortcut>
+</shortcuts>

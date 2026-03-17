@@ -7,6 +7,7 @@ interface AndroidInterface {
   vibrate(duration: number): void;
   share(text: string, title: string): void;
   getAppVersion(): string;
+  getFCMToken(): void;
   onWebReady(): void;
   isBiometricAvailable(): boolean;
   authenticateBiometric(title: string, subtitle: string): void;
@@ -92,6 +93,16 @@ export const isBiometricAvailable = (): boolean => {
 export const authenticateBiometric = (title: string = 'Security Check', subtitle: string = 'Authenticate to continue') => {
   if (window.AndroidApp) {
     window.AndroidApp.authenticateBiometric(title, subtitle);
+  }
+};
+
+/**
+ * Requests the FCM token from the native app. 
+ * The app will respond via the 'fcm_token_ready' event.
+ */
+export const requestFCMToken = () => {
+  if (window.AndroidApp?.getFCMToken) {
+    window.AndroidApp.getFCMToken();
   }
 };
 

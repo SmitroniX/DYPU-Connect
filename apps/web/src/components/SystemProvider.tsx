@@ -4,11 +4,13 @@ import { useEffect } from 'react';
 import { useSystemStore } from '@/store/useSystemStore';
 import { useStore } from '@/store/useStore';
 import { AlertTriangle } from 'lucide-react';
-import { notifyWebReady, registerAndroidEventListener, showToast, isAndroidApp } from '@/lib/android';
+import { notifyWebReady, registerAndroidEventListener, showToast, isAndroidApp, requestFCMToken } from '@/lib/android';
+import { db } from '@/lib/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 
 export default function SystemProvider({ children }: { children: React.ReactNode }) {
     const { settings, isInitializing, initSystemListener } = useSystemStore();
-    const { userProfile, currentUser: user } = useStore();
+    const { userProfile, currentUser: user, setSharedData } = useStore();
 
     useEffect(() => {
         // Initialize Android bridge
@@ -18,11 +20,30 @@ export default function SystemProvider({ children }: { children: React.ReactNode
                 console.log(`[Android] Received event: ${event}`, data);
                 if (event === 'app_connected') {
                     showToast('Native features enabled');
+                } else if (event === 'fcm_token_ready' && user?.uid) {
+                    console.log('[Android] Saving FCM token...');
+                    updateDoc(doc(db, 'students', user.uid), {
+                        fcmToken: data
+                    }).catch(err => console.error('Failed to save FCM token:', err));
+                } else if (event === 'share_intent') {
+                    try {
+                        const shareData = JSON.parse(data);
+                        setSharedData(shareData);
+                        showToast('Shared data received');
+                    } catch (e) {
+                        console.error('Failed to parse share data', e);
+                    }
                 }
             });
             notifyWebReady();
         }
-    }, []);
+    }, [user?.uid, setSharedData]);
+
+    useEffect(() => {
+        if (user?.uid && isAndroidApp()) {
+            requestFCMToken();
+        }
+    }, [user?.uid]);
 
     useEffect(() => {
         if (!user?.uid) return;

@@ -99,4 +99,5 @@ dependencies {
 
     // Firebase SDKs (versions managed by BoM)
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging")
 }

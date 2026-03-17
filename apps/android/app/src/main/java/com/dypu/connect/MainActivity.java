@@ -64,6 +64,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.firebase.messaging.FirebaseMessaging;
+
+import org.json.JSONObject;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public class MainActivity extends AppCompatActivity {
 
     // ── Constants ─────────────────────────────────────────────
@@ -135,8 +143,68 @@ public class MainActivity extends AppCompatActivity {
         // Request notification permission (Android 13+)
         requestNotificationPermission();
 
+        // Check for updates
+        checkForUpdates();
+
         // Load the web app (or handle deep link)
         handleIntent(getIntent());
+    }
+
+    private void checkForUpdates() {
+        new Thread(() -> {
+            try {
+                URL url = new URL("https://api.github.com/repos/SmitroniX/DYPU-Connect/releases/latest");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+
+                JSONObject json = new JSONObject(response.toString());
+                String latestVersion = json.getString("tag_name").replace("v", "");
+                String currentVersion = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+
+                if (isNewerVersion(currentVersion, latestVersion)) {
+                    String downloadUrl = json.getJSONArray("assets").getJSONObject(0).getString("browser_download_url");
+                    runOnUiThread(() -> showUpdateDialog(latestVersion, downloadUrl));
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Update check failed", e);
+            }
+        }).start();
+    }
+
+    private boolean isNewerVersion(String current, String latest) {
+        try {
+            String[] currParts = current.split("\\.");
+            String[] lateParts = latest.split("\\.");
+            int length = Math.max(currParts.length, lateParts.length);
+            for (int i = 0; i < length; i++) {
+                int curr = i < currParts.length ? Integer.parseInt(currParts[i]) : 0;
+                int late = i < lateParts.length ? Integer.parseInt(lateParts[i]) : 0;
+                if (late > curr) return true;
+                if (late < curr) return false;
+            }
+        } catch (Exception ignored) {}
+        return false;
+    }
+
+    private void showUpdateDialog(String version, String downloadUrl) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Update Available")
+                .setMessage("A new version (" + version + ") of DYPU Connect is available. Would you like to download it now?")
+                .setPositiveButton("Update", (dialog, which) -> {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl));
+                    startActivity(intent);
+                })
+                .setNegativeButton("Later", null)
+                .show();
     }
 
     @Override
@@ -571,11 +639,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleIntent(Intent intent) {
-        Uri uri = intent.getData();
-        if (uri != null && isInternalUrl(uri.toString())) {
-            webView.loadUrl(uri.toString());
+        String action = intent.getAction();
+        String type = intent.getType();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            if ("text/plain".equals(type)) {
+                String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+                if (sharedText != null) {
+                    emitToWeb("share_intent", "{\"type\":\"text\",\"data\":\"" + sharedText + "\"}");
+                }
+            } else if (type.startsWith("image/")) {
+                Uri imageUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (imageUri != null) {
+                    emitToWeb("share_intent", "{\"type\":\"image\",\"data\":\"" + imageUri.toString() + "\"}");
+                }
+            }
         } else {
-            webView.loadUrl(WEB_URL);
+            Uri uri = intent.getData();
+            if (uri != null && isInternalUrl(uri.toString())) {
+                webView.loadUrl(uri.toString());
+            } else {
+                webView.loadUrl(WEB_URL);
+            }
         }
     }
 
@@ -670,6 +755,19 @@ public class MainActivity extends AppCompatActivity {
             } catch (PackageManager.NameNotFoundException e) {
                 return "1.0.0";
             }
+        }
+
+        @JavascriptInterface
+        public void getFCMToken() {
+            FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                        return;
+                    }
+                    String token = task.getResult();
+                    mActivity.emitToWeb("fcm_token_ready", token);
+                });
         }
 
         @JavascriptInterface

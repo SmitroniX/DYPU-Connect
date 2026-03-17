@@ -21,6 +21,8 @@ interface AppState {
     notificationPanelOpen: boolean;
     /** Whether the global search modal is open */
     searchModalOpen: boolean;
+    /** Data shared from external apps (e.g. Android SEND intent) */
+    sharedData: { type: 'text' | 'image', data: string } | null;
     setCurrentUser: (user: User | null) => void;
     setUserProfile: (profile: UserProfile | null) => void;
     setLoading: (loading: boolean) => void;
@@ -30,6 +32,7 @@ interface AppState {
     setUnreadGroupsCount: (count: number) => void;
     setNotificationPanelOpen: (open: boolean) => void;
     setSearchModalOpen: (open: boolean) => void;
+    setSharedData: (data: { type: 'text' | 'image', data: string } | null) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -43,6 +46,7 @@ export const useStore = create<AppState>((set) => ({
     unreadGroupsCount: 0,
     notificationPanelOpen: false,
     searchModalOpen: false,
+    sharedData: null,
     setCurrentUser: (user) => set({ currentUser: user }),
     setUserProfile: (profile) => set({ userProfile: profile }),
     setLoading: (loading) => set({ isLoading: loading }),
@@ -56,4 +60,5 @@ export const useStore = create<AppState>((set) => ({
     setUnreadGroupsCount: (count) => set({ unreadGroupsCount: count }),
     setNotificationPanelOpen: (open) => set({ notificationPanelOpen: open }),
     setSearchModalOpen: (open) => set({ searchModalOpen: open }),
+    setSharedData: (sharedData) => set({ sharedData }),
 }));

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DYPU Connect</string>
+    <string name="shortcut_public_chat">Public Chat</string>
+    <string name="shortcut_public_chat_long">Open Public Chat</string>
+    <string name="shortcut_messages">Messages</string>
+    <string name="shortcut_messages_long">Open Direct Messages</string>
 </resources>
 

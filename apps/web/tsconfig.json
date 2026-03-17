@@ -21,7 +21,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@dypu-connect/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": [
