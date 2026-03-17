@@ -113,8 +113,17 @@ export default function SetupProfilePage() {
                 },
                 role: isAutoAdminEmail(user.email) ? 'admin' : 'user',
                 status: 'active' as const,
-                createdAt: Date.now()
-            };
+                encryptionEnabled: false,
+                notificationPrefs: {
+                    directMessages: true,
+                    mentions: true,
+                    groupMessages: true,
+                    confessions: true,
+                    announcements: true,
+                },
+                mutedEntities: [],
+                createdAt: Date.now(),
+                };
 
             // Create user profile document
             await setDoc(doc(db, 'users', user.uid), newProfile);

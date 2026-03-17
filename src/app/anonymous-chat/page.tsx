@@ -162,7 +162,6 @@ export default function AnonymousChatPage() {
                             const prev = i > 0 ? messages[i - 1] : null;
                             const showHeader = !prev || prev.anonymousName !== msg.anonymousName;
                             const ts = msg.timestamp?.toDate?.();
-                            const msgRef = doc(db, 'anonymous_public_chat', msg.id);
 
                             return (
                                 <div key={msg.id} className={`group relative flex w-full px-2 py-1 transition-colors hover:bg-[var(--ui-bg-hover)]/30 rounded-xl ${showHeader ? 'mt-4' : 'mt-0.5'}`}>
@@ -205,9 +204,9 @@ export default function AnonymousChatPage() {
                                             )}
                                             <div className="mt-1">
                                                 <MessageReactions
-                                                    messageRef={msgRef}
                                                     reactions={msg.reactions ?? {}}
                                                     currentUserId={user?.uid ?? ''}
+                                                    onToggle={(emoji) => handleReact(msg.id, emoji)}
                                                 />
                                             </div>
                                         </div>

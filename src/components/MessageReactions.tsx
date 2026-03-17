@@ -3,8 +3,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { Smile, Reply } from 'lucide-react';
 import { QUICK_REACTIONS } from '@/lib/emojis';
-import { updateDoc, type DocumentReference } from 'firebase/firestore';
-import toast from 'react-hot-toast';
 
 /* ── Message Hover Toolbar ── */
 
@@ -99,34 +97,13 @@ export function MessageHoverToolbar({ onReact, onReply, onEdit, onDelete, isMine
 /* ── Message Reactions Display ── */
 
 interface MessageReactionsProps {
-    messageRef: DocumentReference;
     reactions: Record<string, string[]>;
     currentUserId: string;
+    onToggle?: (emoji: string) => void;
 }
 
-export function MessageReactions({ messageRef, reactions, currentUserId }: MessageReactionsProps) {
+export function MessageReactions({ reactions, currentUserId, onToggle }: MessageReactionsProps) {
     if (!reactions || Object.keys(reactions).length === 0) return null;
-
-    const toggleReaction = async (emoji: string) => {
-        try {
-            const current = reactions[emoji] ?? [];
-            const hasReacted = current.includes(currentUserId);
-            const updated = hasReacted
-                ? current.filter((uid) => uid !== currentUserId)
-                : [...current, currentUserId];
-
-            const newReactions = { ...reactions };
-            if (updated.length === 0) {
-                delete newReactions[emoji];
-            } else {
-                newReactions[emoji] = updated;
-            }
-
-            await updateDoc(messageRef, { reactions: newReactions });
-        } catch {
-            toast.error('Failed to update reaction.');
-        }
-    };
 
     return (
         <div className="flex flex-wrap gap-1 mt-1">
@@ -136,7 +113,7 @@ export function MessageReactions({ messageRef, reactions, currentUserId }: Messa
                     <button
                         key={emoji}
                         type="button"
-                        onClick={() => toggleReaction(emoji)}
+                        onClick={() => onToggle?.(emoji)}
                         className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-all ${
                             hasReacted
                                 ? 'bg-[var(--ui-accent-dim)] ring-1 ring-[var(--ui-accent)]/40 text-[var(--ui-accent)]'

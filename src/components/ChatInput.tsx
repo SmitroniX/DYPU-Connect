@@ -3,9 +3,10 @@
 import { useRef, useState, Suspense, lazy } from 'react';
 import { Bold, Code, Image as ImageIcon, Italic, Send, X } from 'lucide-react';
 import type { GiphyGif } from '@/lib/giphy';
-import { useStore } from '@/store/useStore';
 import { uploadChatMedia } from '@/lib/storage';
+import { compressImage, generateBlurHash } from '@/lib/media';
 import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
 // Lazy-load heavy picker components — only loaded when the user opens them
 const EmojiPicker = lazy(() => import('@/components/EmojiPicker'));
@@ -16,6 +17,7 @@ export interface ChatInputPayload {
     text: string;
     gifUrl?: string;
     imageUrl?: string;
+    blurHash?: string;
     audioUrl?: string;
 }
 
@@ -62,12 +64,12 @@ export default function ChatInput({
     const [message, setMessage] = useState('');
     const [selectedGifUrl, setSelectedGifUrl] = useState('');
     const [selectedImageUrl, setSelectedImageUrl] = useState('');
+    const [selectedBlurHash, setSelectedBlurHash] = useState('');
     const [selectedAudioUrl, setSelectedAudioUrl] = useState('');
     const [uploading, setUploading] = useState(false);
     const [sending, setSending] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
-    const { userProfile } = useStore();
 
     const canSend = !disabled && !sending && (message.trim() || selectedGifUrl || selectedImageUrl || selectedAudioUrl);
     const showCharCount = message.length > maxLength * 0.8;
@@ -82,11 +84,13 @@ export default function ChatInput({
                 text: message.trim(),
                 gifUrl: selectedGifUrl || undefined,
                 imageUrl: selectedImageUrl || undefined,
+                blurHash: selectedBlurHash || undefined,
                 audioUrl: selectedAudioUrl || undefined,
             });
             setMessage('');
             setSelectedGifUrl('');
             setSelectedImageUrl('');
+            setSelectedBlurHash('');
             setSelectedAudioUrl('');
             // Reset textarea height
             if (textareaRef.current) {
@@ -162,8 +166,18 @@ export default function ChatInput({
 
         setUploading(true);
         try {
-            const url = await uploadChatMedia(file, chatId || 'general');
+            // 1. Compress image
+            const compressedFile = await compressImage(file);
+            
+            // 2. Generate BlurHash (concurrently with upload)
+            const blurHashPromise = generateBlurHash(compressedFile);
+            
+            // 3. Upload to storage
+            const url = await uploadChatMedia(compressedFile, chatId || 'general');
+            const blurHash = await blurHashPromise;
+
             setSelectedImageUrl(url);
+            setSelectedBlurHash(blurHash);
             toast.success('Image attached!');
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Image upload failed.');
@@ -208,7 +222,7 @@ export default function ChatInput({
                         </p>
                         <button
                              type="button"
-                             onClick={() => { setSelectedGifUrl(''); setSelectedImageUrl(''); setSelectedAudioUrl(''); }}
+                             onClick={() => { setSelectedGifUrl(''); setSelectedImageUrl(''); setSelectedBlurHash(''); setSelectedAudioUrl(''); }}
                              className="text-[11px] text-[var(--ui-danger)] hover:underline mt-0.5"
                         >
                             Remove attachment
@@ -218,7 +232,7 @@ export default function ChatInput({
             )}
 
             {/* Input bar - Floating Pill Design */}
-            <div className="flex flex-col bg-[#27272a]/95 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.2)] rounded-[26px] border border-white/5 focus-within:border-[var(--ui-accent)]/40 focus-within:ring-4 focus-within:ring-[var(--ui-accent)]/10 transition-all duration-300 relative z-20 overflow-hidden group">
+            <div className="flex flex-col bg-[var(--ui-bg-elevated)]/95 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.2)] rounded-[26px] border border-white/5 focus-within:border-[var(--ui-accent)]/40 focus-within:ring-4 focus-within:ring-[var(--ui-accent)]/10 transition-all duration-300 relative z-20 overflow-hidden group">
                
                {/* Animated Gradient Glow on Active */}
                <div className="absolute inset-0 bg-gradient-to-r from-[var(--ui-accent)]/0 via-[var(--ui-accent)]/5 to-[var(--ui-accent)]/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
@@ -226,30 +240,36 @@ export default function ChatInput({
                 {/* Markdown toolbar (shown only when multi-line or focused) */}
                 {features.markdown && (
                     <div className="flex items-center gap-1 px-3 pt-2 pb-0 opacity-60 hover:opacity-100 focus-within:opacity-100 transition-opacity">
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.95 }}
                             type="button"
                             onClick={() => wrapSelection('**', '**')}
                             className="p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
                             title="Bold (Ctrl+B)"
                         >
                             <Bold className="w-4 h-4" />
-                        </button>
-                        <button
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.95 }}
                             type="button"
                             onClick={() => wrapSelection('*', '*')}
                             className="p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
                             title="Italic (Ctrl+I)"
                         >
                             <Italic className="w-4 h-4" />
-                        </button>
-                        <button
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.95 }}
                             type="button"
                             onClick={() => wrapSelection('`', '`')}
                             className="p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
                             title="Inline code"
                         >
                             <Code className="w-4 h-4" />
-                        </button>
+                        </motion.button>
                     </div>
                 )}
 
@@ -262,27 +282,31 @@ export default function ChatInput({
                                 <EmojiPicker
                                     onSelect={insertEmoji}
                                     trigger={
-                                        <button
+                                        <motion.button
+                                            whileHover={{ scale: 0.98 }}
+                                            whileTap={{ scale: 0.95 }}
                                             type="button"
-                                            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] hover:scale-105 transition-all text-lg leading-none"
+                                            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-all text-lg leading-none"
                                             title="Add emoji"
                                         >
                                             🙂
-                                        </button>
+                                        </motion.button>
                                     }
                                 />
                             </Suspense>
                         )}
                         {features.image && (
-                            <button
+                            <motion.button
+                                whileHover={{ scale: 0.98, backgroundColor: 'var(--ui-accent-dim)' }}
+                                whileTap={{ scale: 0.95 }}
                                 type="button"
                                 onClick={() => imageInputRef.current?.click()}
                                 disabled={uploading || disabled}
-                                className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] hover:bg-[var(--ui-accent)]/10 transition-all hover:scale-105 disabled:opacity-50"
+                                className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] transition-all disabled:opacity-50"
                                 title="Attach photo"
                             >
                                 <ImageIcon className="w-5 h-5" />
-                            </button>
+                            </motion.button>
                         )}
                         {features.gif && (
                             <div className="flex items-center justify-center pt-0.5">
@@ -335,15 +359,17 @@ export default function ChatInput({
                                 {message.length}/{maxLength}
                             </span>
                         )}
-                        <button
+                        <motion.button
+                            whileHover={canSend && !overLimit ? { scale: 0.98 } : {}}
+                            whileTap={canSend && !overLimit ? { scale: 0.95 } : {}}
                             type="button"
                             onClick={handleSend}
                             disabled={!canSend || overLimit}
-                            className="h-[42px] w-[42px] flex items-center justify-center rounded-full bg-gradient-to-br from-[#818cf8] to-[#4f46e5] text-white hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:from-[#3f3f46] disabled:to-[#3f3f46] disabled:text-[#a1a1aa] transition-all shadow-md shadow-[#4f46e5]/25"
+                            className="h-[42px] w-[42px] flex items-center justify-center rounded-full bg-gradient-to-br from-[#818cf8] to-[#4f46e5] text-white disabled:opacity-50 disabled:from-[#3f3f46] disabled:to-[#3f3f46] disabled:text-[#a1a1aa] transition-all shadow-md shadow-[#4f46e5]/25"
                             title="Send message"
                         >
                             <Send className="w-[18px] h-[18px] ml-0.5" />
-                        </button>
+                        </motion.button>
                     </div>
                 </div>
             </div>

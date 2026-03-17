@@ -18,10 +18,7 @@ import {
     isGoogleDriveConfigured,
 } from '@/lib/googleDrive';
 import { logActivity, fetchActivityLog, type ActivityLogEntry } from '@/lib/activityLog';
-import { exportProfileBackup, listBackups, importProfileBackup } from '@/lib/backup';
-import type { GoogleDriveListFile } from '@/lib/googleDrive';
 import type {
-    ProfileFormData,
     ProfileGalleryItem,
     ProfileHighlightItem,
     ProfileStoryItem,
@@ -29,18 +26,12 @@ import type {
     UserProfile,
 } from '@/types/profile';
 import {
-    getProfileBranchOptions,
-    PROFILE_DIVISIONS,
-    PROFILE_FIELDS,
-    PROFILE_GENDERS,
     PROFILE_VISIBILITY_OPTIONS,
-    PROFILE_YEARS,
     STORY_TTL_MS,
 } from '@/types/profile';
 import { resolveProfileImage } from '@/lib/profileImage';
 import {
     Award,
-    Camera,
     ChevronUp,
     Clock,
     Download,
@@ -58,7 +49,6 @@ import {
     Lock,
     Mail,
     Plus,
-    Save,
     ScrollText,
     ShieldCheck,
     Sparkles,
@@ -69,10 +59,6 @@ import {
     X,
     Zap,
 } from 'lucide-react';
-
-interface EditableProfileData extends ProfileFormData {
-    profileImage: string;
-}
 
 /* ── Profile completion calculator ── */
 function computeProfileCompletion(profile: UserProfile): number {
@@ -274,25 +260,11 @@ export default function ProfilePage() {
     const { user } = useAuth();
     const { userProfile, setUserProfile } = useStore();
     const router = useRouter();
-    const profilePhotoFileInputRef = useRef<HTMLInputElement>(null);
     const storyFileInputRef = useRef<HTMLInputElement>(null);
     const highlightFileInputRef = useRef<HTMLInputElement>(null);
     const galleryFileInputRef = useRef<HTMLInputElement>(null);
 
     const [activeTab, setActiveTab] = useState<ProfileTab>('gallery');
-    const [formData, setFormData] = useState<EditableProfileData>({
-        name: '',
-        bio: '',
-        socialLinks: {},
-        field: 'Engineering',
-        year: 'First Year',
-        division: 'A',
-        branch: '',
-        gender: 'other',
-        accountVisibility: 'public',
-        profileImage: '',
-    });
-    const [saving, setSaving] = useState(false);
     const [uploadingTarget, setUploadingTarget] = useState<'profile' | 'story' | 'highlight' | 'gallery' | null>(null);
     const [currentTime, setCurrentTime] = useState(() => Date.now());
     const [galleryDraft, setGalleryDraft] = useState<GalleryDraft>({ imageSource: '', caption: '', visibility: 'public' });
@@ -308,33 +280,12 @@ export default function ProfilePage() {
     const [activityLogs, setActivityLogs] = useState<ActivityLogEntry[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
 
-    // Backup state
-    const [backupBusy, setBackupBusy] = useState(false);
-    const [backupFiles, setBackupFiles] = useState<GoogleDriveListFile[]>([]);
-    const [showBackups, setShowBackups] = useState(false);
-
     // Only populate form from profile on first load (not on every profile change)
-    const formInitialized = useRef(false);
-    const prevFieldRef = useRef(formData.field);
     const storiesCleanedRef = useRef(false);
 
     useEffect(() => {
         if (!user) { router.replace('/login'); return; }
         if (!userProfile) { router.replace('/setup-profile'); return; }
-        if (formInitialized.current) return;
-        formInitialized.current = true;
-        setFormData({
-            name: userProfile.name,
-            bio: userProfile.bio ?? '',
-            socialLinks: userProfile.socialLinks ?? {},
-            field: userProfile.field,
-            year: userProfile.year,
-            division: userProfile.division,
-            branch: userProfile.branch ?? '',
-            gender: userProfile.gender,
-            accountVisibility: userProfile.accountVisibility,
-            profileImage: userProfile.profileImage,
-        });
     }, [router, user, userProfile]);
 
     useEffect(() => {
@@ -347,17 +298,6 @@ export default function ProfilePage() {
 
         return () => window.clearInterval(timer);
     }, []);
-
-    const branchOptions = getProfileBranchOptions(formData.field);
-
-    useEffect(() => {
-        if (formData.field !== prevFieldRef.current) {
-            prevFieldRef.current = formData.field;
-            if (!branchOptions.includes(formData.branch)) {
-                setFormData((prev) => ({ ...prev, branch: branchOptions[0] }));
-            }
-        }
-    }, [branchOptions, formData.branch, formData.field]);
 
     // Clean up expired stories
     useEffect(() => {
@@ -392,41 +332,6 @@ export default function ProfilePage() {
         setUserProfile({ ...freshProfile, ...updates });
         if (successMessage) toast.success(successMessage);
         return true;
-    };
-
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user || !userProfile) return;
-        const cleanName = formData.name.trim();
-        if (!cleanName) { toast.error('Please enter your full name.'); return; }
-        setSaving(true);
-        try {
-            // Build socialLinks without undefined values (Firestore rejects undefined)
-            const socialLinks: Record<string, string> = {};
-            if (formData.socialLinks.instagram?.trim()) socialLinks.instagram = formData.socialLinks.instagram.trim();
-            if (formData.socialLinks.linkedin?.trim()) socialLinks.linkedin = formData.socialLinks.linkedin.trim();
-            if (formData.socialLinks.github?.trim()) socialLinks.github = formData.socialLinks.github.trim();
-
-            const profileUpdates = {
-                name: cleanName,
-                bio: formData.bio.trim(),
-                socialLinks,
-                field: formData.field,
-                year: formData.year,
-                division: formData.division,
-                branch: formData.branch.trim(),
-                gender: formData.gender,
-                accountVisibility: formData.accountVisibility,
-                profileImage: resolveProfileImage(formData.profileImage.trim(), userProfile.email, cleanName),
-            };
-            await applyProfileUpdates(profileUpdates, 'Profile updated successfully.');
-            logActivity(user.uid, 'profile_update', `Updated profile: ${cleanName}`);
-        } catch (error: unknown) {
-            const firebaseError = error as FirebaseError | undefined;
-            if (firebaseError?.code === 'permission-denied') toast.error('Permission denied by Firestore Rules for profile update.');
-            else if (error instanceof Error) toast.error(error.message || 'Failed to update profile.');
-            else toast.error('Failed to update profile.');
-        } finally { setSaving(false); }
     };
 
     const addGalleryItem = async (e: React.FormEvent) => {
@@ -575,11 +480,6 @@ export default function ProfilePage() {
         } finally { setUploadingTarget(null); }
     };
 
-    const handleProfilePhotoFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]; event.target.value = ''; if (!file) return;
-        const uploadedUrl = await uploadImageFileToDrive(file, 'profile');
-        if (uploadedUrl) setFormData((prev) => ({ ...prev, profileImage: uploadedUrl }));
-    };
     const handleStoryFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]; event.target.value = ''; if (!file) return;
         const uploadedUrl = await uploadImageFileToDrive(file, 'story');
@@ -594,62 +494,6 @@ export default function ProfilePage() {
         const file = event.target.files?.[0]; event.target.value = ''; if (!file) return;
         const uploadedUrl = await uploadImageFileToDrive(file, 'gallery');
         if (uploadedUrl) setGalleryDraft((prev) => ({ ...prev, imageSource: uploadedUrl }));
-    };
-
-    /* ── Backup handlers ─────────────────────────── */
-    const handleExportBackup = async () => {
-        if (!userProfile || backupBusy) return;
-        setBackupBusy(true);
-        try {
-            const fileName = await exportProfileBackup(userProfile, driveAccessToken);
-            toast.success(`Backup saved: ${fileName}`);
-            logActivity(user!.uid, 'backup_export', `Exported backup: ${fileName}`);
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Backup export failed.');
-        } finally { setBackupBusy(false); }
-    };
-
-    const handleListBackups = async () => {
-        if (backupBusy) return;
-        setBackupBusy(true);
-        setShowBackups(true);
-        try {
-            const files = await listBackups(driveAccessToken, userProfile?.googleDrive?.folderId);
-            setBackupFiles(files);
-            if (files.length === 0) toast('No backups found on your Drive.', { icon: 'ℹ️' });
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Failed to list backups.');
-        } finally { setBackupBusy(false); }
-    };
-
-    const handleImportBackup = async (fileId: string, fileName: string) => {
-        if (!user || !userProfile || backupBusy) return;
-        if (!confirm(`Restore from "${fileName}"? This will overwrite your current profile data.`)) return;
-        setBackupBusy(true);
-        try {
-            const restoredProfile = await importProfileBackup(driveAccessToken, fileId);
-            // Preserve current userId, email, role, status, and googleDrive connection
-            const merged: Partial<UserProfile> = {
-                name: restoredProfile.name,
-                profileImage: restoredProfile.profileImage,
-                field: restoredProfile.field,
-                year: restoredProfile.year,
-                division: restoredProfile.division,
-                branch: restoredProfile.branch,
-                gender: restoredProfile.gender,
-                accountVisibility: restoredProfile.accountVisibility,
-                gallery: restoredProfile.gallery ?? [],
-                stories: restoredProfile.stories ?? [],
-                highlights: restoredProfile.highlights ?? [],
-            };
-            await updateDoc(doc(db, 'users', user.uid), merged);
-            setUserProfile({ ...userProfile, ...merged });
-            logActivity(user.uid, 'backup_import', `Restored from: ${fileName}`);
-            toast.success('Profile restored from backup!');
-            setShowBackups(false);
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Backup import failed.');
-        } finally { setBackupBusy(false); }
     };
 
     /* ── Loading state ───────────────────────────── */
@@ -669,7 +513,7 @@ export default function ProfilePage() {
     }
 
     const createdOn = new Date(userProfile.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
-    const resolvedPreviewImage = resolveProfileImage(formData.profileImage, userProfile.email, formData.name || userProfile.name);
+    const resolvedPreviewImage = resolveProfileImage(userProfile.profileImage, userProfile.email, userProfile.name);
     const fallbackSrc = resolveProfileImage('', userProfile.email, userProfile.name);
     const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
         e.currentTarget.src = fallbackSrc;
@@ -730,7 +574,7 @@ export default function ProfilePage() {
                                     <div className="w-full h-full rounded-full overflow-hidden bg-zinc-800">
                                         <img
                                             src={resolvedPreviewImage}
-                                            alt={formData.name || 'Profile'}
+                                            alt={userProfile.name}
                                             onError={handleImgError}
                                             className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
                                         />
@@ -741,14 +585,6 @@ export default function ProfilePage() {
                                         {profileCompletion}% Complete
                                     </div>
                                 </div>
-                                
-                                <button
-                                    onClick={() => { profilePhotoFileInputRef.current?.click(); }}
-                                    className="absolute bottom-1 right-1 h-10 w-10 rounded-full bg-linear-to-br from-fuchsia-500 to-violet-600 flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300 z-20 text-white ring-4 ring-zinc-950"
-                                    title="Upload profile photo"
-                                >
-                                    <Camera className="h-4 w-4" />
-                                </button>
                             </div>
 
                             {/* Name & Details */}

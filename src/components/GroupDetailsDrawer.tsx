@@ -3,7 +3,8 @@
 import { X, Search, Image as ImageIcon, Bell, BellOff, Trash2, LogOut, Shield } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Group, GroupMessage } from '@/types/groups';
+import { Group } from '@/types/groups';
+import { Message } from '@/lib/validation/schemas';
 import { useAuth } from '@/components/AuthProvider';
 import { useEffect, useState } from 'react';
 import { resolveProfileImage } from '@/lib/profileImage';
@@ -12,7 +13,7 @@ interface GroupDetailsDrawerProps {
     isOpen: boolean;
     onClose: () => void;
     group: Group;
-    messages: GroupMessage[];
+    messages: Message[];
     onSearchClick?: () => void;
     onLeaveGroup?: () => void;
     onRemoveMember?: (uid: string) => void;

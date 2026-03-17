@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { rtdb } from '@/lib/firebase';
 import { ref, onValue, set, onDisconnect } from 'firebase/database';
 import { useStore } from '@/store/useStore';
+import { handleError } from '@/lib/errors';
 
 export function useTypingStatus(chatId: string | undefined) {
     const { currentUser } = useStore();
@@ -36,12 +37,12 @@ export function useTypingStatus(chatId: string | undefined) {
             const myTypingRef = ref(rtdb, `/typing/${chatId}/${currentUser.uid}`);
             
             if (isTyping) {
-                onDisconnect(myTypingRef).set(false).catch(() => {});
+                onDisconnect(myTypingRef).set(false).catch((err) => handleError(err, 'useTypingStatus onDisconnect set'));
             } else {
-                onDisconnect(myTypingRef).cancel().catch(() => {});
+                onDisconnect(myTypingRef).cancel().catch((err) => handleError(err, 'useTypingStatus onDisconnect cancel'));
             }
 
-            set(myTypingRef, isTyping).catch(() => {});
+            set(myTypingRef, isTyping).catch((err) => handleError(err, 'useTypingStatus set'));
         },
         [chatId, currentUser]
     );

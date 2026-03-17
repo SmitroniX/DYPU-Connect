@@ -1,49 +1,60 @@
 'use client';
 
-import { use, useCallback, useEffect, useRef, useState } from 'react';
+import { use, useCallback, useEffect, useRef, useState, useOptimistic } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, limit, addDoc, serverTimestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
-import type { FirebaseError } from 'firebase/app';
-import type { Group, GroupMessage as Message } from '@/types/groups';
+import { doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import type { Group } from '@/types/groups';
 import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
-import { resolveProfileImage } from '@/lib/profileImage';
 import ChannelHeader from '@/components/ChannelHeader';
 import ChatInput, { type ChatInputPayload } from '@/components/ChatInput';
-import { MessageHoverToolbar, MessageReactions } from '@/components/MessageReactions';
 import ProfilePopup from '@/components/ProfilePopup';
 import GroupDetailsDrawer from '@/components/GroupDetailsDrawer';
 import { ArrowLeft, Users, ShieldAlert, MoreVertical, Search, X } from 'lucide-react';
-import { format } from 'date-fns';
-import { sanitiseInput, filterProfanity } from '@/lib/security';
+import { sanitiseInput } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { rtdb } from '@/lib/firebase'; // Assuming rtdb is exported from here
+import { rtdb } from '@/lib/firebase';
 import { ref, onValue, set, onDisconnect, remove } from 'firebase/database';
-import ModuleGuard from '@/components/ModuleGuard'; // Assuming ModuleGuard is a new component
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-
+import ModuleGuard from '@/components/ModuleGuard';
+import MessageItem from '@/components/MessageItem';
+import { listGroupMessagesRef, sendGroupMessage, updateGroupMessage } from '@/generated/dataconnect';
+import { subscribe } from 'firebase/data-connect';
+import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
+import { Message } from '@/lib/validation/schemas';
 
 export default function GroupChatDetail({ params }: { params: Promise<{ groupId: string }> }) {
     const { groupId } = use(params);
     const [messages, setMessages] = useState<Message[]>([]);
+    const [optimisticMessages, addOptimisticMessage] = useOptimistic(
+        messages,
+        (state, newMessage: Message) => {
+            const index = state.findIndex(m => m.id === newMessage.id);
+            if (index !== -1) {
+                const newState = [...state];
+                newState[index] = { ...state[index], ...newMessage };
+                return newState;
+            }
+            return [...state, newMessage];
+        }
+    );
     const [profilePopup, setProfilePopup] = useState<{ userId: string; rect: DOMRect } | null>(null);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [group, setGroup] = useState<Group | null>(null); // Renamed from groupData to group
+    const [group, setGroup] = useState<Group | null>(null);
     const [typingUsers, setTypingUsers] = useState<Array<{ uid: string; name: string }>>([]);
+    const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+    const [editValue, setEditValue] = useState('');
+    const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
 
-    const searchInputRef = useRef<HTMLInputElement>(null);
-
+    const virtuosoRef = useRef<VirtuosoHandle>(null);
     const { user } = useAuth();
     const { userProfile } = useStore();
     const isMuted = userProfile?.mutedEntities?.includes(groupId) ?? false;
-    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const handleToggleMute = async () => {
         if (!user || !userProfile) return;
@@ -59,10 +70,6 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
         } catch {
             toast.error('Failed to update mute settings');
         }
-    };
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     const humanReadableName = (() => {
@@ -87,50 +94,40 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
     const isAuth = isAuthorized();
 
     useEffect(() => {
-        if (!isAuth) return;
-        const q = query(
-            collection(db, 'groups', groupId, 'messages'),
-            orderBy('timestamp', 'asc'),
-            limit(100)
-        );
+        if (!isAuth || !user) return;
 
-        // Also fetch the group document itself for the drawer
+        // Fetch group details
         const fetchGroupDoc = async () => {
             const snap = await getDoc(doc(db, 'groups', groupId));
             if (snap.exists()) setGroup({ id: snap.id, ...snap.data() } as Group);
         };
         fetchGroupDoc();
 
-        const unsubscribe = onSnapshot(
-            q,
-            (snapshot) => {
-                const data: Message[] = snapshot.docs.map((docSnap) => {
-                    const raw = docSnap.data();
-                    return {
-                        id: docSnap.id,
-                        text: raw.text ?? '',
-                        senderId: raw.senderId ?? '',
-                        senderName: raw.senderName ?? 'User',
-                        senderImage: raw.senderProfileImage ?? '',
-                        gifUrl: typeof raw.gifUrl === 'string' ? raw.gifUrl : '',
-                        imageUrl: typeof raw.imageUrl === 'string' ? raw.imageUrl : '',
-                        reactions: raw.reactions ?? {},
-                        timestamp: raw.timestamp ?? null,
-                    };
-                });
+        // Subscribe to messages via FDC
+        const unsubscribe = subscribe(
+            listGroupMessagesRef({ groupName: groupId }),
+            (result) => {
+                const data: Message[] = result.data.groupMessages.map((gm) => ({
+                    id: gm.id,
+                    text: gm.messageContent,
+                    senderId: gm.senderStudentId,
+                    senderName: gm.senderStudentId === user.uid ? userProfile?.name : (gm.sender ? `${gm.sender.firstName} ${gm.sender.lastName}` : 'User'),
+                    senderImage: gm.senderStudentId === user.uid ? userProfile?.profileImage : (gm.sender?.profilePictureUrl ?? ''),
+                    gifUrl: gm.gifUrl ?? '',
+                    imageUrl: gm.imageUrl ?? '',
+                    audioUrl: gm.audioUrl ?? '',
+                    reactions: (gm.reactions as Record<string, string[]>) ?? {},
+                    timestamp: gm.sentAt ? new Date(gm.sentAt) : null,
+                    isEdited: gm.isEdited ?? false,
+                    isDeleted: gm.isDeleted ?? false,
+                    replyToId: gm.replyToId ?? undefined,
+                }));
                 setMessages(data);
-            },
-            (error) => {
-                const firebaseError = error as FirebaseError;
-                if (firebaseError?.code === 'permission-denied') {
-                    toast.error('You do not have permission to read this group chat.');
-                    return;
-                }
-                toast.error('Failed to load group chat.');
             }
         );
+
         return () => unsubscribe();
-    }, [groupId, isAuth]);
+    }, [groupId, isAuth, user, userProfile]);
 
     useEffect(() => {
         if (user && isAuth) {
@@ -141,8 +138,6 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
             }).catch(() => {});
         }
     }, [groupId, user, isAuth, messages.length]);
-
-    useEffect(() => { scrollToBottom(); }, [messages]);
 
     // Typing Status Observer
     useEffect(() => {
@@ -180,31 +175,44 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
 
     const handleSend = useCallback(async (payload: ChatInputPayload) => {
         const cleanMessage = sanitiseInput(payload.text);
-        if ((!cleanMessage && !payload.gifUrl && !payload.imageUrl) || !userProfile || !user || !isAuth) return;
+        if ((!cleanMessage && !payload.gifUrl && !payload.imageUrl && !payload.audioUrl) || !userProfile || !user || !isAuth) return;
 
-        // Clear typing status immediately upon sending
         handleTyping(false);
 
-        const msgData: Record<string, unknown> = {
+        const optimisticMsg: Message = {
+            id: 'temp-' + Date.now(),
             text: cleanMessage,
             senderId: user.uid,
             senderName: userProfile.name,
             senderImage: userProfile.profileImage,
-            timestamp: serverTimestamp(),
+            timestamp: new Date(),
+            gifUrl: payload.gifUrl,
+            imageUrl: payload.imageUrl,
+            audioUrl: payload.audioUrl,
+            replyToId: replyToMessage?.id
         };
-        if (payload.gifUrl) msgData.gifUrl = payload.gifUrl;
-        if (payload.imageUrl) msgData.imageUrl = payload.imageUrl;
+
+        addOptimisticMessage(optimisticMsg);
 
         try {
-            await addDoc(collection(db, 'groups', groupId, 'messages'), msgData);
+            await sendGroupMessage({
+                senderId: user.uid,
+                groupName: groupId,
+                messageContent: cleanMessage,
+                gifUrl: payload.gifUrl,
+                imageUrl: payload.imageUrl,
+                audioUrl: payload.audioUrl,
+                replyToId: replyToMessage?.id
+            });
+            setReplyToMessage(null);
             
-            // Increment unread count globally for the group
+            // Increment unread count globally for the group in Firestore
             const groupRef = doc(db, 'groups', groupId);
             const groupSnap = await getDoc(groupRef);
             if (groupSnap.exists()) {
                 const groupData = groupSnap.data();
                 const updates: Record<string, unknown> = {
-                    lastMessage: cleanMessage || (payload.imageUrl ? 'Sent an image' : 'Sent a GIF'),
+                    lastMessage: cleanMessage || (payload.imageUrl ? '📷 Photo' : (payload.audioUrl ? '🎤 Voice Message' : '🎞 GIF')),
                     updatedAt: serverTimestamp()
                 };
                 
@@ -221,21 +229,64 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
             console.error(error);
             toast.error('Failed to send message');
         }
-    }, [groupId, user, userProfile, isAuth, handleTyping]);
+    }, [groupId, user, userProfile, isAuth, handleTyping, replyToMessage, addOptimisticMessage]);
 
     const handleReact = useCallback((messageId: string, emoji: string) => {
         if (!user) return;
-        const msgRef = doc(db, 'groups', groupId, 'messages', messageId);
-        const msg = messages.find((m) => m.id === messageId);
-        const reactions = msg?.reactions ?? {};
+        const msg = optimisticMessages.find((m) => m.id === messageId);
+        if (!msg) return;
+        const reactions = msg.reactions ?? {};
         const current = reactions[emoji] ?? [];
         const hasReacted = current.includes(user.uid);
         const updated = hasReacted ? current.filter((uid) => uid !== user.uid) : [...current, user.uid];
         const newReactions = { ...reactions };
         if (updated.length === 0) delete newReactions[emoji];
         else newReactions[emoji] = updated;
-        updateDoc(msgRef, { reactions: newReactions }).catch(() => toast.error('Failed to react.'));
-    }, [groupId, messages, user]);
+
+        addOptimisticMessage({ ...msg, reactions: newReactions });
+
+        updateGroupMessage({ id: messageId, reactions: newReactions })
+            .catch(() => toast.error('Failed to react.'));
+    }, [optimisticMessages, user, addOptimisticMessage]);
+
+    const handleStartEdit = (msg: Message) => {
+        setEditingMessageId(msg.id);
+        setEditValue(msg.text);
+    };
+
+    const handleSaveEdit = async (messageId: string) => {
+        if (!editValue.trim()) return;
+        try {
+            await updateGroupMessage({
+                id: messageId,
+                messageContent: editValue.trim(),
+                isEdited: true,
+            });
+            setEditingMessageId(null);
+            setEditValue('');
+        } catch {
+            toast.error('Failed to edit message.');
+        }
+    };
+
+    const handleDelete = async (messageId: string) => {
+        if (!confirm('Are you sure you want to delete this message?')) return;
+        try {
+            await updateGroupMessage({
+                id: messageId,
+                messageContent: 'This message was deleted.',
+                isEdited: false,
+                isDeleted: true
+            });
+        } catch {
+            toast.error('Failed to delete message.');
+        }
+    };
+
+    const handleStartReply = (msg: Message) => {
+        setReplyToMessage(msg);
+        setEditingMessageId(null);
+    };
 
     const handleAvatarClick = (userId: string, event: React.MouseEvent) => {
         const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -267,9 +318,9 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
         );
     }
 
-    const filteredMessages = messages.filter(msg => 
-        msg.text.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredMessages = searchQuery.trim() 
+        ? optimisticMessages.filter(m => m.text?.toLowerCase().includes(searchQuery.toLowerCase()))
+        : optimisticMessages;
 
     // Render typing text based on how many users
     let typingText = '';
@@ -297,7 +348,6 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                     <div className="flex items-center bg-[var(--ui-bg-hover)] rounded-full px-3 py-1.5 w-full max-w-xs animate-[scale-in_0.2s_ease-out]">
                                         <Search className="w-4 h-4 text-[var(--ui-text-muted)] shrink-0" />
                                         <input
-                                            ref={searchInputRef}
                                             type="text"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -334,193 +384,155 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                             </div>
                         </ChannelHeader>
 
-                        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
-                            {filteredMessages.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-center">
-                                <div className="w-16 h-16 rounded-full bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
-                                    <Users className="h-8 w-8 text-[var(--ui-text-muted)]" />
-                                </div>
-                                <h3 className="text-xl font-bold text-[var(--ui-text)]">Welcome to #{humanReadableName}!</h3>
-                                <p className="text-sm text-[var(--ui-text-muted)] mt-1">This is the start of the group. Say hello! 👋</p>
-                            </div>
-                        ) : (
-                            filteredMessages.map((msg, i) => {
+                        <Virtuoso
+                            ref={virtuosoRef}
+                            data={filteredMessages}
+                            initialTopMostItemIndex={Math.max(0, filteredMessages.length - 1)}
+                            followOutput="auto"
+                            className="flex-1 overflow-x-hidden px-4"
+                            itemContent={(i, msg) => {
                                 const isMine = msg.senderId === user?.uid;
-                                const prev = i > 0 ? messages[i - 1] : null;
+                                const prev = i > 0 ? filteredMessages[i - 1] : null;
                                 const showMsgHeader = shouldShowHeader(
                                     msg.senderId,
                                     prev?.senderId,
-                                    msg.timestamp?.toDate?.() ?? null,
-                                    prev?.timestamp?.toDate?.() ?? null
+                                    msg.timestamp ?? null,
+                                    prev?.timestamp ?? null
                                 );
-                                const ts = msg.timestamp?.toDate?.();
-                                const msgRef = doc(db, 'groups', groupId, 'messages', msg.id); // Corrected collection path
 
                                 return (
-                                    <div
+                                    <MessageItem
                                         key={msg.id}
-                                        className={`message-row group relative ${showMsgHeader ? 'mt-4' : 'mt-0'}`}
-                                    >
-                                        <MessageHoverToolbar onReact={(emoji) => handleReact(msg.id, emoji)} />
-
-                                        <div className="flex gap-4">
-                                            <div className="w-10 shrink-0 flex items-start pt-0.5">
-                                                {showMsgHeader ? (
-                                                    <img
-                                                        src={resolveProfileImage(msg.senderImage || '', undefined, msg.senderName || 'User')}
-                                                        alt=""
-                                                        className="w-10 h-10 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-[var(--ui-accent)]/40 transition-all"
-                                                        onClick={(e) => handleAvatarClick(msg.senderId, e)}
-                                                    />
-                                                ) : (
-                                                    <span className="text-[10px] text-[var(--ui-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity w-full text-center pt-1">
-                                                        {ts ? format(ts, 'HH:mm') : ''}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <div className="flex-1 min-w-0">
-                                                {showMsgHeader && (
-                                                    <div className="flex items-baseline gap-2 mb-0.5">
-                                                        <span
-                                                            className={`font-medium text-[15px] cursor-pointer hover:underline ${isMine ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text)]'}`}
-                                                            onClick={(e) => handleAvatarClick(msg.senderId, e)}
-                                                        >
-                                                            {msg.senderName}
-                                                        </span>
-                                                        <span className="text-xs text-[var(--ui-text-muted)]">
-                                                            {ts ? format(ts, 'dd/MM/yyyy HH:mm') : 'Sending...'}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                {msg.gifUrl && (
-                                                    <img src={msg.gifUrl} alt="GIF" className="max-w-[300px] rounded-lg mt-1 object-cover" />
-                                                )}
-                                                {msg.imageUrl && (
-                                                    <img src={msg.imageUrl} alt="Photo" className="max-w-[300px] rounded-lg mt-1 object-cover border border-[var(--ui-border)]" />
-                                                )}
-                                                {msg.text && (
-                                                    <div className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap mt-0.5">
-                                                        <ReactMarkdown
-                                                            remarkPlugins={[remarkGfm]}
-                                                            components={{
-                                                                p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                                                                a: ({node, ...props}) => <a className="text-[var(--ui-accent)] hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
-                                                                strong: ({node, ...props}) => <strong className="font-semibold text-[var(--ui-text)]" {...props} />,
-                                                                em: ({node, ...props}) => <em className="italic" {...props} />,
-                                                                code: ({node, ...props}) => <code className="px-1.5 py-0.5 rounded bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)] text-[13px] font-mono" {...props} />,
-                                                                pre: ({node, ...props}) => <pre className="p-3 my-2 rounded-lg bg-[#1e1e1e] text-[#d4d4d4] overflow-x-auto text-[13px] font-mono shadow-inner border border-white/10 scrollbar-thin" {...props} />,
-                                                                blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-[var(--ui-accent)]/50 pl-3 my-2 italic text-[var(--ui-text-muted)] bg-[var(--ui-bg-elevated)]/50 py-1 pr-2 rounded-r" {...props} />,
-                                                                ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
-                                                                ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
-                                                                li: ({node, ...props}) => <li className="mb-1" {...props} />
-                                                            }}
-                                                        >
-                                                            {filterProfanity(msg.text)}
-                                                        </ReactMarkdown>
-                                                    </div>
-                                                )}
-                                                <MessageReactions
-                                                    messageRef={msgRef}
-                                                    reactions={msg.reactions ?? {}}
-                                                    currentUserId={user?.uid ?? ''}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
+                                        msg={msg}
+                                        isMine={isMine}
+                                        showMsgHeader={showMsgHeader}
+                                        currentUserId={user?.uid ?? ''}
+                                        replyToMsg={msg.replyToId ? optimisticMessages.find(m => m.id === msg.replyToId) : null}
+                                        editingMessageId={editingMessageId}
+                                        editValue={editValue}
+                                        setEditValue={setEditValue}
+                                        onStartEdit={handleStartEdit}
+                                        onSaveEdit={handleSaveEdit}
+                                        onCancelEdit={() => setEditingMessageId(null)}
+                                        onDelete={handleDelete}
+                                        onReply={handleStartReply}
+                                        onReact={handleReact}
+                                        onAvatarClick={handleAvatarClick}
+                                    />
                                 );
-                            })
-                        )}
-                        
-                        {typingUsers.length > 0 && (
-                            <div className="flex justify-start animate-fade-in-up mt-4">
-                                <div className="flex items-center gap-2">
-                                    <div className="bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)] p-3 rounded-2xl rounded-bl-sm inline-flex items-center gap-1 shadow-sm border border-[var(--ui-border)]/50">
-                                        <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                                    </div>
-                                    <span className="text-xs text-[var(--ui-text-muted)] animate-pulse">
-                                        {typingText}
-                                    </span>
-                                </div>
+                            }}
+                            components={{
+                                Header: () => (
+                                    <>
+                                        {optimisticMessages.length === 0 && !searchQuery && (
+                                            <div className="flex flex-col items-center justify-center h-full text-center py-20">
+                                                <div className="w-16 h-16 rounded-full bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
+                                                    <Users className="h-8 w-8 text-[var(--ui-text-muted)]" />
+                                                </div>
+                                                <h3 className="text-xl font-bold text-[var(--ui-text)]">Welcome to #{humanReadableName}!</h3>
+                                                <p className="text-sm text-[var(--ui-text-muted)] mt-1">This is the start of the group. Say hello! 👋</p>
+                                            </div>
+                                        )}
+                                        {searchQuery && filteredMessages.length === 0 && (
+                                            <div className="flex flex-col items-center justify-center py-20 text-[var(--ui-text-muted)]">
+                                                <p>No messages found matching &quot;{searchQuery}&quot;</p>
+                                            </div>
+                                        )}
+                                    </>
+                                ),
+                                Footer: () => (
+                                    <>
+                                        {typingUsers.length > 0 && (
+                                            <div className="flex justify-start animate-fade-in-up mt-4 mb-4 ml-2">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)] p-3 rounded-2xl rounded-bl-sm inline-flex items-center gap-1 shadow-sm border border-[var(--ui-border)]/50">
+                                                        <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                                        <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                        <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                                    </div>
+                                                    <span className="text-xs text-[var(--ui-text-muted)] animate-pulse">
+                                                        {typingText}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="h-4" />
+                                    </>
+                                )
+                            }}
+                        />
+
+                        {/* Input Area */}
+                        <div className="shrink-0 bg-[var(--ui-bg-surface)] border-t border-[var(--ui-divider)] pb-safe shadow-[0_-4px_24px_-8px_rgba(0,0,0,0.1)] z-20 sticky bottom-0">
+                            <div className="max-w-3xl mx-auto p-4 transition-all duration-300">
+                                <ChatInput
+                                    onSend={handleSend}
+                                    onTyping={handleTyping}
+                                    disabled={false}
+                                    placeholder={`Message ${group?.name || humanReadableName}...`}
+                                    chatId={`group_${groupId}`}
+                                />
                             </div>
-                        )}
-                        
-                        <div ref={messagesEndRef} className="h-4" />
-                    </div>
-
-                    {/* Input Area */}
-                    <div className="shrink-0 bg-[var(--ui-bg-surface)] border-t border-[var(--ui-divider)] pb-safe shadow-[0_-4px_24px_-8px_rgba(0,0,0,0.1)] z-20 sticky bottom-0">
-                        <div className="max-w-3xl mx-auto p-4 transition-all duration-300">
-                            <ChatInput
-                                onSend={handleSend}
-                                onTyping={handleTyping}
-                                disabled={false}
-                                placeholder={`Message ${group?.name || humanReadableName}...`}
-                                chatId={`group_${groupId}`}
-                            />
                         </div>
+
+                        {profilePopup && (
+                            <ProfilePopup
+                                userId={profilePopup.userId}
+                                anchorRect={profilePopup.rect}
+                                onClose={() => setProfilePopup(null)}
+                            />
+                        )}
                     </div>
 
-                    {profilePopup && (
-                        <ProfilePopup
-                            userId={profilePopup.userId}
-                            anchorRect={profilePopup.rect}
-                            onClose={() => setProfilePopup(null)}
+                    {/* Right Drawer */}
+                    {group && (
+                        <GroupDetailsDrawer
+                            isOpen={detailsOpen}
+                            onClose={() => setDetailsOpen(false)}
+                            group={group}
+                            messages={optimisticMessages as any}
+                            onSearchClick={() => {
+                                setDetailsOpen(false);
+                                setIsSearching(true);
+                            }}
+                            isMuted={isMuted}
+                            onToggleMute={handleToggleMute}
+                            onRemoveMember={async (uid: string) => {
+                                if (confirm('Are you sure you want to remove this member?')) {
+                                    try {
+                                        const groupRef = doc(db, 'groups', groupId);
+                                        const newMembers = (group.memberIds as string[]).filter((id: string) => id !== uid);
+                                        const newAdmins = ((group.adminIds as string[]) || []).filter((id: string) => id !== uid);
+                                        await updateDoc(groupRef, { 
+                                            memberIds: newMembers,
+                                            adminIds: newAdmins
+                                        });
+                                        toast.success('Member removed');
+                                    } catch {
+                                        toast.error('Failed to remove member');
+                                    }
+                                }
+                            }}
+                            onLeaveGroup={async () => {
+                                if (confirm('Are you sure you want to leave this group?')) {
+                                    try {
+                                        const groupRef = doc(db, 'groups', groupId);
+                                        const userIdx = user ? (group.memberIds as string[]).indexOf(user.uid) : -1;
+                                        if (userIdx > -1) {
+                                            const newMembers = [...(group.memberIds as string[])];
+                                            newMembers.splice(userIdx, 1);
+                                            await updateDoc(groupRef, { memberIds: newMembers });
+                                            toast.success('Left group');
+                                            window.location.href = '/groups';
+                                        }
+                                    } catch {
+                                        toast.error('Failed to leave group');
+                                    }
+                                }
+                            }}
                         />
                     )}
                 </div>
-
-                {/* Right Drawer */}
-                {group && (
-                    <GroupDetailsDrawer
-                        isOpen={detailsOpen}
-                        onClose={() => setDetailsOpen(false)}
-                        group={group}
-                        messages={messages}
-                        onSearchClick={() => {
-                            setDetailsOpen(false);
-                            setIsSearching(true);
-                        }}
-                        isMuted={isMuted}
-                        onToggleMute={handleToggleMute}
-                        onRemoveMember={async (uid: string) => {
-                            if (confirm('Are you sure you want to remove this member?')) {
-                                try {
-                                    const groupRef = doc(db, 'groups', groupId);
-                                    const newMembers = (group.memberIds as string[]).filter((id: string) => id !== uid);
-                                    const newAdmins = ((group.adminIds as string[]) || []).filter((id: string) => id !== uid);
-                                    await updateDoc(groupRef, { 
-                                        memberIds: newMembers,
-                                        adminIds: newAdmins
-                                    });
-                                    toast.success('Member removed');
-                                } catch {
-                                    toast.error('Failed to remove member');
-                                }
-                            }
-                        }}
-                        onLeaveGroup={async () => {
-                            if (confirm('Are you sure you want to leave this group?')) {
-                                try {
-                                    const groupRef = doc(db, 'groups', groupId);
-                                    const userIdx = user ? (group.memberIds as string[]).indexOf(user.uid) : -1;
-                                    if (userIdx > -1) {
-                                        const newMembers = [...(group.memberIds as string[])];
-                                        newMembers.splice(userIdx, 1);
-                                        await updateDoc(groupRef, { memberIds: newMembers });
-                                        toast.success('Left group');
-                                        window.location.href = '/groups';
-                                    }
-                                } catch {
-                                    toast.error('Failed to leave group');
-                                }
-                            }
-                        }}
-                    />
-                )}
-            </div>
             </ModuleGuard>
         </DashboardLayout>
     );

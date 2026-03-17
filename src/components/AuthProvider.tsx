@@ -1,8 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, deleteUser } from 'firebase/auth';
-import type { FirebaseError } from 'firebase/app';
+import { onAuthStateChanged, User, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, deleteUser, signInWithCustomToken } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
@@ -16,7 +15,8 @@ import { loadGoogleIdentityScript, isGoogleDriveConfigured } from '@/lib/googleD
 import PremiumLoadingScreen from './PremiumLoadingScreen';
 import { usePresence } from '@/hooks/usePresence';
 import { isAndroidApp } from '@/lib/android';
-import { signInWithCustomToken } from 'firebase/auth';
+import { toast } from 'react-hot-toast';
+import { AppError, AppErrorCode, handleError, mapToAppError } from '@/lib/errors';
 
 declare global {
     interface Window {
@@ -38,41 +38,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
-
-function mapFirestoreError(error: unknown): Error {
-    const firebaseError = error as FirebaseError | undefined;
-
-    switch (firebaseError?.code) {
-        case 'permission-denied':
-            return new Error(
-                'Firestore access denied. Update Firestore Rules to allow this signed-in user to read/write their own profile document.'
-            );
-        default:
-            return error instanceof Error ? error : new Error('Failed to access Firestore.');
-    }
-}
-
-function mapAuthError(error: unknown): Error {
-    const firebaseError = error as FirebaseError | undefined;
-
-    switch (firebaseError?.code) {
-        case 'auth/operation-not-allowed':
-            return new Error(
-                'Email link sign-in is disabled. In Firebase Console, go to Authentication -> Sign-in method -> Email/Password and enable Email link (passwordless sign-in).'
-            );
-        case 'auth/unauthorized-domain':
-            return new Error(
-                'This domain is not authorized for Firebase Auth. Add it under Authentication -> Settings -> Authorized domains.'
-            );
-        case 'auth/firebase-app-check-token-is-invalid':
-            return new Error(
-                'Firebase App Check token is invalid. Configure App Check for this web app or disable Auth App Check enforcement in Firebase Console during development.'
-            );
-        default:
-            return error instanceof Error ? error : new Error('Authentication failed.');
-    }
-}
-
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     usePresence(); // Track user online/offline status in RTDB
@@ -167,8 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         setUserProfile(null);
                     }
                 } catch (error) {
-                    const mappedError = mapFirestoreError(error);
-                    console.error(mappedError.message);
+                    handleError(error, 'AuthProvider profile fetch');
                     setUserProfile(null);
                 }
             } else {
@@ -193,8 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         await signInWithCustomToken(auth, token);
                         toast.success('Successfully authenticated from browser!');
                     } catch (error) {
-                        console.error('Electron auth error:', error);
-                        toast.error('Authentication failed.');
+                        handleError(error, 'Electron Auth');
                     }
                 }
             });
@@ -219,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (!email || !email.endsWith('@dypatil.edu')) {
                     await deleteUser(result.user).catch(() => {});
                     await signOut(auth);
-                    // notify through state or toast if needed
+                    toast.error('Only @dypatil.edu emails are allowed.');
                     return;
                 }
                 
@@ -233,14 +196,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 registerDeviceSession(result.user.uid).catch(() => {});
             }
         }).catch((error) => {
-            console.error('Redirect sign-in error:', error);
+            handleError(error, 'Google Redirect Auth');
         });
     }, [firebaseReady]);
 
 
     const sendLoginLink = async (email: string) => {
         if (!email.endsWith('@dypatil.edu')) {
-            throw new Error('Only @dypatil.edu emails are allowed.');
+            throw new AppError(AppErrorCode.AUTH_RESTRICTED_EMAIL, 'Only @dypatil.edu emails are allowed.');
         }
 
         // For local dev, Firebase auth domain might not be set. Using localhost for Action Code Setting.
@@ -253,20 +216,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await sendSignInLinkToEmail(auth, email, actionCodeSettings);
             window.localStorage.setItem('emailForSignIn', email);
         } catch (error) {
-            throw mapAuthError(error);
+            throw mapToAppError(error);
         }
     };
 
     const verifyLoginLink = async (email: string, link: string) => {
         if (!isSignInWithEmailLink(auth, link)) {
-            throw new Error('Invalid sign-in link.');
+            throw new AppError(AppErrorCode.AUTH_INVALID_LINK, 'Invalid sign-in link.');
         }
 
         try {
             await signInWithEmailLink(auth, email, link);
             window.localStorage.removeItem('emailForSignIn');
         } catch (error) {
-            throw mapAuthError(error);
+            throw mapToAppError(error);
         }
     };
 
@@ -289,7 +252,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (!email || !email.endsWith('@dypatil.edu')) {
                 await deleteUser(result.user).catch(() => {});
                 await signOut(auth);
-                throw new Error('Only @dypatil.edu Google accounts are allowed. Please use your university email.');
+                throw new AppError(AppErrorCode.AUTH_RESTRICTED_EMAIL, 'Only @dypatil.edu Google accounts are allowed. Please use your university email.');
             }
 
             // Auto-connect Google Drive
@@ -320,10 +283,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             );
             registerDeviceSession(result.user.uid).catch(() => {});
         } catch (error) {
-            if (error instanceof Error && error.message.includes('@dypatil.edu')) {
-                throw error;
-            }
-            throw mapAuthError(error);
+            throw mapToAppError(error);
         }
     };
 
@@ -342,7 +302,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (!email || !email.endsWith('@dypatil.edu')) {
                 await deleteUser(result.user).catch(() => {});
                 await signOut(auth);
-                throw new Error('Only @dypatil.edu GitHub accounts are allowed. Please ensure your GitHub email is verified and university-issued.');
+                throw new AppError(AppErrorCode.AUTH_RESTRICTED_EMAIL, 'Only @dypatil.edu GitHub accounts are allowed. Please ensure your GitHub email is verified and university-issued.');
             }
 
             // Log sign-in activity with device info (fire-and-forget)
@@ -354,10 +314,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             );
             registerDeviceSession(result.user.uid).catch(() => {});
         } catch (error) {
-            if (error instanceof Error && error.message.includes('@dypatil.edu')) {
-                throw error;
-            }
-            throw mapAuthError(error);
+            throw mapToAppError(error);
         }
     };
 

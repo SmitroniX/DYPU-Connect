@@ -5,5 +5,8 @@
   },
   "database": {
     "rules": "database.rules.json"
+  },
+  "dataconnect": {
+    "source": "dataconnect"
   }
 }

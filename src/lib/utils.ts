@@ -17,13 +17,17 @@ export function generateAnonymousName(): string {
 export function shouldShowHeader(
     currentSenderId: string,
     previousSenderId: string | undefined,
-    currentTimestamp: Date | null,
-    previousTimestamp: Date | null,
+    currentTimestamp: any,
+    previousTimestamp: any,
     thresholdMs = 5 * 60 * 1000
 ): boolean {
     if (!previousSenderId) return true;
     if (currentSenderId !== previousSenderId) return true;
-    if (!currentTimestamp || !previousTimestamp) return true;
-    return currentTimestamp.getTime() - previousTimestamp.getTime() > thresholdMs;
+    
+    const curr = currentTimestamp instanceof Date ? currentTimestamp : currentTimestamp?.toDate?.();
+    const prev = previousTimestamp instanceof Date ? previousTimestamp : previousTimestamp?.toDate?.();
+
+    if (!curr || !prev) return true;
+    return curr.getTime() - prev.getTime() > thresholdMs;
 }
 

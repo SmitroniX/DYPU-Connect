@@ -17,6 +17,18 @@ runtimeCaching.unshift(
     },
   },
   {
+    urlPattern: /^https:\/\/.*\.firebasedataconnect\.googleapis\.com\/.*$/,
+    handler: "NetworkFirst",
+    options: {
+      cacheName: "fdc-data",
+      expiration: {
+        maxEntries: 100,
+        maxAgeSeconds: 24 * 60 * 60, // 24 hours
+      },
+      networkTimeoutSeconds: 10,
+    },
+  },
+  {
     urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*$/,
     handler: "CacheFirst",
     options: {
@@ -24,6 +36,28 @@ runtimeCaching.unshift(
       expiration: {
         maxEntries: 50,
         maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+      },
+    },
+  },
+  {
+    urlPattern: /^https:\/\/api\.dicebear\.com\/.*$/,
+    handler: "CacheFirst",
+    options: {
+      cacheName: "dicebear-avatars",
+      expiration: {
+        maxEntries: 100,
+        maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+      },
+    },
+  },
+  {
+    urlPattern: /^https:\/\/ui-avatars\.com\/.*$/,
+    handler: "CacheFirst",
+    options: {
+      cacheName: "ui-avatars",
+      expiration: {
+        maxEntries: 100,
+        maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
       },
     },
   },
@@ -53,10 +87,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
 
   /* ── Performance ───────────────────────────────────────── */
-  experimental: {
-    ppr: true,
-    dynamicIO: true,
-  },
+  cacheComponents: true,
   reactStrictMode: true,
   poweredByHeader: false, 
 

@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, ChevronRight, Bell, Search } from 'lucide-react';
 import clsx from 'clsx';
 import NotificationPanel from '@/components/NotificationPanel';
+import { motion } from 'framer-motion';
 
 interface SidebarProps {
     onNavigate?: () => void;
@@ -61,7 +62,12 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
         if (item.name === 'Groups') badgeCount = unreadGroupsCount;
         
         return (
-            <li key={item.name}>
+            <motion.li 
+                key={item.name}
+                whileHover={{ scale: 0.98 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            >
                 <Link
                     href={item.href}
                     onClick={onNavigate}
@@ -81,7 +87,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                     )}
                     {isActive && badgeCount === 0 && <ChevronRight className="h-3.5 w-3.5 text-[var(--ui-accent)] opacity-60 shrink-0" />}
                 </Link>
-            </li>
+            </motion.li>
         );
     };
 
@@ -94,15 +100,19 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 </h1>
                 {/* Actions (Desktop Only) */}
                 <div className="relative hidden lg:flex items-center gap-1.5 titlebar-no-drag">
-                    <button
+                    <motion.button
+                        whileHover={{ scale: 0.98 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => setSearchModalOpen(true)}
                         className="p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
                         aria-label="Search"
                     >
                         <Search className="h-[18px] w-[18px]" />
-                    </button>
+                    </motion.button>
                     <div className="relative">
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
                             className="relative p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
                             aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
@@ -113,7 +123,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                                     {unreadCount > 99 ? '99+' : unreadCount}
                                 </span>
                             )}
-                        </button>
+                        </motion.button>
                         <NotificationPanel align="sidebar" />
                     </div>
                 </div>
@@ -164,13 +174,15 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                             {userProfile.field}
                         </p>
                     </div>
-                    <button
+                    <motion.button
+                        whileHover={{ scale: 0.98 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={logout}
                         className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-danger)] rounded-md hover:bg-[var(--ui-bg-hover)] transition-colors"
                         title="Logout"
                     >
                         <LogOut className="h-4 w-4" />
-                    </button>
+                    </motion.button>
                 </div>
             )}
         </div>

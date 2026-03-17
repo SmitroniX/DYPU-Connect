@@ -1,17 +1,7 @@
 'use client';
 
 import { X, Search, Image as ImageIcon, Bell, BellOff, Ban, Trash2, MoreVertical } from 'lucide-react';
-import type { Timestamp } from 'firebase/firestore';
-
-interface Message {
-    id: string;
-    text: string;
-    senderId: string;
-    gifUrl?: string;
-    imageUrl?: string;
-    audioUrl?: string;
-    timestamp?: Timestamp | null;
-}
+import { Message } from '@/lib/validation/schemas';
 
 interface ChatDetailsDrawerProps {
     isOpen: boolean;

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { rtdb } from '@/lib/firebase';
 import { ref, onValue, onDisconnect, set, serverTimestamp } from 'firebase/database';
 import { useStore } from '@/store/useStore';
+import { handleError } from '@/lib/errors';
 
 export interface UserPresence {
     state: 'online' | 'offline';
@@ -42,12 +43,11 @@ export function usePresence() {
             }
         });
 
-        // Cleanup function
         return () => {
             unsubscribe();
             // Try to set offline when unmounting, though onDisconnect handles the connection dropping
             if (rtdb) {
-                set(userStatusDatabaseRef, isOfflineForDatabase).catch(console.error);
+                set(userStatusDatabaseRef, isOfflineForDatabase).catch((err) => handleError(err, 'usePresence cleanup'));
             }
         };
     }, [currentUser]);

@@ -36,7 +36,7 @@ import { getOrCreateEncryptionSalt } from '@/lib/encryption';
 import { fetchDeviceSessions, removeDeviceSession, removeAllOtherSessions, type DeviceSession } from '@/lib/deviceSessions';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { type AutoBackupInterval, AUTO_BACKUP_INTERVALS } from '@/types/profile';
-import { isAndroidApp, isBiometricAvailable, authenticateBiometric, registerAndroidEventListener, showToast } from '@/lib/android';
+import { isAndroidApp, isBiometricAvailable, authenticateBiometric, registerAndroidEventListener } from '@/lib/android';
 
 interface UserSettings {
     emailNotifications: boolean;

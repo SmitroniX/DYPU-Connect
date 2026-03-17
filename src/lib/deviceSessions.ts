@@ -14,7 +14,7 @@ import {
     limit as firestoreLimit,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { generateSessionFingerprint } from '@/lib/security';
+import { generateSessionFingerprint } from '@/lib/security/fingerprint';
 
 /* ── Types ── */
 

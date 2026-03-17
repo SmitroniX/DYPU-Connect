@@ -15,7 +15,7 @@
 // ---------------------------------------------------------------------------
 
 import { getCookie, setCookie, deleteCookie } from 'cookies-next';
-import { generateSessionFingerprint } from '@/lib/security';
+import { generateSessionFingerprint } from '@/lib/security/fingerprint';
 
 /* ── Constants ────────────────────────────────────── */
 

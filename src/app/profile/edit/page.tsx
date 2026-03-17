@@ -22,7 +22,6 @@ import {
 import { resolveProfileImage } from '@/lib/profileImage';
 import { logActivity } from '@/lib/activityLog';
 import { exportProfileBackup } from '@/lib/backup';
-import type { GoogleDriveListFile } from '@/lib/googleDrive';
 import type { ProfileFormData } from '@/types/profile';
 import {
     getProfileBranchOptions,

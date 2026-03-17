@@ -18,6 +18,11 @@ export const profileGenderSchema = z.enum(['male', 'female', 'other']);
 export const userRoleSchema = z.enum(['user', 'admin', 'moderator']);
 export const userStatusSchema = z.enum(['active', 'banned']);
 
+export type ProfileVisibility = z.infer<typeof profileVisibilitySchema>;
+export type ProfileGender = z.infer<typeof profileGenderSchema>;
+export type UserRole = z.infer<typeof userRoleSchema>;
+export type UserStatus = z.infer<typeof userStatusSchema>;
+
 export const profileGalleryItemSchema = z.object({
     id: z.string(),
     imageUrl: z.string().url().or(z.string().startsWith('data:image/')),
@@ -51,6 +56,7 @@ export const googleDriveConnectionSchema = z.object({
 });
 
 export const autoBackupIntervalSchema = z.enum(['24h', '2d', '7d', '28d']);
+export type AutoBackupInterval = z.infer<typeof autoBackupIntervalSchema>;
 
 export const autoBackupSettingsSchema = z.object({
     enabled: z.boolean().default(false),
@@ -111,6 +117,15 @@ export const userProfileSchema = z.object({
     createdAt: z.number().default(() => Date.now()),
 });
 
+export type UserProfile = z.infer<typeof userProfileSchema>;
+export type ProfileGalleryItem = z.infer<typeof profileGalleryItemSchema>;
+export type ProfileStoryItem = z.infer<typeof profileStoryItemSchema>;
+export type ProfileHighlightItem = z.infer<typeof profileHighlightItemSchema>;
+export type GoogleDriveConnection = z.infer<typeof googleDriveConnectionSchema>;
+export type AutoBackupSettings = z.infer<typeof autoBackupSettingsSchema>;
+export type NotificationPreferences = z.infer<typeof notificationPreferencesSchema>;
+export type SocialLinks = z.infer<typeof socialLinksSchema>;
+
 // --- Group Schemas ---
 
 export const groupTypeSchema = z.enum(['field', 'year', 'division', 'custom']);
@@ -136,6 +151,10 @@ export const groupSchema = z.object({
     unreadCount: z.record(z.string(), z.number()).optional(),
 });
 
+export type Group = z.infer<typeof groupSchema>;
+export type GroupType = z.infer<typeof groupTypeSchema>;
+export type GroupHierarchyInfo = z.infer<typeof groupHierarchyInfoSchema>;
+
 // --- Message Schemas ---
 
 export const messageSchema = z.object({
@@ -146,10 +165,14 @@ export const messageSchema = z.object({
     senderImage: z.string().optional(),
     gifUrl: z.string().optional(),
     imageUrl: z.string().optional(),
+    blurHash: z.string().optional(),
     audioUrl: z.string().optional(),
     reactions: z.record(z.string(), z.array(z.string())).optional(),
-    timestamp: firebaseTimestampSchema.nullable(),
+    timestamp: z.union([firebaseTimestampSchema, z.instanceof(Date)]).nullable(),
     isEdited: z.boolean().optional(),
     isDeleted: z.boolean().optional(),
     replyToId: z.string().optional(),
+    expiresAt: z.union([firebaseTimestampSchema, z.instanceof(Date)]).nullable().optional(),
 });
+
+export type Message = z.infer<typeof messageSchema>;

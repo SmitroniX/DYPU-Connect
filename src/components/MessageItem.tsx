@@ -1,59 +1,38 @@
 'use client';
 
-import { doc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import React, { memo, useState } from 'react';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { filterProfanity } from '@/lib/security';
 import { MessageHoverToolbar, MessageReactions } from '@/components/MessageReactions';
-
-interface Message {
-    id: string;
-    text: string;
-    senderId: string;
-    gifUrl?: string;
-    imageUrl?: string;
-    audioUrl?: string;
-    reactions?: Record<string, string[]>;
-    timestamp?: any;
-    isEdited?: boolean;
-    isDeleted?: boolean;
-    replyToId?: string;
-}
+import { Message } from '@/lib/validation/schemas';
+import { Blurhash } from 'react-blurhash';
 
 interface MessageItemProps {
     msg: Message;
-    chatId: string;
     isMine: boolean;
-    senderName: string;
-    senderImage: string;
     showMsgHeader: boolean;
-    otherName: string;
-    messages: Message[];
     currentUserId: string;
-    editingMessageId: string | null;
-    editValue: string;
-    setEditValue: (val: string) => void;
-    onStartEdit: (msg: Message) => void;
-    onSaveEdit: (id: string) => void;
-    onCancelEdit: () => void;
-    onDelete: (id: string) => void;
-    onReply: (msg: Message) => void;
+    replyToMsg?: Message | null;
+    editingMessageId?: string | null;
+    editValue?: string;
+    setEditValue?: (val: string) => void;
+    onStartEdit?: (msg: Message) => void;
+    onSaveEdit?: (id: string) => void;
+    onCancelEdit?: () => void;
+    onDelete?: (id: string) => void;
+    onReply?: (msg: Message) => void;
     onReact: (id: string, emoji: string) => void;
     onAvatarClick: (userId: string, e: React.MouseEvent) => void;
 }
 
-export default function MessageItem({
+const MessageItem = memo(({
     msg,
-    chatId,
     isMine,
-    senderName,
-    senderImage,
     showMsgHeader,
-    otherName,
-    messages,
     currentUserId,
+    replyToMsg,
     editingMessageId,
     editValue,
     setEditValue,
@@ -64,9 +43,11 @@ export default function MessageItem({
     onReply,
     onReact,
     onAvatarClick
-}: MessageItemProps) {
-    const ts = msg.timestamp?.toDate?.();
-    const msgRef = doc(db, 'private_messages', chatId, 'messages', msg.id);
+}: MessageItemProps) => {
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const ts = msg.timestamp instanceof Date ? msg.timestamp : (msg.timestamp as any)?.toDate?.();
+    const senderName = msg.senderName || 'User';
+    const senderImage = msg.senderImage || '';
 
     return (
         <div className={`group relative flex w-full ${isMine ? 'justify-end' : 'justify-start'} ${showMsgHeader ? 'mt-6' : 'mt-1'} animate-[fade-in-up_0.3s_ease-out]`}>
@@ -76,7 +57,7 @@ export default function MessageItem({
                 <div className="w-8 shrink-0 flex flex-col items-center justify-end pb-1">
                     {showMsgHeader && !isMine && (
                         <img
-                            src={senderImage}
+                            src={senderImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(senderName)}&background=random`}
                             alt=""
                             className="w-8 h-8 rounded-full object-cover cursor-pointer shadow-sm ring-1 ring-[var(--ui-border)] hover:ring-[var(--ui-accent)]/50 transition-all"
                             onClick={(e) => onAvatarClick(msg.senderId, e)}
@@ -108,19 +89,59 @@ export default function MessageItem({
                         `}
                     >
                         {/* Reply snippet inside the bubble */}
-                        {msg.replyToId && (
+                        {msg.replyToId && replyToMsg && (
                             <div className={`mb-2 pl-2.5 border-l-[3px] rounded-r-md text-[12px] opacity-85 cursor-pointer transition-opacity hover:opacity-100 ${isMine ? 'border-white/60 bg-white/10 p-1.5' : 'border-[var(--ui-accent)] bg-[var(--ui-accent)]/10 p-1.5'}`}>
-                                <div className="font-semibold tracking-wide text-[11px] uppercase mb-0.5">{messages.find(m => m.id === msg.replyToId)?.senderId === currentUserId ? 'You' : otherName}</div>
+                                <div className="font-semibold tracking-wide text-[11px] uppercase mb-0.5">
+                                    {replyToMsg.senderId === currentUserId ? 'You' : (replyToMsg.senderName || 'User')}
+                                </div>
                                 <div className="truncate max-w-[200px] text-xs">
-                                    {messages.find(m => m.id === msg.replyToId)?.text || 'Attachment'}
+                                    {replyToMsg.text || 'Attachment'}
                                 </div>
                             </div>
                         )}
                         {msg.gifUrl && (
-                            <img src={msg.gifUrl} alt="GIF" className="max-w-full sm:max-w-[280px] rounded-[14px] mb-1 z-10 relative object-cover ring-1 ring-black/10" />
+                            <div className="relative max-w-full sm:max-w-[280px] rounded-[14px] mb-1 z-10 overflow-hidden ring-1 ring-black/10">
+                                {msg.blurHash && !imageLoaded && (
+                                    <div className="absolute inset-0 z-20">
+                                        <Blurhash
+                                            hash={msg.blurHash}
+                                            width="100%"
+                                            height="100%"
+                                            resolutionX={32}
+                                            resolutionY={32}
+                                            punch={1}
+                                        />
+                                    </div>
+                                )}
+                                <img 
+                                    src={msg.gifUrl} 
+                                    alt="GIF" 
+                                    className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                                    onLoad={() => setImageLoaded(true)}
+                                />
+                            </div>
                         )}
                         {msg.imageUrl && (
-                            <img src={msg.imageUrl} alt="Photo" className={`max-w-full sm:max-w-[280px] rounded-[14px] mb-1 z-10 relative object-cover ring-1 ring-black/10`} />
+                            <div className="relative max-w-full sm:max-w-[280px] rounded-[14px] mb-1 z-10 overflow-hidden ring-1 ring-black/10">
+                                {msg.blurHash && !imageLoaded && (
+                                    <div className="absolute inset-0 z-20">
+                                        <Blurhash
+                                            hash={msg.blurHash}
+                                            width="100%"
+                                            height="100%"
+                                            resolutionX={32}
+                                            resolutionY={32}
+                                            punch={1}
+                                        />
+                                    </div>
+                                )}
+                                <img 
+                                    src={msg.imageUrl} 
+                                    alt="Photo" 
+                                    className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                    onLoad={() => setImageLoaded(true)}
+                                />
+                            </div>
                         )}
                         {msg.audioUrl && (
                             <div className="mb-1">
@@ -133,10 +154,10 @@ export default function MessageItem({
                                     autoFocus
                                     className={`bg-transparent border-b ${isMine ? 'border-white/40 text-white' : 'border-[#3f3f46] text-[#fafafa]'} focus:outline-none pb-1`}
                                     value={editValue}
-                                    onChange={(e) => setEditValue(e.target.value)}
+                                    onChange={(e) => setEditValue?.(e.target.value)}
                                     onKeyDown={(e) => {
-                                        if (e.key === 'Enter') onSaveEdit(msg.id);
-                                        if (e.key === 'Escape') onCancelEdit();
+                                        if (e.key === 'Enter') onSaveEdit?.(msg.id);
+                                        if (e.key === 'Escape') onCancelEdit?.();
                                     }}
                                 />
                                 <div className={`text-[10px] mt-1.5 font-medium ${isMine ? 'text-white/70' : 'text-[#71717a]'}`}>
@@ -181,18 +202,18 @@ export default function MessageItem({
                     {/* Reactions underneath the bubble directly */}
                     <div className={`mt-0.5 ${isMine ? 'pr-1' : 'pl-1'}`}>
                         <MessageReactions
-                            messageRef={msgRef}
                             reactions={msg.reactions ?? {}}
                             currentUserId={currentUserId}
+                            onToggle={(emoji) => onReact(msg.id, emoji)}
                         />
                         {/* Hover Toolbar for reactions, edit, delete, etc */}
                         {(!msg.text || msg.text !== 'This message was deleted.') && (
                             <MessageHoverToolbar
                                 onReact={(emoji) => onReact(msg.id, emoji)}
                                 isMine={isMine}
-                                onEdit={() => onStartEdit(msg)}
-                                onDelete={() => onDelete(msg.id)}
-                                onReply={() => onReply(msg)}
+                                onEdit={onStartEdit ? () => onStartEdit(msg) : undefined}
+                                onDelete={onDelete ? () => onDelete(msg.id) : undefined}
+                                onReply={onReply ? () => onReply(msg) : undefined}
                             />
                         )}
                     </div>
@@ -200,4 +221,8 @@ export default function MessageItem({
             </div>
         </div>
     );
-}
+});
+
+MessageItem.displayName = 'MessageItem';
+
+export default MessageItem;

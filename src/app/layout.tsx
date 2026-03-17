@@ -6,6 +6,8 @@ import { Toaster } from 'react-hot-toast';
 import CookieConsentBanner from "@/components/CookieConsentBanner";
 import SessionGuard from "@/components/SessionGuard";
 import SystemProvider from '@/components/SystemProvider';
+import { Suspense } from "react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -62,9 +64,11 @@ export default function RootLayout({
             <body className={inter.className} suppressHydrationWarning>
                 <AuthProvider>
                     <SystemProvider>
-                        <SessionGuard>
-                            {children}
-                        </SessionGuard>
+                        <Suspense fallback={<LoadingSpinner variant="full" message="Preparing your experience..." />}>
+                            <SessionGuard>
+                                {children}
+                            </SessionGuard>
+                        </Suspense>
                         <Toaster position="top-right" />
                         <CookieConsentBanner />
                     </SystemProvider>
