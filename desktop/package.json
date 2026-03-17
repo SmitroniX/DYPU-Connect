@@ -8,15 +8,16 @@
     "start": "electron .",
     "dist": "electron-builder --win nsis"
   },
-  "author": "SmitroniX",
+  "author": "CodeVerseOrg",
   "license": "MIT",
   "build": {
-    "appId": "com.dypu.connect",
+    "appId": "com.codeverse.dypuconnect",
     "productName": "DYPU Connect",
+    "copyright": "Copyright © 2026 CodeVerseOrg",
     "publish": [
       {
         "provider": "github",
-        "owner": "SmitroniX",
+        "owner": "CodeVerseOrg",
         "repo": "DYPU-Connect"
       }
     ],
@@ -26,7 +27,7 @@
     "win": {
       "icon": "icon.png",
       "target": "nsis",
-      "publisherName": "SmitroniX"
+      "publisherName": "CodeVerseOrg"
     },
     "protocols": {
       "name": "dypu-connect-protocol",
@@ -38,7 +39,8 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "artifactName": "DYPU-Connect-Setup-${version}.${ext}"
     }
   },
   "dependencies": {
