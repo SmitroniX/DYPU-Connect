@@ -89,9 +89,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dypu-connect-android
-          path: |
-            apps/android/app/build/outputs/apk/release/*.apk
-            apps/android/app/build/outputs/apk/debug/*.apk
+          path: apps/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
 
   release:
     name: Create GitHub Release
@@ -105,19 +104,10 @@ jobs:
           name: dypu-connect-android
           path: artifacts
 
-      - name: Verify APK
-        run: |
-          if ls artifacts/*.apk 1> /dev/null 2>&1; then
-            echo "APK found, ready for release."
-          else
-            echo "Error: No APK found in artifacts."
-            exit 1
-          fi
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*.apk
+          files: artifacts/**/*.apk
           tag_name: android-v${{ github.run_number }}
           name: Android Release v${{ github.run_number }}
           body: |
