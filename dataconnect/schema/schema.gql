@@ -9,6 +9,7 @@ type Student @table(key: "studentId") {
   createdAt: Timestamp!
   bio: String
   profilePictureUrl: String
+  blurHash: String
   contactNumber: String
 }
 
@@ -33,6 +34,7 @@ type Post @table {
   createdAt: Timestamp!
   group: Group
   imageUrl: String
+  blurHash: String
   documentUrl: String
 }
 
@@ -42,6 +44,7 @@ type DirectMessage @table {
   messageContent: String!
   sentAt: Timestamp! @default(expr: "request.time")
   imageUrl: String
+  blurHash: String
   gifUrl: String
   audioUrl: String
   reactions: Any
@@ -56,6 +59,7 @@ type GroupMessage @table {
   messageContent: String!
   sentAt: Timestamp! @default(expr: "request.time")
   imageUrl: String
+  blurHash: String
   gifUrl: String
   audioUrl: String
   reactions: Any
@@ -69,6 +73,7 @@ type PublicMessage @table {
   messageContent: String!
   sentAt: Timestamp! @default(expr: "request.time")
   imageUrl: String
+  blurHash: String
   gifUrl: String
   audioUrl: String
   reactions: Any

@@ -5,6 +5,7 @@ mutation SendDirectMessage(
   $receiverId: String!,
   $messageContent: String!,
   $imageUrl: String,
+  $blurHash: String,
   $gifUrl: String,
   $audioUrl: String,
   $replyToId: UUID
@@ -14,6 +15,7 @@ mutation SendDirectMessage(
     receiverStudentId: $receiverId,
     messageContent: $messageContent,
     imageUrl: $imageUrl,
+    blurHash: $blurHash,
     gifUrl: $gifUrl,
     audioUrl: $audioUrl,
     replyToId: $replyToId
@@ -36,6 +38,7 @@ query ListDirectMessages($currentUserId: String!, $otherUserId: String!) {
     receiverStudentId
     sentAt
     imageUrl
+    blurHash
     gifUrl
     audioUrl
     reactions
@@ -74,6 +77,7 @@ mutation SendGroupMessage(
   $groupName: String!,
   $messageContent: String!,
   $imageUrl: String,
+  $blurHash: String,
   $gifUrl: String,
   $audioUrl: String,
   $replyToId: UUID
@@ -83,6 +87,7 @@ mutation SendGroupMessage(
     groupName: $groupName,
     messageContent: $messageContent,
     imageUrl: $imageUrl,
+    blurHash: $blurHash,
     gifUrl: $gifUrl,
     audioUrl: $audioUrl,
     replyToId: $replyToId
@@ -105,6 +110,7 @@ query ListGroupMessages($groupName: String!) {
     groupName
     sentAt
     imageUrl
+    blurHash
     gifUrl
     audioUrl
     reactions
@@ -142,6 +148,7 @@ mutation SendPublicMessage(
   $senderId: String!,
   $messageContent: String!,
   $imageUrl: String,
+  $blurHash: String,
   $gifUrl: String,
   $audioUrl: String,
   $expiresAt: Timestamp!
@@ -150,6 +157,7 @@ mutation SendPublicMessage(
     senderStudentId: $senderId,
     messageContent: $messageContent,
     imageUrl: $imageUrl,
+    blurHash: $blurHash,
     gifUrl: $gifUrl,
     audioUrl: $audioUrl,
     expiresAt: $expiresAt
@@ -171,6 +179,7 @@ query ListPublicMessages($now: Timestamp!) {
     }
     sentAt
     imageUrl
+    blurHash
     gifUrl
     audioUrl
     reactions
@@ -201,3 +210,4 @@ mutation UpdatePublicMessage(
 mutation DeletePublicMessage($id: UUID!) {
   publicMessage_delete(id: $id)
 }
+
