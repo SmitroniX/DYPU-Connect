@@ -1,5 +1,0 @@
-connectorId: "main"
-generate:
-  javascriptSdk:
-    outputDir: "../../src/generated/dataconnect"
-    package: "@dypu-connect/dataconnect"

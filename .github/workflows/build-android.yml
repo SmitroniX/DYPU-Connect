@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - 'android/**'
+      - 'apps/android/**'
       - '.github/workflows/build-android.yml'
 
 permissions:
@@ -37,10 +37,10 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('apps/android/**/*.gradle*', 'apps/android/**/gradle-wrapper.properties') }}
 
       - name: Configure Firebase (google-services.json)
-        working-directory: android
+        working-directory: apps/android
         env:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
         run: |
@@ -57,7 +57,7 @@ jobs:
           fi
 
       - name: Configure Keystore
-        working-directory: android
+        working-directory: apps/android
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
@@ -68,7 +68,7 @@ jobs:
           fi
 
       - name: Build APK (Release/Debug)
-        working-directory: android
+        working-directory: apps/android
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -90,8 +90,8 @@ jobs:
         with:
           name: dypu-connect-android
           path: |
-            android/app/build/outputs/apk/release/*.apk
-            android/app/build/outputs/apk/debug/*.apk
+            apps/android/app/build/outputs/apk/release/*.apk
+            apps/android/app/build/outputs/apk/debug/*.apk
 
   release:
     name: Create GitHub Release

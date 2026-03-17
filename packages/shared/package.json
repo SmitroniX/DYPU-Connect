@@ -1,0 +1,14 @@
+{
+  "name": "@dypu-connect/shared",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "zod": "^3.24.2",
+    "firebase": "^11.3.1"
+  }
+}

@@ -1,0 +1,213 @@
+# Direct Message Operations
+
+mutation SendDirectMessage(
+  $senderId: String!,
+  $receiverId: String!,
+  $messageContent: String!,
+  $imageUrl: String,
+  $blurHash: String,
+  $gifUrl: String,
+  $audioUrl: String,
+  $replyToId: UUID
+) {
+  directMessage_insert(data: {
+    senderStudentId: $senderId,
+    receiverStudentId: $receiverId,
+    messageContent: $messageContent,
+    imageUrl: $imageUrl,
+    blurHash: $blurHash,
+    gifUrl: $gifUrl,
+    audioUrl: $audioUrl,
+    replyToId: $replyToId
+  })
+}
+
+query ListDirectMessages($currentUserId: String!, $otherUserId: String!) {
+  directMessages(
+    where: {
+      _or: [
+        { senderStudentId: { eq: $currentUserId }, receiverStudentId: { eq: $otherUserId } },
+        { senderStudentId: { eq: $otherUserId }, receiverStudentId: { eq: $currentUserId } }
+      ]
+    },
+    orderBy: [{ sentAt: ASC }]
+  ) {
+    id
+    messageContent
+    senderStudentId
+    receiverStudentId
+    sentAt
+    imageUrl
+    blurHash
+    gifUrl
+    audioUrl
+    reactions
+    isEdited
+    isDeleted
+    replyToId
+  }
+}
+
+mutation UpdateDirectMessage(
+  $id: UUID!,
+  $messageContent: String,
+  $isEdited: Boolean,
+  $isDeleted: Boolean,
+  $reactions: Any
+) {
+  directMessage_update(
+    id: $id,
+    data: {
+      messageContent: $messageContent,
+      isEdited: $isEdited,
+      isDeleted: $isDeleted,
+      reactions: $reactions
+    }
+  )
+}
+
+mutation DeleteDirectMessage($id: UUID!) {
+  directMessage_delete(id: $id)
+}
+
+# Group Message Operations
+
+mutation SendGroupMessage(
+  $senderId: String!,
+  $groupName: String!,
+  $messageContent: String!,
+  $imageUrl: String,
+  $blurHash: String,
+  $gifUrl: String,
+  $audioUrl: String,
+  $replyToId: UUID
+) {
+  groupMessage_insert(data: {
+    senderStudentId: $senderId,
+    groupName: $groupName,
+    messageContent: $messageContent,
+    imageUrl: $imageUrl,
+    blurHash: $blurHash,
+    gifUrl: $gifUrl,
+    audioUrl: $audioUrl,
+    replyToId: $replyToId
+  })
+}
+
+query ListGroupMessages($groupName: String!) {
+  groupMessages(
+    where: { groupName: { eq: $groupName } },
+    orderBy: [{ sentAt: ASC }]
+  ) {
+    id
+    messageContent
+    senderStudentId
+    sender {
+      firstName
+      lastName
+      profilePictureUrl
+    }
+    groupName
+    sentAt
+    imageUrl
+    blurHash
+    gifUrl
+    audioUrl
+    reactions
+    isEdited
+    isDeleted
+    replyToId
+  }
+}
+
+mutation UpdateGroupMessage(
+  $id: UUID!,
+  $messageContent: String,
+  $isEdited: Boolean,
+  $isDeleted: Boolean,
+  $reactions: Any
+) {
+  groupMessage_update(
+    id: $id,
+    data: {
+      messageContent: $messageContent,
+      isEdited: $isEdited,
+      isDeleted: $isDeleted,
+      reactions: $reactions
+    }
+  )
+}
+
+mutation DeleteGroupMessage($id: UUID!) {
+  groupMessage_delete(id: $id)
+}
+
+# Public Message Operations
+
+mutation SendPublicMessage(
+  $senderId: String!,
+  $messageContent: String!,
+  $imageUrl: String,
+  $blurHash: String,
+  $gifUrl: String,
+  $audioUrl: String,
+  $expiresAt: Timestamp!
+) {
+  publicMessage_insert(data: {
+    senderStudentId: $senderId,
+    messageContent: $messageContent,
+    imageUrl: $imageUrl,
+    blurHash: $blurHash,
+    gifUrl: $gifUrl,
+    audioUrl: $audioUrl,
+    expiresAt: $expiresAt
+  })
+}
+
+query ListPublicMessages($now: Timestamp!) {
+  publicMessages(
+    where: { expiresAt: { gt: $now } },
+    orderBy: [{ sentAt: ASC }]
+  ) {
+    id
+    messageContent
+    senderStudentId
+    sender {
+      firstName
+      lastName
+      profilePictureUrl
+    }
+    sentAt
+    imageUrl
+    blurHash
+    gifUrl
+    audioUrl
+    reactions
+    isEdited
+    isDeleted
+    expiresAt
+  }
+}
+
+mutation UpdatePublicMessage(
+  $id: UUID!,
+  $messageContent: String,
+  $isEdited: Boolean,
+  $isDeleted: Boolean,
+  $reactions: Any
+) {
+  publicMessage_update(
+    id: $id,
+    data: {
+      messageContent: $messageContent,
+      isEdited: $isEdited,
+      isDeleted: $isDeleted,
+      reactions: $reactions
+    }
+  )
+}
+
+mutation DeletePublicMessage($id: UUID!) {
+  publicMessage_delete(id: $id)
+}
+

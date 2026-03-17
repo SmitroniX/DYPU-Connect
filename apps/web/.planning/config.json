@@ -1,0 +1,19 @@
+{
+  "workflow": "new-project",
+  "preferences": {
+    "auto_model": "flash",
+    "planning_model": "pro",
+    "experimental": {
+      "enableAgents": true,
+      "enablePlanMode": true
+    }
+  },
+  "project_type": "Refactoring/Optimization",
+  "stack": {
+    "framework": "Next.js 16",
+    "language": "TypeScript",
+    "styling": "Tailwind CSS 4",
+    "backend": "Firebase Data Connect"
+  },
+  "version": "1.0.0"
+}

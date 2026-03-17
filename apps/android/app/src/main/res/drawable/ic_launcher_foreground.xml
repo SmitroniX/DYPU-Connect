@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Centered "D" lettermark for DYPU Connect -->
+    <group
+        android:translateX="27"
+        android:translateY="27">
+        <!-- Circle background -->
+        <path
+            android:fillColor="#6366f1"
+            android:pathData="M27,0C41.912,0 54,12.088 54,27C54,41.912 41.912,54 27,54C12.088,54 0,41.912 0,27C0,12.088 12.088,0 27,0Z" />
+        <!-- Letter D -->
+        <path
+            android:fillColor="#ffffff"
+            android:pathData="M19,15h8c7.18,0 13,5.82 13,13c0,7.18 -5.82,13 -13,13h-8V15zM23,19v18h4c4.97,0 9,-4.03 9,-9s-4.03,-9 -9,-9h-4z" />
+    </group>
+</vector>
+
