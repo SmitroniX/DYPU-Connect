@@ -21,10 +21,10 @@
       }
     ],
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     },
     "win": {
-      "icon": "icon.png",
       "target": "nsis",
       "publisherName": "SmitroniX",
       "requestedExecutionLevel": "asInvoker"
@@ -40,9 +40,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "runAfterFinish": true,
-      "installerIcon": "icon.png",
-      "uninstallerIcon": "icon.png"
+      "runAfterFinish": true
     }
   },
   "dependencies": {
