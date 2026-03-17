@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { isAndroidApp, isBiometricAvailable, authenticateBiometric, registerAndroidEventListener } from '@/lib/android';
 import { Fingerprint, Lock } from 'lucide-react';
 
@@ -8,23 +8,28 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
   const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
-    const lockEnabled = localStorage.getItem('dypu_biometric_lock') === 'true';
+    const lockEnabled = typeof window !== 'undefined' && localStorage.getItem('dypu_biometric_lock') === 'true';
     
     if (lockEnabled && isAndroidApp()) {
       if (isBiometricAvailable()) {
         setIsLocked(true);
         
-        // Register listener for auth result
-        registerAndroidEventListener((event, data) => {
+        // Register listener using the new multi-listener system
+        const unsubscribe = registerAndroidEventListener((event, data) => {
           if (event === 'biometric_auth_result' && data === 'success') {
             setIsLocked(false);
           }
         });
 
         // Trigger prompt immediately
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           authenticateBiometric('Unlock DYPU Connect', 'Authenticate to access your account');
-        }, 500);
+        }, 800);
+
+        return () => {
+          unsubscribe();
+          clearTimeout(timer);
+        };
       }
     }
   }, []);

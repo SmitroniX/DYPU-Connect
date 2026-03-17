@@ -130,7 +130,7 @@ export default function SetupProfilePage() {
 
             setUserProfile(newProfile);
             toast.success('Profile setup complete!');
-            router.push('/');
+            router.replace('/');
         } catch (error: unknown) {
             const firebaseError = error as FirebaseError | undefined;
             if (firebaseError?.code === 'permission-denied') {

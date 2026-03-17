@@ -15,7 +15,7 @@ export default function LoginPage() {
     // If user is already signed in, redirect to home
     useEffect(() => {
         if (!authLoading && user) {
-            router.push('/');
+            router.replace('/');
         }
     }, [authLoading, user, router]);
 
@@ -24,7 +24,7 @@ export default function LoginPage() {
         try {
             await signInWithGoogle();
             toast.success('Signed in successfully!');
-            router.push('/');
+            router.replace('/');
         } catch (error: unknown) {
             toast.error(error instanceof Error ? error.message : 'Google sign-in failed');
         } finally {
@@ -37,7 +37,7 @@ export default function LoginPage() {
         try {
             await signInWithGithub();
             toast.success('Signed in successfully!');
-            router.push('/');
+            router.replace('/');
         } catch (error: unknown) {
             toast.error(error instanceof Error ? error.message : 'GitHub sign-in failed');
         } finally {

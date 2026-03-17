@@ -16,7 +16,7 @@ export default function SystemProvider({ children }: { children: React.ReactNode
         // Initialize Android bridge
         if (isAndroidApp()) {
             console.log('[Android] Native bridge detected, registering listener...');
-            registerAndroidEventListener((event, data) => {
+            const unsubscribe = registerAndroidEventListener((event, data) => {
                 console.log(`[Android] Received event: ${event}`, data);
                 if (event === 'app_connected') {
                     showToast('Native features enabled');
@@ -36,6 +36,7 @@ export default function SystemProvider({ children }: { children: React.ReactNode
                 }
             });
             notifyWebReady();
+            return () => unsubscribe();
         }
     }, [user?.uid, setSharedData]);
 

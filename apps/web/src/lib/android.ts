@@ -1,4 +1,23 @@
 /**
+ * Global registry for Android events to support multiple listeners.
+ */
+const listeners: Set<(event: string, data: string) => void> = new Set();
+
+/**
+ * Internal handler assigned to window.onAndroidEvent
+ */
+const _handleAndroidEvent = (event: string, data: string) => {
+  console.log(`[Android Bridge] Routing event: ${event}`, data);
+  listeners.forEach(listener => {
+    try {
+      listener(event, data);
+    } catch (e) {
+      console.error('[Android Bridge] Listener error:', e);
+    }
+  });
+};
+
+/**
  * Utility to communicate with the native Android app via JavascriptInterface
  */
 
@@ -37,12 +56,22 @@ export const notifyWebReady = () => {
 };
 
 /**
- * Registers a listener for events coming from the native Android app
+ * Registers a listener for events coming from the native Android app.
+ * Returns an unsubscribe function.
  */
 export const registerAndroidEventListener = (callback: (event: string, data: string) => void) => {
-  if (typeof window !== 'undefined') {
-    window.onAndroidEvent = callback;
+  if (typeof window === 'undefined') return () => {};
+
+  // Initialize the global handler if not already present
+  if (!window.onAndroidEvent) {
+    window.onAndroidEvent = _handleAndroidEvent;
   }
+
+  listeners.add(callback);
+  
+  return () => {
+    listeners.delete(callback);
+  };
 };
 
 /**

@@ -65,7 +65,7 @@ function SecuritySection() {
         setBiometricEnabled(stored === 'true');
 
         if (isAndroidApp()) {
-            registerAndroidEventListener((event, data) => {
+            const unsubscribe = registerAndroidEventListener((event, data) => {
                 if (event === 'biometric_auth_result') {
                     if (data === 'success') {
                         toast.success('Biometric lock confirmed');
@@ -76,6 +76,7 @@ function SecuritySection() {
                     }
                 }
             });
+            return () => unsubscribe();
         }
     }, []);
 
