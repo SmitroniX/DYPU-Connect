@@ -1,9 +1,51 @@
 import type { NextConfig } from "next";
+
+const runtimeCaching = require("next-pwa/cache");
+
+// Specialized caching rules for Firebase services and other media
+runtimeCaching.unshift(
+  {
+    urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*$/,
+    handler: "NetworkFirst",
+    options: {
+      cacheName: "firestore-data",
+      expiration: {
+        maxEntries: 100,
+        maxAgeSeconds: 24 * 60 * 60, // 24 hours
+      },
+      networkTimeoutSeconds: 10,
+    },
+  },
+  {
+    urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*$/,
+    handler: "CacheFirst",
+    options: {
+      cacheName: "firebase-storage",
+      expiration: {
+        maxEntries: 50,
+        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+      },
+    },
+  },
+  {
+    urlPattern: /^https:\/\/media.*\.giphy\.com\/.*$/,
+    handler: "CacheFirst",
+    options: {
+      cacheName: "giphy-media",
+      expiration: {
+        maxEntries: 50,
+        maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+      },
+    },
+  }
+);
+
 const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development'
+  disable: process.env.NODE_ENV === 'development',
+  runtimeCaching,
 });
 
 const nextConfig: NextConfig = {
@@ -13,6 +55,7 @@ const nextConfig: NextConfig = {
   /* ── Performance ───────────────────────────────────────── */
   experimental: {
     ppr: true,
+    dynamicIO: true,
   },
   reactStrictMode: true,
   poweredByHeader: false, 
