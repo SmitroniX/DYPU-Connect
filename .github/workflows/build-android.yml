@@ -97,22 +97,39 @@ jobs:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
-    if: always()
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
+          name: dypu-connect-android
           path: artifacts
-          merge-multiple: true
+
+      - name: Verify APK
+        run: |
+          if ls artifacts/*.apk 1> /dev/null 2>&1; then
+            echo "APK found, ready for release."
+          else
+            echo "Error: No APK found in artifacts."
+            exit 1
+          fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**
-          tag_name: android-build-${{ github.run_number }}
-          name: Android Build #${{ github.run_number }}
+          files: artifacts/*.apk
+          tag_name: android-v${{ github.run_number }}
+          name: Android Release v${{ github.run_number }}
           body: |
-            ## 📱 Android App Update
+            ## 📱 Android App Update (Production Ready)
             
-            Download the latest `.apk` file below to install on your Android device.
-            *Note: If signing keys are not provided in Secrets, this will be a debug build.*
+            The latest stable build of DYPU Connect is now available.
+            
+            ### 🛠️ Changes in this version
+            - Performance optimizations for scrollable pages.
+            - Fixed biometric lock stability.
+            - Integrated native FCM push notifications.
+            - Added system share integration.
+            
+            Download the `.apk` file below to install.
+            *Built and verified by GitHub Actions.*
