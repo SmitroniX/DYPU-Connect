@@ -590,8 +590,12 @@ public class MainActivity extends AppCompatActivity {
         return isMainHost
                 || urlHost.endsWith(".firebaseapp.com")
                 || urlHost.endsWith(".firebaseio.com")
-                || urlHost.equals("accounts.google.com")
+                || urlHost.contains("google.com")
+                || urlHost.contains("google.co.in")
+                || urlHost.contains("netlify.app")
+                || urlHost.contains("netlify.com")
                 || urlHost.endsWith(".googleapis.com")
+                || urlHost.equals("accounts.google.com")
                 || urlHost.equals("localhost")
                 || urlHost.equals("10.0.2.2");
     }
