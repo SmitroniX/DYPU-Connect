@@ -26,20 +26,25 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystoreFile = System.getenv("KEYSTORE_FILE")
-            if (keystoreFile != null) {
-                storeFile = file(keystoreFile)
-                storePassword = System.getenv("KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("KEY_ALIAS")
-                keyPassword = System.getenv("KEY_PASSWORD")
+            // Priority: Environment Variables (CI) > Local Keystore File
+            val envFile = System.getenv("KEYSTORE_FILE")
+            val envPassword = System.getenv("KEYSTORE_PASSWORD")
+            val envAlias = System.getenv("KEY_ALIAS")
+            val envKeyPassword = System.getenv("KEY_PASSWORD")
+
+            if (envFile != null && file(envFile).exists()) {
+                storeFile = file(envFile)
+                storePassword = envPassword
+                keyAlias = envAlias
+                keyPassword = envKeyPassword
             } else {
-                // Fallback for local development if keystore is present
+                // Fallback for local development
                 val localKeystore = file("keystore/release.keystore")
                 if (localKeystore.exists()) {
                     storeFile = localKeystore
-                    storePassword = "your-store-password" // Replace locally if desired
-                    keyAlias = "dypu-connect" 
-                    keyPassword = "your-key-password"
+                    storePassword = envPassword ?: "dypuconnect" 
+                    keyAlias = envAlias ?: "dypu-connect" 
+                    keyPassword = envKeyPassword ?: "dypuconnect"
                 }
             }
         }
@@ -53,12 +58,15 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            // Only apply signing if storeFile is set
+            if (signingConfigs.getByName("release").storeFile != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             isDebuggable = true
-            // For local dev, you can override the URL:
-            // buildConfigField("String", "WEB_APP_URL", "\"http://10.0.2.2:3000\"")
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
         }
     }
 
@@ -71,13 +79,8 @@ android {
         jvmTarget = "17"
     }
 
-    applicationVariants.all {
-        val variant = this
-        variant.outputs.all {
-            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            output.outputFileName = "DYPU-Connect.apk"
-        }
-    }
+    // Set custom output name for APKs
+    setProperty("archivesBaseName", "DYPU-Connect")
 }
 
 dependencies {
@@ -97,4 +100,3 @@ dependencies {
     // Firebase SDKs (versions managed by BoM)
     implementation("com.google.firebase:firebase-analytics")
 }
-
