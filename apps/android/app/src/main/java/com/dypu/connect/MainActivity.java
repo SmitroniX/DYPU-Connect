@@ -44,8 +44,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.biometric.BiometricManager;
-import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.splashscreen.SplashScreen;
@@ -500,7 +498,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onHideCustomView() {
                 fullscreenContainer.removeView(fullscreenView);
-                fullscreenContainer.setVisibility(View.GONE);
+                fullscreenContainer.setVisibility(GONE);
                 webView.setVisibility(View.VISIBLE);
                 fullscreenView = null;
                 if (fullscreenCallback != null) fullscreenCallback.onCustomViewHidden();
@@ -617,14 +615,17 @@ public class MainActivity extends AppCompatActivity {
         swipeRefresh.setProgressBackgroundColorSchemeColor(Color.parseColor("#1a1a2e"));
         swipeRefresh.setOnRefreshListener(() -> webView.reload());
 
-        // Only allow refresh if the webview is at the very top
-        webView.getViewTreeObserver().addOnScrollChangedListener(() -> {
-            if (webView.getScrollY() == 0) {
-                swipeRefresh.setEnabled(true);
-            } else {
-                swipeRefresh.setEnabled(false);
-            }
-        });
+        // More robust scroll check using onScrollChangeListener (API 23+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            webView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, scrollYOld) -> {
+                swipeRefresh.setEnabled(scrollY == 0);
+            });
+        } else {
+            // Fallback for older versions
+            webView.getViewTreeObserver().addOnScrollChangedListener(() -> {
+                swipeRefresh.setEnabled(webView.getScrollY() == 0);
+            });
+        }
     }
 
     private void setupBackNavigation() {
@@ -790,47 +791,6 @@ public class MainActivity extends AppCompatActivity {
             // Web app is fully loaded and ready to receive events
             mActivity.runOnUiThread(() -> {
                 mActivity.emitToWeb("app_connected", "Native bridge is active");
-            });
-        }
-
-        @JavascriptInterface
-        public boolean isBiometricAvailable() {
-            BiometricManager biometricManager = BiometricManager.from(mActivity);
-            int status = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.DEVICE_CREDENTIAL);
-            return status == BiometricManager.BIOMETRIC_SUCCESS;
-        }
-
-        @JavascriptInterface
-        public void authenticateBiometric(String title, String subtitle) {
-            mActivity.runOnUiThread(() -> {
-                java.util.concurrent.Executor executor = ContextCompat.getMainExecutor(mActivity);
-                BiometricPrompt biometricPrompt = new BiometricPrompt(mActivity, executor, new BiometricPrompt.AuthenticationCallback() {
-                    @Override
-                    public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
-                        super.onAuthenticationError(errorCode, errString);
-                        mActivity.emitToWeb("biometric_auth_result", "error:" + errString);
-                    }
-
-                    @Override
-                    public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
-                        super.onAuthenticationSucceeded(result);
-                        mActivity.emitToWeb("biometric_auth_result", "success");
-                    }
-
-                    @Override
-                    public void onAuthenticationFailed() {
-                        super.onAuthenticationFailed();
-                        mActivity.emitToWeb("biometric_auth_result", "failed");
-                    }
-                });
-
-                BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
-                        .setTitle(title)
-                        .setSubtitle(subtitle)
-                        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-                        .build();
-
-                biometricPrompt.authenticate(promptInfo);
             });
         }
     }

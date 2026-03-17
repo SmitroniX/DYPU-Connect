@@ -28,8 +28,6 @@ interface AndroidInterface {
   getAppVersion(): string;
   getFCMToken(): void;
   onWebReady(): void;
-  isBiometricAvailable(): boolean;
-  authenticateBiometric(title: string, subtitle: string): void;
 }
 
 declare global {
@@ -106,22 +104,6 @@ export const shareToAndroid = (text: string, title: string = 'Share via') => {
     navigator.share({ title, text }).catch(console.error);
   } else {
     console.log('Android Share:', title, text);
-  }
-};
-
-/**
- * Checks if biometric authentication is available on the device
- */
-export const isBiometricAvailable = (): boolean => {
-  return window.AndroidApp ? window.AndroidApp.isBiometricAvailable() : false;
-};
-
-/**
- * Starts biometric authentication
- */
-export const authenticateBiometric = (title: string = 'Security Check', subtitle: string = 'Authenticate to continue') => {
-  if (window.AndroidApp) {
-    window.AndroidApp.authenticateBiometric(title, subtitle);
   }
 };
 

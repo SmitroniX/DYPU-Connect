@@ -92,7 +92,6 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.biometric:biometric:1.1.0")
 
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:34.9.0"))

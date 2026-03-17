@@ -4,7 +4,6 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from 'react-hot-toast';
 import CookieConsentBanner from "@/components/CookieConsentBanner";
-import SessionGuard from "@/components/SessionGuard";
 import SystemProvider from '@/components/SystemProvider';
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -65,9 +64,7 @@ export default function RootLayout({
                 <AuthProvider>
                     <SystemProvider>
                         <Suspense fallback={<LoadingSpinner variant="full" message="Preparing your experience..." />}>
-                            <SessionGuard>
-                                {children}
-                            </SessionGuard>
+                            {children}
                         </Suspense>
                         <Toaster position="top-right" />
                         <CookieConsentBanner />
