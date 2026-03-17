@@ -74,10 +74,10 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="dypu-connect.netlify.app"
-                    android:pathPrefix="/" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="dypu-connect.netlify.app" />
+                <data android:host="dypu-connect.com" />
             </intent-filter>
 
             <!-- Also handle the Firebase auth domain links -->
@@ -85,9 +85,10 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="dypu-connect.firebaseapp.com" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="dypu-connect.firebaseapp.com" />
+                <data android:host="dypu-connect.web.app" />
             </intent-filter>
 
             <meta-data android:name="android.app.shortcuts"

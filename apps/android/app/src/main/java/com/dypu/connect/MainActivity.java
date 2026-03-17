@@ -682,9 +682,14 @@ public class MainActivity extends AppCompatActivity {
         // Match the web host exactly or as a sub-domain (for netlify.app, vercel.app)
         boolean isMainHost = urlHost.equals(webHost) || urlHost.endsWith("." + webHost);
         
+        // Check for Firebase Auth specific query parameters
+        boolean isFirebaseAuthLink = url.contains("apiKey=") && (url.contains("finishSignIn") || url.contains("verifyEmail"));
+
         return isMainHost
+                || isFirebaseAuthLink
                 || urlHost.endsWith(".firebaseapp.com")
                 || urlHost.endsWith(".firebaseio.com")
+                || urlHost.endsWith(".web.app")
                 || urlHost.contains("google.com")
                 || urlHost.contains("google.co.in")
                 || urlHost.contains("netlify.app")
