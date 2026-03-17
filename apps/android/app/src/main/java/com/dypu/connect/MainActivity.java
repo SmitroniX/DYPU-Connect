@@ -615,6 +615,15 @@ public class MainActivity extends AppCompatActivity {
         );
         swipeRefresh.setProgressBackgroundColorSchemeColor(Color.parseColor("#1a1a2e"));
         swipeRefresh.setOnRefreshListener(() -> webView.reload());
+
+        // Only allow refresh if the webview is at the very top
+        webView.getViewTreeObserver().addOnScrollChangedListener(() -> {
+            if (webView.getScrollY() == 0) {
+                swipeRefresh.setEnabled(true);
+            } else {
+                swipeRefresh.setEnabled(false);
+            }
+        });
     }
 
     private void setupBackNavigation() {
