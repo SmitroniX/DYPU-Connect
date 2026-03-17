@@ -18,6 +18,8 @@
     "desktop:build": "npm run dist --prefix desktop"
   },
   "dependencies": {
+    "blurhash": "^2.0.5",
+    "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
     "cookies-next": "^6.1.1",
     "date-fns": "^4.1.0",
@@ -28,6 +30,7 @@
     "next": "16.1.6",
     "next-pwa": "^5.6.0",
     "react": "19.2.3",
+    "react-blurhash": "^0.3.0",
     "react-dom": "19.2.3",
     "react-hot-toast": "^2.6.0",
     "react-markdown": "^10.1.0",
