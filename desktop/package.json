@@ -25,7 +25,14 @@
     },
     "win": {
       "icon": "icon.png",
-      "target": "nsis"
+      "target": "nsis",
+      "publisherName": "SmitroniX"
+    },
+    "protocols": {
+      "name": "dypu-connect-protocol",
+      "schemes": [
+        "dypu-connect"
+      ]
     },
     "nsis": {
       "oneClick": false,
