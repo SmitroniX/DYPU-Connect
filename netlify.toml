@@ -1,7 +1,6 @@
 [build]
-  base = "apps/web"
-  command = "npm run build"
-  publish = ".next"
+  command = "npm run web:build"
+  publish = "apps/web/.next"
 
 [build.environment]
   NODE_VERSION = "20"
