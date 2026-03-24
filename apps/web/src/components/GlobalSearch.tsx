@@ -256,7 +256,7 @@ export default function GlobalSearch() {
                                         <div className="px-3 py-1 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                                             Groups
                                         </div>
-                                        {groupResults.map((group) => (
+                                        {groupResults.map((group: any) => (
                                             <motion.div
                                                 layout
                                                 key={group.id}

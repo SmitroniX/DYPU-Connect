@@ -45,9 +45,9 @@ export async function getGroupMetadata(groupName: string): Promise<Group | null>
         if (!querySnapshot.empty) {
             const docSnap = querySnapshot.docs[0];
             return {
-                ...(docSnap.data() as any as Group),
+                ...(docSnap.data() as any),
                 id: docSnap.id
-            };
+            } as Group;
         }
         return null;
     } catch (error) {
@@ -70,9 +70,9 @@ export async function getUserGroups(field: string, year: string): Promise<Group[
         );
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc => ({
-            ...(doc.data() as any as Group),
+            ...(doc.data() as any),
             id: doc.id
-        }));
+        } as Group));
     } catch (error) {
         console.error(`[getUserGroups] Error fetching groups for ${field}/${year}:`, error);
         return [];

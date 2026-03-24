@@ -32,7 +32,7 @@ export default function GroupDetailsDrawer({
     isMuted = false,
     onToggleMute
 }: GroupDetailsDrawerProps) {
-    const group = groupRaw as unknown as Group;
+    const group = groupRaw as any;
     const { user } = useAuth();
     const [memberProfiles, setMemberProfiles] = useState<Record<string, {name?: string, profileImage?: string, email?: string, field?: string, year?: string}>>({});
     const [loadingMembers, setLoadingMembers] = useState(false);
@@ -46,7 +46,7 @@ export default function GroupDetailsDrawer({
                 const profiles: Record<string, {name?: string, profileImage?: string, email?: string, field?: string, year?: string}> = {};
                 // Ideally, do this in chunks or from a batched query if member list is huge
                 // For MVP, fetch individually 
-                const promises = group.memberIds.slice(0, 50).map(uid => 
+                const promises = group.memberIds.slice(0, 50).map((uid: string) => 
                     getDoc(doc(db, 'users', uid))
                 );
                 
@@ -176,7 +176,7 @@ export default function GroupDetailsDrawer({
                             {loadingMembers ? (
                                 <div className="text-center py-4 text-xs text-[var(--ui-text-muted)]">Loading members...</div>
                             ) : (
-                                group.memberIds.slice(0, 50).map(uid => {
+                                group.memberIds.slice(0, 50).map((uid: string) => {
                                     const profile = memberProfiles[uid];
                                     const isAdmin = group.adminIds?.includes(uid);
                                     

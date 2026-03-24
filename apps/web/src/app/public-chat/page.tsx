@@ -98,9 +98,9 @@ export default function PublicChatPage() {
                 gifUrl: payload.gifUrl,
                 imageUrl: payload.imageUrl,
                 audioUrl: payload.audioUrl,
-                expiresAt: expireDate.toISOString(),
-                replyToId: replyToMessage?.id,
-            });
+                expiresAt: expireDate,
+                replyToId: replyToMessage?.id
+            } as any);
             setReplyToMessage(null);
         } catch (error) {
             console.error(error);

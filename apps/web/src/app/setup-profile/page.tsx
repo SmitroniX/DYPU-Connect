@@ -111,7 +111,7 @@ export default function SetupProfilePage() {
                     email: user.email as string,
                     connectedAt: Date.now(),
                 },
-                role: isAutoAdminEmail(user.email) ? 'admin' : 'user',
+                role: isAutoAdminEmail() ? 'admin' : 'user',
                 status: 'active' as const,
                 encryptionEnabled: false,
                 notificationPrefs: {

@@ -2,7 +2,7 @@
  * Utility to communicate with the native Desktop (Electron) app via contextBridge
  */
 
-interface ElectronInterface {
+export interface ElectronInterface {
   onAuthCallback(callback: (url: string) => void): void;
   getAppVersion(): Promise<string>;
   vibrate(): void;

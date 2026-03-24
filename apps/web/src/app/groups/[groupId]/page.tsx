@@ -45,7 +45,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [group, setGroup] = useState<Group | null>(null);
+    const [group, setGroup] = useState<any>(null);
     const [typingUsers, setTypingUsers] = useState<Array<{ uid: string; name: string }>>([]);
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
@@ -488,6 +488,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
 
                     {/* Right Drawer */}
                     {group && (
+                        <>
                         <GroupDetailsDrawer
                             isOpen={detailsOpen}
                             onClose={() => setDetailsOpen(false)}
@@ -503,7 +504,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                 if (confirm('Are you sure you want to remove this member?')) {
                                     try {
                                         const groupRef = doc(db, 'groups', groupId);
-                                        const currentGroup = group as unknown as Group;
+                                        const currentGroup = group as any;
                                         const newMembers = (currentGroup.memberIds || []).filter((id: string) => id !== uid);
                                         const newAdmins = (currentGroup.adminIds || []).filter((id: string) => id !== uid);
                                         await updateDoc(groupRef, { 
@@ -520,7 +521,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                 if (confirm('Are you sure you want to leave this group?')) {
                                     try {
                                         const groupRef = doc(db, 'groups', groupId);
-                                        const currentGroup = group as unknown as Group;
+                                        const currentGroup = group as any;
                                         const userIdx = user ? (currentGroup.memberIds || []).indexOf(user.uid) : -1;
                                         if (userIdx > -1) {
                                             const newMembers = [...(currentGroup.memberIds || [])];
@@ -535,6 +536,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                 }
                             }}
                         />
+                        </>
                     )}
                 </div>
             </ModuleGuard>
