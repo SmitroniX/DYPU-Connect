@@ -469,7 +469,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                     onSend={handleSend}
                                     onTyping={handleTyping}
                                     disabled={false}
-                                    placeholder={`Message ${group?.name || humanReadableName}...`}
+                                    placeholder={`Message ${group ? (group as any).name : humanReadableName}...`}
                                     chatId={`group_${groupId}`}
                                     replyToMessage={replyToMessage}
                                     onCancelReply={() => setReplyToMessage(null)}
