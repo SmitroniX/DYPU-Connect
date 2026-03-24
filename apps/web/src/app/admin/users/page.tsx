@@ -7,7 +7,7 @@ import { Ban, CheckCircle, Search, Shield, UserCheck, Users } from 'lucide-react
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { resolveProfileImage } from '@/lib/profileImage';
-import { isSuperAdmin } from '@/lib/admin';
+import { isUserAdmin } from '@/lib/admin';
 import { logAdminAction } from '@/lib/auditLog';
 import { useAuth } from '@/components/AuthProvider';
 import { cacheGet, cacheInvalidate } from '@/lib/cache';
@@ -37,7 +37,7 @@ export default function AdminUsersPage() {
     const [loading, setLoading] = useState(true);
     const { userProfile } = useStore();
     const { user } = useAuth();
-    const currentIsSuperAdmin = isSuperAdmin(userProfile?.email);
+    const canManageRoles = isUserAdmin(userProfile);
 
     useEffect(() => { fetchUsers(); }, []);
 
@@ -82,8 +82,8 @@ export default function AdminUsersPage() {
     };
 
     const toggleUserRole = async (userId: string, currentRole: string) => {
-        if (!currentIsSuperAdmin) {
-            toast.error('Only the super-admin can change user roles.');
+        if (!canManageRoles) {
+            toast.error('Only authorized admins can change user roles.');
             return;
         }
         const newRole = currentRole === 'admin' ? 'user' : 'admin';
