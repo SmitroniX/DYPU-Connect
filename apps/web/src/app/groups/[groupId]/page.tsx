@@ -463,14 +463,16 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                         />
 
                         {/* Input Area */}
-                        <div className="shrink-0 bg-[var(--ui-bg-surface)] border-t border-[var(--ui-divider)] pb-safe shadow-[0_-4px_24px_-8px_rgba(0,0,0,0.1)] z-20 sticky bottom-0">
-                            <div className="max-w-3xl mx-auto p-4 transition-all duration-300">
+                        <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20">
+                            <div className="max-w-3xl mx-auto transition-all duration-300">
                                 <ChatInput
                                     onSend={handleSend}
                                     onTyping={handleTyping}
                                     disabled={false}
                                     placeholder={`Message ${group?.name || humanReadableName}...`}
                                     chatId={`group_${groupId}`}
+                                    replyToMessage={replyToMessage}
+                                    onCancelReply={() => setReplyToMessage(null)}
                                 />
                             </div>
                         </div>

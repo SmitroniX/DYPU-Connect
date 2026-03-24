@@ -35,6 +35,7 @@ export default function PublicChatPage() {
     const [profilePopup, setProfilePopup] = useState<{ userId: string; rect: DOMRect } | null>(null);
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
+    const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
     
     const { user } = useAuth();
     const { userProfile } = useStore();
@@ -59,6 +60,7 @@ export default function PublicChatPage() {
                     isEdited: pm.isEdited ?? false,
                     isDeleted: pm.isDeleted ?? false,
                     expiresAt: pm.expiresAt ? new Date(pm.expiresAt) : null,
+                    replyToId: pm.replyToId ?? undefined,
                 }));
                 setMessages(data);
             }
@@ -84,6 +86,7 @@ export default function PublicChatPage() {
             imageUrl: payload.imageUrl,
             audioUrl: payload.audioUrl,
             expiresAt: expireDate,
+            replyToId: replyToMessage?.id,
         };
 
         addOptimisticMessage(optimisticMsg);
@@ -96,12 +99,14 @@ export default function PublicChatPage() {
                 imageUrl: payload.imageUrl,
                 audioUrl: payload.audioUrl,
                 expiresAt: expireDate.toISOString(),
+                replyToId: replyToMessage?.id,
             });
+            setReplyToMessage(null);
         } catch (error) {
             console.error(error);
             toast.error('Failed to send message');
         }
-    }, [user, userProfile, addOptimisticMessage]);
+    }, [user, userProfile, addOptimisticMessage, replyToMessage]);
 
     const handleReact = useCallback((messageId: string, emoji: string) => {
         if (!user) return;
@@ -155,6 +160,11 @@ export default function PublicChatPage() {
         }
     };
 
+    const handleStartReply = (msg: Message) => {
+        setReplyToMessage(msg);
+        setEditingMessageId(null);
+    };
+
     const handleAvatarClick = (userId: string, event: React.MouseEvent) => {
         const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
         setProfilePopup({ userId, rect });
@@ -163,7 +173,7 @@ export default function PublicChatPage() {
     return (
         <DashboardLayout>
             <ModuleGuard moduleKey="disablePublicChat" moduleName="Public Chat">
-            <div className="h-full flex flex-col">
+            <div className="h-full flex flex-col bg-[var(--ui-bg-base)]">
                 <ChannelHeader name="campus-plaza" description="Real-time public chat for everyone at DYPU">
                     <Users className="h-4 w-4 text-[var(--ui-text-muted)]" />
                 </ChannelHeader>
@@ -191,6 +201,7 @@ export default function PublicChatPage() {
                                 isMine={isMine}
                                 showMsgHeader={showMsgHeader}
                                 currentUserId={user?.uid ?? ''}
+                                replyToMsg={msg.replyToId ? optimisticMessages.find(m => m.id === msg.replyToId) : null}
                                 editingMessageId={editingMessageId}
                                 editValue={editValue}
                                 setEditValue={setEditValue}
@@ -198,6 +209,7 @@ export default function PublicChatPage() {
                                 onSaveEdit={handleSaveEdit}
                                 onCancelEdit={() => setEditingMessageId(null)}
                                 onDelete={handleDelete}
+                                onReply={handleStartReply}
                                 onReact={handleReact}
                                 onAvatarClick={handleAvatarClick}
                             />
@@ -221,10 +233,18 @@ export default function PublicChatPage() {
                     }}
                 />
 
-                <ChatInput
-                    onSend={handleSend}
-                    placeholder="Message #campus-plaza"
-                />
+                {/* Input Area */}
+                <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20">
+                    <div className="max-w-3xl mx-auto transition-all duration-300">
+                        <ChatInput
+                            onSend={handleSend}
+                            placeholder="Message #campus-plaza"
+                            chatId="public-chat"
+                            replyToMessage={replyToMessage}
+                            onCancelReply={() => setReplyToMessage(null)}
+                        />
+                    </div>
+                </div>
 
                 {profilePopup && (
                     <ProfilePopup

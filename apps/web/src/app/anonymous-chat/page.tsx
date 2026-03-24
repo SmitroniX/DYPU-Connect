@@ -219,11 +219,15 @@ export default function AnonymousChatPage() {
                 </div>
 
                 {/* Chat input — no image upload in anonymous mode */}
-                <ChatInput
-                    onSend={handleSend}
-                    placeholder={`Message as ${sessionIdentity}...`}
-                    features={{ emoji: true, gif: true, image: false, markdown: true }}
-                />
+                <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20">
+                    <div className="max-w-3xl mx-auto transition-all duration-300">
+                        <ChatInput
+                            onSend={handleSend}
+                            placeholder={`Message as ${sessionIdentity}...`}
+                            features={{ emoji: true, gif: true, image: false, markdown: true }}
+                        />
+                    </div>
+                </div>
             </div>
             </ModuleGuard>
         </DashboardLayout>

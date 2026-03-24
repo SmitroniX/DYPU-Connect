@@ -64,28 +64,31 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
         return (
             <motion.li 
                 key={item.name}
-                whileHover={{ scale: 0.98 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                whileHover={{ x: 4 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             >
                 <Link
                     href={item.href}
                     onClick={onNavigate}
                     className={clsx(
-                        'group flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors duration-100',
+                        'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all duration-200',
                         isActive
-                            ? 'bg-[var(--ui-accent-dim)] text-[var(--ui-accent)]  font-medium'
+                            ? 'bg-[var(--ui-accent)] text-white font-bold shadow-md shadow-[var(--ui-accent)]/20'
                             : 'text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)]'
                     )}
                 >
-                    <item.icon className={clsx('h-[18px] w-[18px] shrink-0', isActive ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text-muted)] group-hover:text-[var(--ui-text-secondary)]')} />
-                    <span className="truncate flex-1">{item.name}</span>
+                    <item.icon className={clsx('h-[18px] w-[18px] shrink-0', isActive ? 'text-white' : 'text-[var(--ui-text-muted)] group-hover:text-[var(--ui-accent)]')} />
+                    <span className="truncate flex-1 tracking-tight">{item.name}</span>
                     {badgeCount > 0 && (
-                        <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-[var(--ui-accent)] px-1.5 text-[10px] font-bold text-white shrink-0">
+                        <span className={clsx(
+                            'inline-flex items-center justify-center h-5 min-w-5 rounded-full px-1.5 text-[10px] font-bold shrink-0 shadow-sm',
+                            isActive ? 'bg-white text-[var(--ui-accent)]' : 'bg-[var(--ui-accent)] text-white'
+                        )}>
                             {badgeCount > 99 ? '99+' : badgeCount}
                         </span>
                     )}
-                    {isActive && badgeCount === 0 && <ChevronRight className="h-3.5 w-3.5 text-[var(--ui-accent)] opacity-60 shrink-0" />}
+                    {isActive && badgeCount === 0 && <div className="h-1.5 w-1.5 rounded-full bg-white opacity-60 shrink-0" />}
                 </Link>
             </motion.li>
         );

@@ -400,17 +400,23 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                     <div className="h-4" />
                                 </>
                             )
-                        }}
-                    />
+                            }}
+                            />
 
-                <ChatInput
-                    onSend={handleSend}
-                    placeholder={`Message @${otherName}`}
-                    onTyping={handleTyping}
-                    onStopTyping={stopTyping}
-                />
-            </div>
-
+                            {/* Input Area */}
+                            <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20">
+                            <div className="max-w-3xl mx-auto transition-all duration-300">
+                            <ChatInput
+                                onSend={handleSend}
+                                placeholder={`Message @${otherName}`}
+                                onTyping={handleTyping}
+                                onStopTyping={stopTyping}
+                                replyToMessage={replyToMessage}
+                                onCancelReply={() => setReplyToMessage(null)}
+                            />
+                            </div>
+                            </div>
+                            </div>
             {/* Chat Details Drawer */}
             <ChatDetailsDrawer 
                 isOpen={isDrawerOpen}

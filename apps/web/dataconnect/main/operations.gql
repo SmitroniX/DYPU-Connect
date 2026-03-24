@@ -151,7 +151,8 @@ mutation SendPublicMessage(
   $blurHash: String,
   $gifUrl: String,
   $audioUrl: String,
-  $expiresAt: Timestamp!
+  $expiresAt: Timestamp!,
+  $replyToId: UUID
 ) @auth(level: USER) {
   publicMessage_insert(data: {
     senderStudentId: $senderId,
@@ -160,7 +161,8 @@ mutation SendPublicMessage(
     blurHash: $blurHash,
     gifUrl: $gifUrl,
     audioUrl: $audioUrl,
-    expiresAt: $expiresAt
+    expiresAt: $expiresAt,
+    replyToId: $replyToId
   })
 }
 
@@ -186,6 +188,7 @@ query ListPublicMessages($now: Timestamp!) @auth(level: USER) {
     isEdited
     isDeleted
     expiresAt
+    replyToId
   }
 }
 

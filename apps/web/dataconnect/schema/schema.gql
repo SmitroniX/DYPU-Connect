@@ -118,6 +118,7 @@ type PublicMessage @table @auth(
   isEdited: Boolean @default(value: false)
   isDeleted: Boolean @default(value: false)
   expiresAt: Timestamp!
+  replyTo: PublicMessage
 }
 
 type Comment @table @auth(

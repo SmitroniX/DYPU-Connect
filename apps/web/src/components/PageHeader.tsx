@@ -13,25 +13,26 @@ interface PageHeaderProps {
 
 export default function PageHeader({ title, description, icon, children }: PageHeaderProps) {
     return (
-        <div className="page-header">
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <div className="page-header sticky top-0 z-30 bg-[var(--ui-bg-base)]/80 backdrop-blur-md border-b border-[var(--ui-border)]/50 px-4 py-3 sm:px-6">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
                 {icon && (
-                    <span className="text-[var(--ui-text-muted)] shrink-0">{icon}</span>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)] shrink-0 shadow-sm border border-white/5">
+                        {icon}
+                    </div>
                 )}
-                <h1 className="text-[15px] font-semibold text-[var(--ui-text)] truncate">
-                    {title}
-                </h1>
-                {description && (
-                    <>
-                        <div className="w-px h-4 bg-[var(--ui-divider)] mx-1 shrink-0" />
-                        <p className="text-sm text-[var(--ui-text-muted)] truncate">
+                <div className="flex flex-col min-w-0">
+                    <h1 className="text-[15px] font-bold text-[var(--ui-text)] truncate tracking-tight">
+                        {title}
+                    </h1>
+                    {description && (
+                        <p className="text-[11px] font-medium text-[var(--ui-text-muted)] truncate uppercase tracking-wider">
                             {description}
                         </p>
-                    </>
-                )}
+                    )}
+                </div>
             </div>
             {children && (
-                <div className="flex items-center gap-2 shrink-0 ml-2">
+                <div className="flex items-center gap-2 shrink-0 ml-4">
                     {children}
                 </div>
             )}
