@@ -350,7 +350,16 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
     );
 }
 
-function ControlBtn({ active, onClick, icon: Icon, danger, accent, label }: any) {
+interface ControlBtnProps {
+    active: boolean;
+    onClick: () => void;
+    icon: any;
+    danger?: boolean;
+    accent?: boolean;
+    label: string;
+}
+
+function ControlBtn({ active, onClick, icon: Icon, danger, accent, label }: ControlBtnProps) {
     return (
         <div className="flex flex-col items-center gap-2">
             <motion.button

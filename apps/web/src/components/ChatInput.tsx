@@ -180,14 +180,14 @@ export default function ChatInput({
     };
 
     return (
-        <div className="px-4 pb-6 shrink-0 relative pt-4">
+        <div className="px-3 pb-4 sm:px-4 sm:pb-6 shrink-0 relative pt-2 sm:pt-4 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent z-30">
             <AnimatePresence>
                 {typingIndicator && (
                     <motion.div 
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                        className="absolute -top-6 left-8 h-6 flex items-center bg-[var(--ui-bg-surface)]/80 backdrop-blur-md px-3 rounded-full border border-white/5 text-[10px] font-medium text-[var(--ui-text-secondary)] shadow-sm"
+                        className="absolute -top-4 left-6 sm:-top-6 sm:left-8 h-6 flex items-center bg-[var(--ui-bg-surface)]/80 backdrop-blur-md px-3 rounded-full border border-white/5 text-[10px] font-medium text-[var(--ui-text-secondary)] shadow-sm"
                     >
                         {typingIndicator}     
                     </motion.div>
@@ -204,7 +204,7 @@ export default function ChatInput({
             />
 
             {/* Premium Input Container */}
-            <div className="flex flex-col relative z-20 transition-all duration-500">
+            <div className="flex flex-col relative z-20 transition-all duration-500 max-w-5xl mx-auto w-full">
                 
                 {/* Floating Markdown Toolbar */}
                 <AnimatePresence>
@@ -213,7 +213,7 @@ export default function ChatInput({
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
-                            className="absolute -top-10 left-1/2 -translate-x-1/2 z-30"
+                            className="absolute -top-10 left-1/2 -translate-x-1/2 z-30 hidden sm:block"
                         >
                             <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl px-1 py-1 shadow-2xl">
                                 <MarkdownToolbar onWrapSelection={wrapSelection} />
@@ -222,10 +222,10 @@ export default function ChatInput({
                     )}
                 </AnimatePresence>
 
-                <div className="flex items-end gap-3 p-2 rounded-[32px] bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] focus-within:border-white/20 focus-within:bg-white/[0.06] transition-all duration-500 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] group/input">
+                <div className="flex items-end gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-[28px] sm:rounded-[32px] bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] focus-within:border-[var(--ui-accent)]/30 focus-within:bg-white/[0.06] transition-all duration-500 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] group/input">
                     
                     {/* Integrated Action Bar */}
-                    <div className="shrink-0 pl-1 pb-0.5">
+                    <div className="shrink-0 pl-0.5 pb-0.5">
                         <InputActions
                             features={features}   
                             uploading={uploading} 
@@ -239,7 +239,7 @@ export default function ChatInput({
                     </div>
 
                     {/* Text Field */}
-                    <div className="flex-1 min-w-0 py-2.5">
+                    <div className="flex-1 min-w-0 py-2 sm:py-2.5">
                         <textarea
                             ref={textareaRef} 
                             value={message}   
@@ -248,7 +248,8 @@ export default function ChatInput({
                             placeholder={replyToMessage ? `Reply to ${replyToMessage.senderName}...` : placeholder}
                             disabled={disabled}
                             maxLength={maxLength}
-                            className="w-full bg-transparent text-[16px] leading-[1.5] text-white placeholder-white/30 focus:outline-none resize-none overflow-y-auto min-h-[24px] max-h-[160px] px-1 scrollbar-hide selection:bg-[var(--ui-accent)]/30"     
+                            rows={1}
+                            className="w-full bg-transparent text-[15px] sm:text-[16px] leading-[1.5] text-white placeholder-white/30 focus:outline-none resize-none overflow-y-auto min-h-[36px] max-h-[160px] px-1 scrollbar-hide selection:bg-[var(--ui-accent)]/30"     
                         />
                     </div>
 
@@ -258,14 +259,14 @@ export default function ChatInput({
                         overLimit={overLimit} 
                         showCharCount={showCharCount}
                         messageLength={message.length}
-                        maxLength={maxLength} 
+                        maxLength={maxLength}
                         onSend={handleSend}   
                     />
                 </div>
             </div>
 
-            {/* Keyboard hint */}
-            <div className="flex items-center justify-center mt-3">
+            {/* Keyboard hint (hidden on mobile) */}
+            <div className="hidden sm:flex items-center justify-center mt-3">
                 <p className="text-[10px] text-white/20 font-medium tracking-wide flex items-center gap-2">
                     <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/5">Enter</span>
                     <span>to send</span>

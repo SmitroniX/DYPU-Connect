@@ -66,6 +66,36 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* ── Mobile Viewport Utilities ────────────────── */
+.h-screen-dynamic {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.min-h-screen-dynamic {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ── Input & Keyboard Handling ───────────────── */
+/* Prevents zoom on focus in iOS */
+@media screen and (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* ── Keyframes ──────────────────────────────────── */

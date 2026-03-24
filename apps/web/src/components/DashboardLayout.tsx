@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Info, Menu, X, Zap, Bell, Search } from 'lucide-react';
+import { AlertCircle, Info, Menu, X, Zap, Bell, Search, Home, Mail, Users, User } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import NotificationPanel from '@/components/NotificationPanel';
 import GlobalSearch from '@/components/GlobalSearch';
@@ -14,6 +14,8 @@ import { useStore } from '@/store/useStore';
 import { subscribeToNotifications } from '@/lib/notifications';
 import { useAuth } from '@/components/AuthProvider';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
+import clsx from 'clsx';
 
 interface ActiveAnnouncement {
     id: string;
@@ -45,7 +47,6 @@ function AnnouncementBanner() {
         );
         const unsub = onSnapshot(q, (snap) => {
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() })) as ActiveAnnouncement[];
-            // Filter by audience
             const filtered = data.filter(a =>
                 a.targetAudience === 'all' ||
                 a.targetAudience === userProfile?.field ||
@@ -62,7 +63,7 @@ function AnnouncementBanner() {
     if (visible.length === 0) return null;
 
     return (
-        <div className="shrink-0 space-y-0">
+        <div className="shrink-0 space-y-0 relative z-[60]">
             {visible.map(ann => {
                 const style = PRIORITY_STYLES[ann.priority] || PRIORITY_STYLES.info;
                 const PIcon = style.icon;
@@ -118,7 +119,7 @@ function PushPromptBanner() {
     if (!visible) return null;
 
     return (
-        <div className="shrink-0 space-y-0 relative shadow-sm z-30">
+        <div className="shrink-0 space-y-0 relative shadow-sm z-[60]">
             <div className="flex items-center gap-3 px-4 py-3 bg-[var(--ui-accent-dim)] border-b border-[var(--ui-accent-dim)]">
                 <Bell className="h-5 w-5 shrink-0 text-[var(--ui-accent)]" />
                 <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center">
@@ -138,6 +139,54 @@ function PushPromptBanner() {
                 </div>
             </div>
         </div>
+    );
+}
+
+function MobileBottomNav() {
+    const pathname = usePathname();
+    const { unreadMessagesCount, unreadGroupsCount } = useStore();
+
+    const navItems = [
+        { name: 'Home', href: '/', icon: Home },
+        { name: 'Messages', href: '/messages', icon: Mail, badge: unreadMessagesCount },
+        { name: 'Groups', href: '/groups', icon: Users, badge: unreadGroupsCount },
+        { name: 'Profile', href: '/profile', icon: User },
+    ];
+
+    return (
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[var(--ui-bg-surface)]/80 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)] safe-area-bottom">
+            <div className="flex items-center justify-around h-16">
+                {navItems.map((item) => {
+                    const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+                    return (
+                        <Link 
+                            key={item.name} 
+                            href={item.href}
+                            className={clsx(
+                                "relative flex flex-col items-center justify-center gap-1 w-full h-full transition-colors duration-300",
+                                isActive ? "text-[var(--ui-accent)]" : "text-[var(--ui-text-muted)]"
+                            )}
+                        >
+                            <div className="relative">
+                                <item.icon className={clsx("w-5 h-5 transition-transform duration-300", isActive && "scale-110")} />
+                                {item.badge && item.badge > 0 && (
+                                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 px-1 text-[8px] font-black text-white ring-2 ring-[var(--ui-bg-surface)]">
+                                        {item.badge > 99 ? '99+' : item.badge}
+                                    </span>
+                                )}
+                            </div>
+                            <span className="text-[10px] font-bold uppercase tracking-widest">{item.name}</span>
+                            {isActive && (
+                                <motion.div 
+                                    layoutId="mobile-nav-indicator"
+                                    className="absolute -top-px left-1/4 right-1/4 h-0.5 bg-[var(--ui-accent)] rounded-full shadow-[0_0_8px_var(--ui-accent)]"
+                                />
+                            )}
+                        </Link>
+                    );
+                })}
+            </div>
+        </nav>
     );
 }
 
@@ -173,7 +222,6 @@ export default function DashboardLayout({
         const unsub = subscribeToNotifications(user.uid, (notifs) => {
             const newUnread = notifs.filter((n) => !n.read).length;
 
-            // Show toast for NEW unread notifications (only when count increases)
             if (newUnread > prevUnreadRef.current && prevUnreadRef.current >= 0) {
                 const latest = notifs.find((n) => !n.read);
                 if (latest) {
@@ -181,7 +229,7 @@ export default function DashboardLayout({
                         <div
                             className={`${
                                 t.visible ? 'animate-[fade-in-up_0.15s_ease-out]' : 'animate-[fade-out-down_0.15s_ease-in]'
-                            } max-w-sm w-full bg-[var(--ui-bg-surface)] shadow-xl rounded-2xl pointer-events-auto flex ring-1 ring-black/5 border border-[var(--ui-border)]/50 overflow-hidden`}
+                            } max-w-sm w-full bg-[var(--ui-bg-surface)] shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black/5 border border-white/10 overflow-hidden`}
                         >
                             <div className="flex-1 w-0 p-4">
                                 <div className="flex items-start">
@@ -208,7 +256,7 @@ export default function DashboardLayout({
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex border-l border-[var(--ui-border)]/50">
+                            <div className="flex border-l border-white/5">
                                 <button
                                     onClick={() => {
                                         toast.dismiss(t.id);
@@ -219,7 +267,7 @@ export default function DashboardLayout({
                                             window.location.href = latest.link;
                                         }
                                     }}
-                                    className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-sm font-bold text-[var(--ui-accent)] hover:text-[var(--ui-accent)] hover:bg-[var(--ui-accent)]/10 transition-colors focus:outline-none"
+                                    className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-sm font-bold text-[var(--ui-accent)] hover:bg-[var(--ui-accent)]/10 transition-colors focus:outline-none"
                                 >
                                     View
                                 </button>
@@ -239,18 +287,14 @@ export default function DashboardLayout({
         };
     }, [user?.uid, setNotifications]);
 
-    // Real-time chat messages listener
+    // Unread counts listeners
     useEffect(() => {
         if (!user?.uid) {
             setUnreadMessagesCount(0);
             return;
         }
 
-        const q = query(
-            collection(db, 'private_chats'),
-            where('participants', 'array-contains', user.uid)
-        );
-
+        const q = query(collection(db, 'private_chats'), where('participants', 'array-contains', user.uid));
         const unsub = onSnapshot(q, (snap) => {
             let totalUnread = 0;
             snap.forEach(doc => {
@@ -260,40 +304,22 @@ export default function DashboardLayout({
                     totalUnread += data.unreadCount[user.uid];
                 }
             });
-
             if (totalUnread > prevUnreadMsgRef.current && prevUnreadMsgRef.current >= 0) {
-                try {
-                    const audio = new Audio('/sounds/message.mp3');
-                    audio.play().catch(() => {});
-                } catch {
-                    // ignore
-                }
+                new Audio('/sounds/message.mp3').play().catch(() => {});
             }
-
             prevUnreadMsgRef.current = totalUnread;
             setUnreadMessagesCount(totalUnread);
-        }, (err) => {
-            console.warn('[Chats] Unread count listener error:', err);
         });
-
-        return () => {
-             unsub();
-             prevUnreadMsgRef.current = 0;
-        }
+        return () => unsub();
     }, [user?.uid, userProfile?.mutedEntities, setUnreadMessagesCount]);
 
-    // Real-time group messages listener
     useEffect(() => {
         if (!user?.uid) {
             setUnreadGroupsCount(0);
             return;
         }
 
-        const q = query(
-            collection(db, 'groups'),
-            where('memberIds', 'array-contains', user.uid)
-        );
-
+        const q = query(collection(db, 'groups'), where('memberIds', 'array-contains', user.uid));
         const unsub = onSnapshot(q, (snap) => {
             let totalUnreadGroups = 0;
             snap.forEach(doc => {
@@ -303,127 +329,126 @@ export default function DashboardLayout({
                     totalUnreadGroups += data.unreadCount[user.uid];
                 }
             });
-
             if (totalUnreadGroups > prevUnreadGroupRef.current && prevUnreadGroupRef.current >= 0) {
-                try {
-                    const audio = new Audio('/sounds/message.mp3');
-                    audio.play().catch(() => {});
-                } catch {
-                     // ignore
-                }
+                new Audio('/sounds/message.mp3').play().catch(() => {});
             }
-
             prevUnreadGroupRef.current = totalUnreadGroups;
             setUnreadGroupsCount(totalUnreadGroups);
-        }, (err) => {
-            console.warn('[Groups] Unread count listener error:', err);
         });
-
-        return () => {
-             unsub();
-             prevUnreadGroupRef.current = 0;
-        }
+        return () => unsub();
     }, [user?.uid, userProfile?.mutedEntities, setUnreadGroupsCount]);
 
     return (
         <ProtectedRoute>
-            <div className="flex h-screen bg-[var(--ui-bg-base)] text-[var(--ui-text)]">
-                {/* Mobile sidebar overlay */}
-                {sidebarOpen && (
-                    <div className="fixed inset-0 z-50 lg:hidden">
-                        <div
-                            className="fixed inset-0 bg-[var(--ui-bg-overlay)]"
-                            onClick={() => setSidebarOpen(false)}
-                        />
-                        <div className="fixed inset-y-0 left-0 z-50 w-[260px] shadow-2xl pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-[var(--ui-bg-base)]">
-                            <div className="absolute right-2 top-2 z-10 pt-[env(safe-area-inset-top)]">
-                                <button
-                                    onClick={() => setSidebarOpen(false)}
-                                    className="p-1.5 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
-                                >
-                                    <X className="h-5 w-5" />
-                                </button>
-                            </div>
-                            <Sidebar onNavigate={() => setSidebarOpen(false)} />
-                        </div>
-                    </div>
-                )}
-
+            <div className="flex h-screen-dynamic bg-[var(--ui-bg-base)] text-[var(--ui-text)] overflow-hidden">
+                
                 {/* Desktop sidebar */}
                 <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-[260px] lg:flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
                     <Sidebar />
                 </div>
 
                 {/* Main content area */}
-                <div className="flex-1 flex flex-col lg:pl-[260px] h-screen overflow-hidden pb-[env(safe-area-inset-bottom)]">
-                    {/* Mobile header bar */}
-                    <div className="lg:hidden flex items-center justify-between min-h-[3.5rem] pt-[env(safe-area-inset-top)] bg-[var(--ui-bg-base)] border-b border-[var(--ui-divider)] px-4 shrink-0 relative z-40">
-                        <div className="flex items-center">
+                <div className="flex-1 flex flex-col lg:pl-[260px] h-full overflow-hidden">
+                    {/* Header bar (consistent across platforms) */}
+                    <header className="flex items-center justify-between h-16 pt-[env(safe-area-inset-top)] bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-white/5 px-6 shrink-0 relative z-[70]">
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setSidebarOpen(true)}
-                                className="p-1.5 -ml-1.5 mr-2 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] transition-colors"
-                                aria-label="Open sidebar navigation"
+                                className="lg:hidden p-2 -ml-2 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] active:scale-95 transition-all"
+                                aria-label="Open sidebar"
                             >
                                 <Menu className="h-5 w-5" />
                             </button>
-                            <span className="text-[15px] font-semibold text-[var(--ui-text)]">
-                                <span className="text-[var(--ui-accent)]">✦</span> DYPU Connect
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                                    <span className="text-white text-xs font-black">C</span>
+                                </div>
+                                <span className="text-[15px] font-bold text-white tracking-tight hidden sm:block">DYPU Connect</span>
+                            </div>
                         </div>
                         
-                        {/* Mobile Actions */}
-                        <div className="relative flex items-center gap-1.5">
-                            <button
+                        <div className="flex items-center gap-2">
+                            <motion.button
+                                whileTap={{ scale: 0.95 }}
                                 onClick={() => setSearchModalOpen(true)}
-                                className="p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] active:bg-[var(--ui-bg-hover)] transition-colors"
+                                className="p-2 rounded-xl text-[var(--ui-text-muted)] hover:text-white hover:bg-white/5 transition-all"
                                 aria-label="Search"
                             >
                                 <Search className="h-5 w-5" />
-                            </button>
+                            </motion.button>
                             <div className="relative">
-                                <button
+                                <motion.button
+                                    whileTap={{ scale: 0.95 }}
                                     onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
-                                    className="relative p-1.5 -mr-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] active:bg-[var(--ui-bg-hover)] transition-colors"
-                                    aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+                                    className="relative p-2 rounded-xl text-[var(--ui-text-muted)] hover:text-white hover:bg-white/5 transition-all"
+                                    aria-label="Notifications"
                                 >
-                                <Bell className="h-5 w-5" />
-                                {unreadCount > 0 && (
-                                    <span className="absolute -top-0 -right-0 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-[var(--ui-bg-base)]">
-                                        {unreadCount > 99 ? '99+' : unreadCount}
-                                    </span>
-                                )}
-                                </button>
-                                {/* The panel handles opening logic based on the store implicitly */}
+                                    <Bell className="h-5 w-5" />
+                                    {unreadCount > 0 && (
+                                        <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[var(--ui-bg-base)]" />
+                                    )}
+                                </motion.button>
                                 <NotificationPanel align="header" />
                             </div>
                         </div>
-                    </div>
+                    </header>
 
-                    {/* Announcement banners */}
+                    {/* Announcement & Promotion areas */}
                     <AnnouncementBanner />
-                    
-                    {/* Native Push Prompt */}
                     <PushPromptBanner />
-
                     <GlobalSearch />
 
-                    {/* Page content */}
-                    <AnimatePresence mode="wait" initial={false}>
-                        <motion.main
-                            key={pathname}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3 }}
-                            className="flex-1 overflow-y-auto w-full max-w-[100vw]"
-                            role="main"
-                            aria-label="Page content"
-                            layout
-                        >
-                            {children}
-                        </motion.main>
-                    </AnimatePresence>
+                    {/* Content Main */}
+                    <main className="flex-1 overflow-y-auto w-full relative pb-20 lg:pb-0 scrollbar-hide">
+                        <AnimatePresence mode="wait" initial={false}>
+                            <motion.div
+                                key={pathname}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                                className="h-full"
+                            >
+                                {children}
+                            </motion.div>
+                        </AnimatePresence>
+                    </main>
                 </div>
+
+                {/* Mobile Navigation */}
+                <MobileBottomNav />
+
+                {/* Drawer Overlay (Mobile Only for Sidebar fallback) */}
+                <AnimatePresence>
+                    {sidebarOpen && (
+                        <div className="fixed inset-0 z-[150] lg:hidden">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                                onClick={() => setSidebarOpen(false)}
+                            />
+                            <motion.div
+                                initial={{ x: '-100%' }}
+                                animate={{ x: 0 }}
+                                exit={{ x: '-100%' }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                className="absolute inset-y-0 left-0 w-[280px] bg-[var(--ui-bg-base)] shadow-2xl flex flex-col"
+                            >
+                                <div className="flex h-16 items-center justify-between px-6 border-b border-white/5">
+                                    <span className="font-bold text-white">Menu</span>
+                                    <button onClick={() => setSidebarOpen(false)} className="p-2 -mr-2 text-zinc-500 hover:text-white">
+                                        <X className="h-5 w-5" />
+                                    </button>
+                                </div>
+                                <div className="flex-1 overflow-y-auto">
+                                    <Sidebar onNavigate={() => setSidebarOpen(false)} />
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </div>
         </ProtectedRoute>
     );
