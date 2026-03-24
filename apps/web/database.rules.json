@@ -10,7 +10,8 @@
       "$chatId": {
         ".read": "auth != null",
         "$uid": {
-          ".write": "$uid === auth.uid"
+          // Users can only update their own typing status
+          ".write": "auth != null && $uid === auth.uid"
         }
       }
     }

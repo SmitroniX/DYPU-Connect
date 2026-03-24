@@ -9,7 +9,7 @@ mutation SendDirectMessage(
   $gifUrl: String,
   $audioUrl: String,
   $replyToId: UUID
-) {
+) @auth(level: USER) {
   directMessage_insert(data: {
     senderStudentId: $senderId,
     receiverStudentId: $receiverId,
@@ -22,7 +22,7 @@ mutation SendDirectMessage(
   })
 }
 
-query ListDirectMessages($currentUserId: String!, $otherUserId: String!) {
+query ListDirectMessages($currentUserId: String!, $otherUserId: String!) @auth(level: USER) {
   directMessages(
     where: {
       _or: [
@@ -54,7 +54,7 @@ mutation UpdateDirectMessage(
   $isEdited: Boolean,
   $isDeleted: Boolean,
   $reactions: Any
-) {
+) @auth(level: USER) {
   directMessage_update(
     id: $id,
     data: {
@@ -66,7 +66,7 @@ mutation UpdateDirectMessage(
   )
 }
 
-mutation DeleteDirectMessage($id: UUID!) {
+mutation DeleteDirectMessage($id: UUID!) @auth(level: USER) {
   directMessage_delete(id: $id)
 }
 
@@ -81,7 +81,7 @@ mutation SendGroupMessage(
   $gifUrl: String,
   $audioUrl: String,
   $replyToId: UUID
-) {
+) @auth(level: USER) {
   groupMessage_insert(data: {
     senderStudentId: $senderId,
     groupName: $groupName,
@@ -94,7 +94,7 @@ mutation SendGroupMessage(
   })
 }
 
-query ListGroupMessages($groupName: String!) {
+query ListGroupMessages($groupName: String!) @auth(level: USER) {
   groupMessages(
     where: { groupName: { eq: $groupName } },
     orderBy: [{ sentAt: ASC }]
@@ -126,7 +126,7 @@ mutation UpdateGroupMessage(
   $isEdited: Boolean,
   $isDeleted: Boolean,
   $reactions: Any
-) {
+) @auth(level: USER) {
   groupMessage_update(
     id: $id,
     data: {
@@ -138,7 +138,7 @@ mutation UpdateGroupMessage(
   )
 }
 
-mutation DeleteGroupMessage($id: UUID!) {
+mutation DeleteGroupMessage($id: UUID!) @auth(level: USER) {
   groupMessage_delete(id: $id)
 }
 
@@ -152,7 +152,7 @@ mutation SendPublicMessage(
   $gifUrl: String,
   $audioUrl: String,
   $expiresAt: Timestamp!
-) {
+) @auth(level: USER) {
   publicMessage_insert(data: {
     senderStudentId: $senderId,
     messageContent: $messageContent,
@@ -164,7 +164,7 @@ mutation SendPublicMessage(
   })
 }
 
-query ListPublicMessages($now: Timestamp!) {
+query ListPublicMessages($now: Timestamp!) @auth(level: USER) {
   publicMessages(
     where: { expiresAt: { gt: $now } },
     orderBy: [{ sentAt: ASC }]
@@ -195,7 +195,7 @@ mutation UpdatePublicMessage(
   $isEdited: Boolean,
   $isDeleted: Boolean,
   $reactions: Any
-) {
+) @auth(level: USER) {
   publicMessage_update(
     id: $id,
     data: {
@@ -207,7 +207,6 @@ mutation UpdatePublicMessage(
   )
 }
 
-mutation DeletePublicMessage($id: UUID!) {
+mutation DeletePublicMessage($id: UUID!) @auth(level: USER) {
   publicMessage_delete(id: $id)
 }
-

@@ -1,4 +1,7 @@
-type Student @table(key: "studentId") {
+type Student @table(key: "studentId") @auth(
+  level: USER,
+  read: { any: true }
+) {
   studentId: String!
   firstName: String!
   lastName: String!
@@ -13,7 +16,11 @@ type Student @table(key: "studentId") {
   contactNumber: String
 }
 
-type Group @table(key: "name") {
+type Group @table(key: "name") @auth(
+  level: USER,
+  read: { any: true },
+  create: { where: { adminStudentId: { studentId: { eq: "auth.uid" } } } }
+) {
   name: String!
   description: String!
   groupType: String!
@@ -22,13 +29,23 @@ type Group @table(key: "name") {
   coverImageUrl: String
 }
 
-type Membership @table(key: ["student", "group"]) {
+type Membership @table(key: ["student", "group"]) @auth(
+  level: USER,
+  read: { any: true },
+  create: { where: { student: { studentId: { eq: "auth.uid" } } } },
+  delete: { where: { student: { studentId: { eq: "auth.uid" } } } }
+) {
   student: Student!
   group: Group!
   joinedAt: Timestamp!
 }
 
-type Post @table {
+type Post @table @auth(
+  level: USER,
+  read: { any: true },
+  create: { where: { student: { studentId: { eq: "auth.uid" } } } },
+  delete: { where: { student: { studentId: { eq: "auth.uid" } } } }
+) {
   student: Student!
   content: String!
   createdAt: Timestamp!
@@ -38,7 +55,16 @@ type Post @table {
   documentUrl: String
 }
 
-type DirectMessage @table {
+type DirectMessage @table @auth(
+  level: USER,
+  read: { _or: [
+    { sender: { studentId: { eq: "auth.uid" } } },
+    { receiver: { studentId: { eq: "auth.uid" } } }
+  ] },
+  create: { where: { sender: { studentId: { eq: "auth.uid" } } } },
+  update: { where: { sender: { studentId: { eq: "auth.uid" } } } },
+  delete: { where: { sender: { studentId: { eq: "auth.uid" } } } }
+) {
   sender: Student!
   receiver: Student!
   messageContent: String!
@@ -53,7 +79,13 @@ type DirectMessage @table {
   replyTo: DirectMessage
 }
 
-type GroupMessage @table {
+type GroupMessage @table @auth(
+  level: USER,
+  read: { any: true }, # In a group, all members can read
+  create: { where: { sender: { studentId: { eq: "auth.uid" } } } },
+  update: { where: { sender: { studentId: { eq: "auth.uid" } } } },
+  delete: { where: { sender: { studentId: { eq: "auth.uid" } } } }
+) {
   sender: Student!
   group: Group!
   messageContent: String!
@@ -68,7 +100,13 @@ type GroupMessage @table {
   replyTo: GroupMessage
 }
 
-type PublicMessage @table {
+type PublicMessage @table @auth(
+  level: USER,
+  read: { any: true },
+  create: { where: { sender: { studentId: { eq: "auth.uid" } } } },
+  update: { where: { sender: { studentId: { eq: "auth.uid" } } } },
+  delete: { where: { sender: { studentId: { eq: "auth.uid" } } } }
+) {
   sender: Student!
   messageContent: String!
   sentAt: Timestamp! @default(expr: "request.time")
@@ -82,7 +120,12 @@ type PublicMessage @table {
   expiresAt: Timestamp!
 }
 
-type Comment @table {
+type Comment @table @auth(
+  level: USER,
+  read: { any: true },
+  create: { where: { student: { studentId: { eq: "auth.uid" } } } },
+  delete: { where: { student: { studentId: { eq: "auth.uid" } } } }
+) {
   student: Student!
   post: Post!
   commentContent: String!

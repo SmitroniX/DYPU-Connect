@@ -7,7 +7,6 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
 import { normalizeUserProfile, type UserProfile } from '@/types/profile';
-import { isAutoAdminEmail } from '@/lib/admin';
 import { logActivity } from '@/lib/activityLog';
 import { registerDeviceSession, collectDeviceInfo } from '@/lib/deviceSessions';
 import { startAutoBackupScheduler, stopAutoBackupScheduler } from '@/lib/backup';
@@ -81,22 +80,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             || !Array.isArray(rawProfile.gallery)
                             || !Array.isArray(rawProfile.stories)
                             || !Array.isArray(rawProfile.highlights);
-
-                        if (isAutoAdminEmail(firebaseUser.email) && profile.role !== 'admin') {
-                            profileUpdates.role = 'admin';
-                            profile.role = 'admin';
-                        }
-
-                        // Back-sync Google profile photo if current image is a DiceBear fallback
-                        const googlePhotoUrl = firebaseUser.photoURL;
-                        if (
-                            googlePhotoUrl &&
-                            googlePhotoUrl.startsWith('https://') &&
-                            (!profile.profileImage || profile.profileImage.includes('dicebear.com') || profile.profileImage.includes('ui-avatars.com'))
-                        ) {
-                            profileUpdates.profileImage = googlePhotoUrl;
-                            profile.profileImage = googlePhotoUrl;
-                        }
 
                         if (needsNormalization) {
                             profileUpdates.gender = profile.gender;
