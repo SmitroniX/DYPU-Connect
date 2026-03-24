@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, lazy, useRef } from 'react';
-import { Image as ImageIcon, Smile, Gift, Mic } from 'lucide-react';
+import { Image as ImageIcon, Smile } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { GiphyGif } from '@/lib/giphy';
 import { ChatInputFeatures } from './types';
