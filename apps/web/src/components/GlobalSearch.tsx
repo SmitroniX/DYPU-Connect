@@ -85,7 +85,7 @@ export default function GlobalSearch() {
             ]);
 
             const users = usersSnap.docs.map(doc => doc.data() as UserProfile).filter(u => u.userId !== currentUser?.uid);
-            const groups = groupsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Group));
+            const groups = groupsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as unknown as Group));
 
             setUserResults(users);
             setGroupResults(groups);

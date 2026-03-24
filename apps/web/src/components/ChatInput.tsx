@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { uploadChatMedia } from '@/lib/storage';
 import { compressImage, generateBlurHash } from '@/lib/media';
-import type { GiphyGif } from '@/lib/giphy';
 
 import { ChatInputPayload, ChatInputFeatures, Message } from './ChatInput/types';
 import AttachmentPreview from './ChatInput/AttachmentPreview';
@@ -23,7 +22,7 @@ interface ChatInputProps {
     maxLength?: number;
     features?: ChatInputFeatures;
     typingIndicator?: React.ReactNode;
-    onTyping?: (isTyping: boolean) => void;
+    onTyping?: (isTyping: boolean) => void;   
     onStopTyping?: () => void;
     chatId?: string;
     replyToMessage?: Message | null;
@@ -43,7 +42,7 @@ export default function ChatInput({
     placeholder = 'Type a message...',
     disabled = false,
     maxLength = 2000,
-    features: featuresProp,
+    features: featuresProp = {},
     typingIndicator,
     onTyping,
     onStopTyping,
@@ -61,21 +60,20 @@ export default function ChatInput({
     const [sending, setSending] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // Focus textarea when replying
     useEffect(() => {
         if (replyToMessage && textareaRef.current) {
-            textareaRef.current.focus();
+            textareaRef.current.focus();      
         }
     }, [replyToMessage]);
 
-    const canSend = !disabled && !sending && (message.trim() || selectedGifUrl || selectedImageUrl || selectedAudioUrl);
+    const canSend = !disabled && !sending && !!(message.trim() || selectedGifUrl || selectedImageUrl || selectedAudioUrl);
     const showCharCount = message.length > maxLength * 0.8;
     const overLimit = message.length > maxLength;
 
     const handleSend = async () => {
         if (!canSend || overLimit) return;
+
         setSending(true);
-        onStopTyping?.();
         try {
             await onSend({
                 text: message.trim(),
@@ -84,22 +82,25 @@ export default function ChatInput({
                 blurHash: selectedBlurHash || undefined,
                 audioUrl: selectedAudioUrl || undefined,
             });
+
             setMessage('');
             setSelectedGifUrl('');
             setSelectedImageUrl('');
             setSelectedBlurHash('');
             setSelectedAudioUrl('');
-            if (textareaRef.current) {
+            if (textareaRef.current) {        
                 textareaRef.current.style.height = 'auto';
             }
-        } catch {
-            toast.error('Failed to send message.');
+            onStopTyping?.();
+        } catch (error) {
+            console.error('Failed to send:', error);
+            toast.error('Failed to send message');
         } finally {
             setSending(false);
         }
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSend();
@@ -110,7 +111,7 @@ export default function ChatInput({
         setMessage(e.target.value);
         onTyping?.(true);
         const textarea = e.target;
-        textarea.style.height = 'auto';
+        textarea.style.height = 'auto';       
         textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
     };
 
@@ -121,40 +122,35 @@ export default function ChatInput({
             const end = textarea.selectionEnd;
             const newText = message.slice(0, start) + emoji + message.slice(end);
             setMessage(newText);
-            requestAnimationFrame(() => {
-                textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+            requestAnimationFrame(() => {     
+                textarea.selectionStart = textarea.selectionEnd = start + emoji.length;      
                 textarea.focus();
             });
-        } else {
-            setMessage((prev) => prev + emoji);
         }
     };
 
     const wrapSelection = (before: string, after: string) => {
         const textarea = textareaRef.current;
         if (!textarea) return;
+
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
-        const selected = message.slice(start, end);
-        const newText = message.slice(0, start) + before + selected + after + message.slice(end);
+        const selection = message.slice(start, end);
+        const newText = message.slice(0, start) + before + selection + after + message.slice(end);
+        
         setMessage(newText);
         requestAnimationFrame(() => {
-            if (selected) {
-                textarea.selectionStart = start + before.length;
-                textarea.selectionEnd = end + before.length;
-            } else {
-                textarea.selectionStart = textarea.selectionEnd = start + before.length;
-            }
             textarea.focus();
+            textarea.setSelectionRange(start + before.length, end + before.length);
         });
     };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        e.target.value = '';
         if (!file) return;
+
         if (!file.type.startsWith('image/')) {
-            toast.error('Please choose an image file.');
+            toast.error('Please select an image file');
             return;
         }
 
@@ -167,15 +163,16 @@ export default function ChatInput({
 
             setSelectedImageUrl(url);
             setSelectedBlurHash(blurHash);
-            toast.success('Image attached!');
+            toast.success('Image ready');
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Image upload failed.');
+            console.error('Upload failed:', error);
+            toast.error('Failed to upload image');
         } finally {
             setUploading(false);
         }
     };
 
-    const handleRemoveAttachments = () => {
+    const handleRemoveAttachments = () => {   
         setSelectedGifUrl('');
         setSelectedImageUrl('');
         setSelectedBlurHash('');
@@ -183,16 +180,16 @@ export default function ChatInput({
     };
 
     return (
-        <div className="px-4 pb-4 shrink-0 relative bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent pt-4">
+        <div className="px-4 pb-6 shrink-0 relative pt-4">
             <AnimatePresence>
                 {typingIndicator && (
                     <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute -top-6 left-6 h-6 flex items-center"
+                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                        className="absolute -top-6 left-8 h-6 flex items-center bg-[var(--ui-bg-surface)]/80 backdrop-blur-md px-3 rounded-full border border-white/5 text-[10px] font-medium text-[var(--ui-text-secondary)] shadow-sm"
                     >
-                        {typingIndicator}
+                        {typingIndicator}     
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -203,56 +200,78 @@ export default function ChatInput({
                 selectedAudioUrl={selectedAudioUrl}
                 replyToMessage={replyToMessage}
                 onRemove={handleRemoveAttachments}
-                onRemoveReply={onCancelReply}
+                onRemoveReply={onCancelReply} 
             />
 
-            <div className="flex flex-col bg-[var(--ui-bg-elevated)]/95 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.2)] rounded-[26px] border border-white/5 focus-within:border-[var(--ui-accent)]/40 focus-within:ring-4 focus-within:ring-[var(--ui-accent)]/10 transition-all duration-300 relative z-20 overflow-hidden group">
-               <div className="absolute inset-0 bg-gradient-to-r from-[var(--ui-accent)]/0 via-[var(--ui-accent)]/5 to-[var(--ui-accent)]/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+            {/* Premium Input Container */}
+            <div className="flex flex-col relative z-20 transition-all duration-500">
+                
+                {/* Floating Markdown Toolbar */}
+                <AnimatePresence>
+                    {features.markdown && message.length > 0 && (       
+                        <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="absolute -top-10 left-1/2 -translate-x-1/2 z-30"
+                        >
+                            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl px-1 py-1 shadow-2xl">
+                                <MarkdownToolbar onWrapSelection={wrapSelection} />
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                {features.markdown && (
-                    <MarkdownToolbar onWrapSelection={wrapSelection} />
-                )}
+                <div className="flex items-end gap-3 p-2 rounded-[32px] bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] focus-within:border-white/20 focus-within:bg-white/[0.06] transition-all duration-500 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] group/input">
+                    
+                    {/* Integrated Action Bar */}
+                    <div className="shrink-0 pl-1 pb-0.5">
+                        <InputActions
+                            features={features}   
+                            uploading={uploading} 
+                            sending={sending}     
+                            disabled={disabled}   
+                            onEmojiSelect={insertEmoji}
+                            onImageUpload={handleImageUpload}
+                            onGifSelect={(gif) => setSelectedGifUrl(gif.url)}
+                            onAudioUploaded={(url) => setSelectedAudioUrl(url)}
+                        />
+                    </div>
 
-                <div className="flex items-end gap-1 px-2 pb-2 pt-1 relative z-10">
-                    <InputActions
-                        features={features}
-                        uploading={uploading}
-                        sending={sending}
-                        disabled={disabled}
-                        onEmojiSelect={insertEmoji}
-                        onImageUpload={handleImageUpload}
-                        onGifSelect={(gif) => setSelectedGifUrl(gif.url)}
-                        onAudioUploaded={(url) => setSelectedAudioUrl(url)}
-                    />
-
-                    <div className="flex-1 min-w-0 flex flex-col justify-end pt-1">
+                    {/* Text Field */}
+                    <div className="flex-1 min-w-0 py-2.5">
                         <textarea
-                            ref={textareaRef}
-                            value={message}
+                            ref={textareaRef} 
+                            value={message}   
                             onChange={handleTextareaChange}
                             onKeyDown={handleKeyDown}
                             placeholder={replyToMessage ? `Reply to ${replyToMessage.senderName}...` : placeholder}
                             disabled={disabled}
                             maxLength={maxLength}
-                            className="w-full bg-transparent text-[15px] text-[var(--ui-text)] placeholder-[var(--ui-text-muted)] focus:outline-none resize-none overflow-y-auto min-h-[40px] max-h-[160px] py-2 px-1 scrollbar-hide"
-                            rows={1}
+                            className="w-full bg-transparent text-[16px] leading-[1.5] text-white placeholder-white/30 focus:outline-none resize-none overflow-y-auto min-h-[24px] max-h-[160px] px-1 scrollbar-hide selection:bg-[var(--ui-accent)]/30"     
                         />
                     </div>
 
+                    {/* Send Control */}
                     <SendButton
-                        canSend={canSend}
-                        overLimit={overLimit}
+                        canSend={canSend}     
+                        overLimit={overLimit} 
                         showCharCount={showCharCount}
                         messageLength={message.length}
-                        maxLength={maxLength}
-                        onSend={handleSend}
+                        maxLength={maxLength} 
+                        onSend={handleSend}   
                     />
                 </div>
             </div>
 
-            <div className="flex items-center justify-between px-1 mt-1">
-                <p className="text-[9px] text-[var(--ui-text-muted)]">
-                    <kbd className="px-1 py-0.5 rounded bg-[var(--ui-bg-elevated)] text-[8px] font-mono">Enter</kbd> send · <kbd className="px-1 py-0.5 rounded bg-[var(--ui-bg-elevated)] text-[8px] font-mono">Shift+Enter</kbd> new line
+            {/* Keyboard hint */}
+            <div className="flex items-center justify-center mt-3">
+                <p className="text-[10px] text-white/20 font-medium tracking-wide flex items-center gap-2">
+                    <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/5">Enter</span>
+                    <span>to send</span>
+                    <span className="w-1 h-1 rounded-full bg-white/10" />
+                    <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/5">Shift + Enter</span>
+                    <span>for new line</span>
                 </p>
             </div>
         </div>

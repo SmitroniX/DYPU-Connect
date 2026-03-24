@@ -470,13 +470,6 @@ function CookiePrivacySection() {
         toast.success('All cookies wiped. You may be signed out.', { icon: '🛡️', duration: 4000 });
     };
 
-    const handlePanicWipeAll = () => {
-        panicWipeCookies();
-        setConsentState(null);
-        setCookieCount(0);
-        toast.success('All cookies wiped. You may be signed out.', { icon: '🛡️', duration: 4000 });
-    };
-
     const handleRevalidate = () => {
         const result = validateSessionIntegrity();
         setSessionValid(result.valid);

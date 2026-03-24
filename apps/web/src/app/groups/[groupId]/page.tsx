@@ -491,8 +491,8 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                         <GroupDetailsDrawer
                             isOpen={detailsOpen}
                             onClose={() => setDetailsOpen(false)}
-                            group={group}
-                            messages={optimisticMessages as any}
+                            group={group as unknown as Group}
+                            messages={optimisticMessages}
                             onSearchClick={() => {
                                 setDetailsOpen(false);
                                 setIsSearching(true);
@@ -503,8 +503,9 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                 if (confirm('Are you sure you want to remove this member?')) {
                                     try {
                                         const groupRef = doc(db, 'groups', groupId);
-                                        const newMembers = (group.memberIds as string[]).filter((id: string) => id !== uid);
-                                        const newAdmins = ((group.adminIds as string[]) || []).filter((id: string) => id !== uid);
+                                        const currentGroup = group as unknown as Group;
+                                        const newMembers = (currentGroup.memberIds || []).filter((id: string) => id !== uid);
+                                        const newAdmins = (currentGroup.adminIds || []).filter((id: string) => id !== uid);
                                         await updateDoc(groupRef, { 
                                             memberIds: newMembers,
                                             adminIds: newAdmins
@@ -519,9 +520,10 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                                 if (confirm('Are you sure you want to leave this group?')) {
                                     try {
                                         const groupRef = doc(db, 'groups', groupId);
-                                        const userIdx = user ? (group.memberIds as string[]).indexOf(user.uid) : -1;
+                                        const currentGroup = group as unknown as Group;
+                                        const userIdx = user ? (currentGroup.memberIds || []).indexOf(user.uid) : -1;
                                         if (userIdx > -1) {
-                                            const newMembers = [...(group.memberIds as string[])];
+                                            const newMembers = [...(currentGroup.memberIds || [])];
                                             newMembers.splice(userIdx, 1);
                                             await updateDoc(groupRef, { memberIds: newMembers });
                                             toast.success('Left group');

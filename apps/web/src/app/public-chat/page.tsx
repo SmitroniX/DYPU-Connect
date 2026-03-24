@@ -60,7 +60,7 @@ export default function PublicChatPage() {
                     isEdited: pm.isEdited ?? false,
                     isDeleted: pm.isDeleted ?? false,
                     expiresAt: pm.expiresAt ? new Date(pm.expiresAt) : null,
-                    replyToId: pm.replyToId ?? undefined,
+                    replyToId: (pm as any).replyToId ?? undefined,
                 }));
                 setMessages(data);
             }

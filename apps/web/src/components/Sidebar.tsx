@@ -5,7 +5,7 @@ import { useStore } from '@/store/useStore';
 import { useSystemStore } from '@/store/useSystemStore';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, ChevronRight, Bell, Search } from 'lucide-react';
+import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, Bell, Search } from 'lucide-react';
 import clsx from 'clsx';
 import NotificationPanel from '@/components/NotificationPanel';
 import { motion } from 'framer-motion';

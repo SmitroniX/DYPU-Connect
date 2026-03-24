@@ -24,7 +24,7 @@ interface GroupDetailsDrawerProps {
 export default function GroupDetailsDrawer({
     isOpen,
     onClose,
-    group,
+    group: groupRaw,
     messages,
     onSearchClick,
     onLeaveGroup,
@@ -32,6 +32,7 @@ export default function GroupDetailsDrawer({
     isMuted = false,
     onToggleMute
 }: GroupDetailsDrawerProps) {
+    const group = groupRaw as unknown as Group;
     const { user } = useAuth();
     const [memberProfiles, setMemberProfiles] = useState<Record<string, {name?: string, profileImage?: string, email?: string, field?: string, year?: string}>>({});
     const [loadingMembers, setLoadingMembers] = useState(false);

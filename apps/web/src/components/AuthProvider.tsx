@@ -16,13 +16,11 @@ import { usePresence } from '@/hooks/usePresence';
 import { isAndroidApp, registerAndroidEventListener, triggerNativeGoogleSignIn } from '@/lib/android';
 import { toast } from 'react-hot-toast';
 import { AppError, AppErrorCode, handleError, mapToAppError } from '@/lib/errors';
+import { type ElectronInterface } from '@/lib/desktop';
 
 declare global {
     interface Window {
-        electron?: {
-            onAuthCallback: (callback: (url: string) => void) => void;
-            isElectron: boolean;
-        };
+        electron?: ElectronInterface;
     }
 }
 
