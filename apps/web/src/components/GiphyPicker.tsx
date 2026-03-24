@@ -9,7 +9,7 @@ interface GiphyPickerProps {
     onSelect: (gif: GiphyGif) => void;
     disabled?: boolean;
     align?: 'left' | 'right';
-    trigger?: ReactElement;
+    trigger?: ReactElement<any>;
 }
 
 export default function GiphyPicker({ onSelect, disabled, align = 'left', trigger }: GiphyPickerProps) {

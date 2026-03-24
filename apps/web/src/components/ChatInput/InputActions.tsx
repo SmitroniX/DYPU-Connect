@@ -5,7 +5,6 @@ import { Image as ImageIcon, Smile, Gift, Mic, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { GiphyGif } from '@/lib/giphy';
 import { ChatInputFeatures } from './types';
-import Image from 'next/image';
 
 const EmojiPicker = lazy(() => import('@/components/EmojiPicker'));
 const GiphyPicker = lazy(() => import('@/components/GiphyPicker'));

@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, cloneElement, ReactElement } from 'react';
-import { Mic, Square, Loader2, Play, Trash2 } from 'lucide-react';
+import { Mic, Square, Loader2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useStore } from '@/store/useStore';
 import { isGoogleDriveConfigured, requestGoogleDriveAccessToken, uploadAudioToGoogleDrive } from '@/lib/googleDrive';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface AudioRecorderProps {
     onAudioUploaded: (audioUrl: string) => void;
     disabled?: boolean;
-    trigger?: ReactElement;
+    trigger?: ReactElement<any>;
 }
 
 export default function AudioRecorder({ onAudioUploaded, disabled, trigger }: AudioRecorderProps) {

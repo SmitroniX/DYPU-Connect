@@ -20,8 +20,7 @@ import {
     Monitor,
     MonitorOff,
     X,
-    Maximize2,
-    Minimize2
+    Maximize2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
