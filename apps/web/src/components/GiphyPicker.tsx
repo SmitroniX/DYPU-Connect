@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, cloneElement, ReactElement } from 'react';
 import { Image as ImageIcon, Loader2, Search, X } from 'lucide-react';
 import type { GiphyGif } from '@/lib/giphy';
 import { fetchTrendingGiphyGifs, hasGiphyApiKey, searchGiphyGifs } from '@/lib/giphy';
@@ -9,9 +9,10 @@ interface GiphyPickerProps {
     onSelect: (gif: GiphyGif) => void;
     disabled?: boolean;
     align?: 'left' | 'right';
+    trigger?: ReactElement;
 }
 
-export default function GiphyPicker({ onSelect, disabled, align = 'left' }: GiphyPickerProps) {
+export default function GiphyPicker({ onSelect, disabled, align = 'left', trigger }: GiphyPickerProps) {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [gifs, setGifs] = useState<GiphyGif[]>([]);
@@ -68,53 +69,69 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left' }: Giph
 
     const panelAlignment = align === 'right' ? 'right-0' : 'left-0';
 
+    const defaultTrigger = (
+        <button
+            type="button"
+            disabled={disabled || !giphyEnabled}
+            className="bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)] p-2 rounded-lg hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] disabled:opacity-50 transition-all flex shrink-0 items-center justify-center w-10 h-10 border border-[var(--ui-border)]"
+            title={giphyEnabled ? 'Insert GIF' : 'Set NEXT_PUBLIC_GIPHY_API_KEY to enable GIFs'}
+        >
+            <ImageIcon className="w-4 h-4" />
+        </button>
+    );
+
+    const triggerElement = trigger 
+        ? cloneElement(trigger, { 
+            onClick: (e: any) => {
+                trigger.props.onClick?.(e);
+                if (!disabled && giphyEnabled) setOpen(!open);
+            },
+            disabled: disabled || !giphyEnabled
+          }) 
+        : cloneElement(defaultTrigger, { onClick: () => setOpen(!open) });
+
     return (
         <div className="relative" ref={wrapperRef}>
-            <button
-                type="button"
-                disabled={disabled || !giphyEnabled}
-                onClick={() => setOpen((prev) => !prev)}
-                className="bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)] p-2 rounded-lg hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] disabled:opacity-50 transition-all flex shrink-0 items-center justify-center w-10 h-10 border border-[var(--ui-border)]"
-                title={giphyEnabled ? 'Insert GIF' : 'Set NEXT_PUBLIC_GIPHY_API_KEY to enable GIFs'}
-            >
-                <ImageIcon className="w-4 h-4" />
-            </button>
+            {triggerElement}
 
             {open && (
-                <div className={`absolute z-40 bottom-12 ${panelAlignment} w-[320px] rounded-xl border border-[var(--ui-border)] bg-[var(--ui-bg-surface)] shadow-2xl p-3`}>
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-semibold text-[var(--ui-text)]">GIPHY</h3>
+                <div className={`absolute z-40 bottom-14 ${panelAlignment} w-[320px] rounded-2xl border border-white/10 bg-zinc-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[scale-in_0.2s_ease-out]`}>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-xs font-bold text-white uppercase tracking-widest opacity-60">GIPHY Express</h3>
                         <button
                             type="button"
-                            className="p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                            className="p-1.5 rounded-full text-zinc-500 hover:text-white hover:bg-white/5 transition-colors"
                             onClick={() => setOpen(false)}
                         >
-                            <X className="h-4 w-4" />
+                            <X className="w-4 h-4" />
                         </button>
                     </div>
 
-                    <div className="relative mb-3">
-                        <Search className="h-4 w-4 text-[var(--ui-text-muted)] absolute left-2.5 top-2.5" />
+                    <div className="relative mb-4">
+                        <Search className="h-4 w-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Search GIFs..."
-                            className="input pl-8"
+                            className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-[var(--ui-accent)]/50 transition-colors placeholder:text-zinc-600"
                         />
                     </div>
 
                     {loading && (
-                        <div className="py-6 flex items-center justify-center text-[var(--ui-text-muted)] text-sm gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" /> Loading GIFs...
+                        <div className="py-10 flex flex-col items-center justify-center text-zinc-500 text-xs gap-3">
+                            <Loader2 className="h-5 w-5 animate-spin text-[var(--ui-accent)]" /> 
+                            <span>Fetching GIFs...</span>
                         </div>
                     )}
 
                     {!loading && error && (
-                        <p className="text-xs text-[var(--ui-danger)] py-2">{error}</p>
+                        <div className="py-10 text-center">
+                            <p className="text-xs text-red-400">{error}</p>
+                        </div>
                     )}
 
                     {!loading && !error && (
-                        <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                        <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
                             {gifs.map((gif) => (
                                 <button
                                     type="button"
@@ -123,18 +140,19 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left' }: Giph
                                         onSelect(gif);
                                         setOpen(false);
                                     }}
-                                    className="group rounded-lg overflow-hidden border border-[var(--ui-border)] hover:border-[var(--ui-accent)] transition-all hover:scale-105"
+                                    className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-white/5 transition-all active:scale-95"
                                     title={gif.title}
                                 >
                                     <img
                                         src={gif.previewUrl}
                                         alt={gif.title}
-                                        className="h-20 w-full object-cover object-center"
+                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
+                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </button>
                             ))}
                             {gifs.length === 0 && (
-                                <p className="col-span-3 text-xs text-[var(--ui-text-muted)] py-4 text-center">No GIFs found.</p>
+                                <p className="col-span-2 text-xs text-zinc-600 py-10 text-center font-medium">No GIFs matching your search.</p>
                             )}
                         </div>
                     )}

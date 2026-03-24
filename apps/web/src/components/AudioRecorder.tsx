@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { Mic, Square, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback, cloneElement, ReactElement } from 'react';
+import { Mic, Square, Loader2, Play, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useStore } from '@/store/useStore';
 import { isGoogleDriveConfigured, requestGoogleDriveAccessToken, uploadAudioToGoogleDrive } from '@/lib/googleDrive';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AudioRecorderProps {
     onAudioUploaded: (audioUrl: string) => void;
     disabled?: boolean;
+    trigger?: ReactElement;
 }
 
-export default function AudioRecorder({ onAudioUploaded, disabled }: AudioRecorderProps) {
+export default function AudioRecorder({ onAudioUploaded, disabled, trigger }: AudioRecorderProps) {
     const [isRecording, setIsRecording] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
@@ -42,6 +44,13 @@ export default function AudioRecorder({ onAudioUploaded, disabled }: AudioRecord
                 stream.getTracks().forEach(track => track.stop());
                 clearInterval(timerRef.current!);
                 setIsRecording(false);
+                
+                // If we have no data, don't process
+                if (chunksRef.current.length === 0) {
+                    setIsProcessing(false);
+                    return;
+                }
+
                 setIsProcessing(true);
 
                 try {
@@ -52,7 +61,6 @@ export default function AudioRecorder({ onAudioUploaded, disabled }: AudioRecord
                     if (driveAccessToken) {
                         accessToken = driveAccessToken;
                     } else {
-                        // Check if userProfile has a stored access token, otherwise request a new one
                         if (userProfile?.googleDrive?.accessToken) {
                             accessToken = userProfile.googleDrive.accessToken;
                         } else {
@@ -68,6 +76,7 @@ export default function AudioRecorder({ onAudioUploaded, disabled }: AudioRecord
                     });
 
                     onAudioUploaded(result.audioUrl);
+                    toast.success('Voice note ready');
                 } catch (error) {
                     toast.error(error instanceof Error ? error.message : 'Failed to upload Voice Note.');
                 } finally {
@@ -96,6 +105,12 @@ export default function AudioRecorder({ onAudioUploaded, disabled }: AudioRecord
         }
     }, []);
 
+    const cancelRecording = useCallback(() => {
+        chunksRef.current = [];
+        stopRecording();
+        toast.error('Recording cancelled');
+    }, [stopRecording]);
+
     useEffect(() => {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
@@ -111,35 +126,10 @@ export default function AudioRecorder({ onAudioUploaded, disabled }: AudioRecord
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    if (isProcessing) {
-        return (
-            <div className="flex items-center gap-2 px-2 py-1.5 bg-[var(--ui-accent)]/10 text-[var(--ui-accent)] rounded-full animate-pulse">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-[11px] font-medium leading-none">Processing...</span>
-            </div>
-        );
-    }
-
-    if (isRecording) {
-        return (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 text-red-500 rounded-full">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse border border-red-500/30 ring-2 ring-red-500/20" />
-                <span className="text-xs font-medium tabular-nums w-10 relative top-[1px]">{formatTime(recordingTime)}</span>
-                <button
-                    type="button"
-                    onClick={stopRecording}
-                    className="p-1 rounded-full hover:bg-red-500/20 transition-colors ml-1"
-                >
-                    <Square className="w-3.5 h-3.5 fill-current" />
-                </button>
-            </div>
-        );
-    }
-
-    return (
+    const defaultTrigger = (
         <button
             type="button"
-            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-[#ec4899] hover:bg-[#ec4899]/10 transition-all hover:scale-105 disabled:opacity-50"
+            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-red-400 hover:bg-red-400/10 transition-all hover:scale-105 disabled:opacity-50"
             disabled={disabled}
             onClick={startRecording}
             title="Record Voice Note"
@@ -147,4 +137,61 @@ export default function AudioRecorder({ onAudioUploaded, disabled }: AudioRecord
             <Mic className="w-5 h-5" />
         </button>
     );
+
+    const triggerElement = trigger 
+        ? cloneElement(trigger, { 
+            onClick: (e: any) => {
+                trigger.props.onClick?.(e);
+                if (!disabled) startRecording();
+            },
+            disabled: disabled
+          }) 
+        : cloneElement(defaultTrigger, { onClick: startRecording });
+
+    if (isProcessing) {
+        return (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--ui-accent)]/10 text-[var(--ui-accent)] rounded-2xl animate-pulse border border-[var(--ui-accent)]/20">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">Uploading</span>
+            </div>
+        );
+    }
+
+    if (isRecording) {
+        return (
+            <motion.div 
+                initial={{ width: 40, opacity: 0 }}
+                animate={{ width: 'auto', opacity: 1 }}
+                className="flex items-center gap-3 px-3 py-1.5 bg-red-500/10 text-red-500 rounded-2xl border border-red-500/20"
+            >
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                    <span className="text-xs font-bold tabular-nums min-w-[36px]">{formatTime(recordingTime)}</span>
+                </div>
+                
+                <div className="h-4 w-[1px] bg-red-500/20 mx-1" />
+                
+                <div className="flex items-center gap-1">
+                    <button
+                        type="button"
+                        onClick={cancelRecording}
+                        className="p-1 rounded-lg hover:bg-red-500/20 transition-colors"
+                        title="Cancel"
+                    >
+                        <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={stopRecording}
+                        className="p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-400 transition-colors shadow-lg shadow-red-500/20"
+                        title="Finish & Send"
+                    >
+                        <Square className="w-3 h-3 fill-current" />
+                    </button>
+                </div>
+            </motion.div>
+        );
+    }
+
+    return triggerElement;
 }
