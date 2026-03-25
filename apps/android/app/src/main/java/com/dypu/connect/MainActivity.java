@@ -704,7 +704,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void handleOnBackPressed() {
                 if (fullscreenView != null) {
-                    onHideCustomView();
+                    exitFullscreen();
                     return;
                 }
 
@@ -717,6 +717,23 @@ public class MainActivity extends AppCompatActivity {
                 getOnBackPressedDispatcher().onBackPressed();
             }
         });
+    }
+
+    private void exitFullscreen() {
+        if (fullscreenView == null) return;
+        fullscreenContainer.removeView(fullscreenView);
+        fullscreenContainer.setVisibility(View.GONE);
+        webView.setVisibility(View.VISIBLE);
+        fullscreenView = null;
+        if (fullscreenCallback != null) {
+            fullscreenCallback.onCustomViewHidden();
+            fullscreenCallback = null;
+        }
+
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        View root = findViewById(R.id.rootContainer);
+        // Force re-apply insets when returning from fullscreen
+        root.requestApplyInsets();
     }
 
     private void handleIntent(Intent intent) {
