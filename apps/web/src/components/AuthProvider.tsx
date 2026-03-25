@@ -145,43 +145,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    // Android Native Auth Listener
-    useEffect(() => {
-        if (!firebaseReady || !isAndroidApp()) return;
-
-        const unsubscribe = registerAndroidEventListener(async (event, data) => {
-            if (event === 'google_auth_success') {
-                try {
-                    const credential = GoogleAuthProvider.credential(data);
-                    const result = await signInWithCredential(auth, credential);
-                    const email = result.user.email;
-
-                    if (!email || !email.endsWith('@dypatil.edu')) {
-                        await deleteUser(result.user).catch(() => {});
-                        await signOut(auth);
-                        toast.error('Only @dypatil.edu emails are allowed.');
-                        return;
-                    }
-
-                    toast.success('Native login successful!');
-                    const deviceInfo = collectDeviceInfo();
-                    logActivity(
-                        result.user.uid,
-                        'login',
-                        `Signed in with Native Google (${email}) · ${deviceInfo.browser} on ${deviceInfo.os} · ${deviceInfo.device}`,
-                    );
-                    registerDeviceSession(result.user.uid).catch(() => {});
-                } catch (error) {
-                    handleError(error, 'Native Google Auth');
-                }
-            } else if (event === 'google_auth_error') {
-                toast.error(`Login failed: ${data}`);
-            }
-        });
-
-        return () => unsubscribe();
-    }, [firebaseReady]);
-
     // Preload Google Identity Services script early (only if user has Drive connected)
     useEffect(() => {
         if (isGoogleDriveConfigured() && userProfile?.googleDrive) {
@@ -189,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [userProfile?.googleDrive]);
 
-    // Handle Redirect Result (for Android App Fallback)
+    // Handle Redirect Result (for Android App GitHub Fallback)
     useEffect(() => {
         if (!firebaseReady || !isAndroidApp()) return;
 
@@ -209,12 +172,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 logActivity(
                     result.user.uid,
                     'login',
-                    `Signed in with Google Redirect (${email}) · ${deviceInfo.browser} on ${deviceInfo.os} · ${deviceInfo.device}`,
+                    `Signed in with Redirect (${email}) · ${deviceInfo.browser} on ${deviceInfo.os} · ${deviceInfo.device}`,
                 );
                 registerDeviceSession(result.user.uid).catch(() => {});
             }
         }).catch((error) => {
-            handleError(error, 'Google Redirect Auth');
+            handleError(error, 'Redirect Auth');
         });
     }, [firebaseReady]);
 
@@ -253,8 +216,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signInWithGoogle = async () => {
         if (isAndroidApp()) {
-            triggerNativeGoogleSignIn();
-            return;
+            return new Promise<void>((resolve, reject) => {
+                const unsubscribe = registerAndroidEventListener(async (event, data) => {
+                    if (event === 'google_auth_success') {
+                        unsubscribe();
+                        try {
+                            const credential = GoogleAuthProvider.credential(data);
+                            const result = await signInWithCredential(auth, credential);
+                            const email = result.user.email;
+
+                            if (!email || !email.endsWith('@dypatil.edu')) {
+                                await deleteUser(result.user).catch(() => {});
+                                await signOut(auth);
+                                reject(new AppError(AppErrorCode.AUTH_RESTRICTED_EMAIL, 'Only @dypatil.edu Google accounts are allowed.'));
+                                return;
+                            }
+
+                            // Auto-connect Google Drive
+                            try {
+                                const docRef = doc(db, 'users', result.user.uid);
+                                const docSnap = await getDoc(docRef);
+                                if (docSnap.exists()) {
+                                    const existing = docSnap.data() as UserProfile;
+                                    if (!existing.googleDrive) {
+                                        await updateDoc(docRef, {
+                                            googleDrive: { email: email, connectedAt: Date.now() },
+                                        });
+                                    }
+                                }
+                            } catch {}
+
+                            const deviceInfo = collectDeviceInfo();
+                            logActivity(
+                                result.user.uid,
+                                'login',
+                                `Signed in with Native Google (${email}) · ${deviceInfo.browser} on ${deviceInfo.os} · ${deviceInfo.device}`,
+                            );
+                            registerDeviceSession(result.user.uid).catch(() => {});
+                            resolve();
+                        } catch (error) {
+                            reject(mapToAppError(error));
+                        }
+                    } else if (event === 'google_auth_error') {
+                        unsubscribe();
+                        reject(new Error(data === 'Canceled' ? 'Sign-in canceled' : data));
+                    }
+                });
+                triggerNativeGoogleSignIn();
+            });
         }
 
         const provider = new GoogleAuthProvider();
