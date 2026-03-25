@@ -169,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .requestProfile()
+                .setHostedDomain("dypatil.edu")
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
     }
