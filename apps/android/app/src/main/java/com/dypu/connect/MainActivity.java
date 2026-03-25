@@ -19,6 +19,7 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
@@ -48,6 +49,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.splashscreen.SplashScreen;
 
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -127,8 +129,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Edge-to-edge & dark status/nav bars
-        setupSystemBars();
+        // Edge-to-edge & modern inset handling
+        setupEdgeToEdge();
 
         // Find views
         webView = findViewById(R.id.webView);
@@ -166,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
+                .requestProfile()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
     }
@@ -255,17 +258,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ──────────────────────────────────────────────────────────
-    //  SYSTEM BARS (edge-to-edge dark theme)
+    //  EDGE-TO-EDGE & INSETS
     // ──────────────────────────────────────────────────────────
 
-    private void setupSystemBars() {
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
-        getWindow().setStatusBarColor(Color.parseColor("#0f0f0f"));
-        getWindow().setNavigationBarColor(Color.parseColor("#0f0f0f"));
+    private void setupEdgeToEdge() {
+        // 1. Tell the system we'll handle insets
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        
+        // 2. Set bar colors transparent (handled by backgrounds in XML)
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
+        // 3. Configure light/dark status bar icons
         WindowInsetsControllerCompat insetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
-        insetsController.setAppearanceLightStatusBars(false);
+        insetsController.setAppearanceLightStatusBars(false); // Dark mode = light text
         insetsController.setAppearanceLightNavigationBars(false);
+
+        // 4. Apply insets to UI components
+        View root = findViewById(R.id.rootContainer);
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            int top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            int bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            
+            // Push the progress bar down below the status bar
+            progressBar.setPadding(0, top, 0, 0);
+            
+            // Adjust main container bottom padding for nav bar
+            root.setPadding(0, 0, 0, bottom);
+            
+            return WindowInsetsCompat.CONSUMED;
+        });
 
         // Keep screen on while app is visible
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -286,13 +308,18 @@ public class MainActivity extends AppCompatActivity {
                             GoogleSignInAccount account = task.getResult(ApiException.class);
                             if (account != null) {
                                 String idToken = account.getIdToken();
-                                emitToWeb("google_auth_success", idToken);
+                                if (idToken != null) {
+                                    emitToWeb("google_auth_success", idToken);
+                                } else {
+                                    emitToWeb("google_auth_error", "ID Token is null. Check Firebase configuration.");
+                                }
                             }
                         } catch (ApiException e) {
-                            Log.w(TAG, "Google sign in failed", e);
-                            emitToWeb("google_auth_error", e.getMessage());
+                            Log.w(TAG, "Google sign in failed code=" + e.getStatusCode(), e);
+                            emitToWeb("google_auth_error", "Sign in failed: " + e.getMessage());
                         }
                     } else {
+                        Log.d(TAG, "Google Sign-In canceled or failed. ResultCode=" + result.getResultCode());
                         emitToWeb("google_auth_error", "Canceled");
                     }
                 }
@@ -397,7 +424,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
-        // User-Agent: Remove WebView marker
+        // User-Agent: Chrome on Android style but with our identifier
         String defaultUA = settings.getUserAgentString();
         settings.setUserAgentString(defaultUA.replace("; wv)", ")") + " DYPUConnect/1.0");
 
@@ -442,6 +469,7 @@ public class MainActivity extends AppCompatActivity {
                 String url = request.getUrl().toString();
                 if (isInternalUrl(url)) return false;
 
+                // Handle system protocols
                 if (url.startsWith("tel:") || url.startsWith("mailto:") || url.startsWith("sms:")) {
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
@@ -449,9 +477,14 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
 
+                // Open external links in system browser
                 try {
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                } catch (ActivityNotFoundException ignored) {}
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(MainActivity.this, "No application can handle this link", Toast.LENGTH_SHORT).show();
+                }
                 return true;
             }
 
@@ -658,15 +691,10 @@ public class MainActivity extends AppCompatActivity {
         swipeRefresh.setProgressBackgroundColorSchemeColor(Color.parseColor("#1a1a2e"));
         swipeRefresh.setOnRefreshListener(() -> webView.reload());
 
-        // More robust scroll check using onScrollChangeListener (API 23+)
+        // More robust scroll check
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             webView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, scrollYOld) -> {
                 swipeRefresh.setEnabled(scrollY == 0);
-            });
-        } else {
-            // Fallback for older versions
-            webView.getViewTreeObserver().addOnScrollChangedListener(() -> {
-                swipeRefresh.setEnabled(webView.getScrollY() == 0);
             });
         }
     }
@@ -676,8 +704,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void handleOnBackPressed() {
                 if (fullscreenView != null) {
-                    if (fullscreenCallback != null) fullscreenCallback.onCustomViewHidden();
-                    fullscreenView = null;
+                    onHideCustomView();
                     return;
                 }
 
@@ -719,29 +746,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isInternalUrl(String url) {
-        String webHost = Uri.parse(WEB_URL).getHost();
-        String urlHost = Uri.parse(url).getHost();
-        if (webHost == null || urlHost == null) return false;
+        Uri uri = Uri.parse(url);
+        String host = uri.getHost();
+        if (host == null) return false;
         
-        // Match the web host exactly or as a sub-domain (for netlify.app, vercel.app)
-        boolean isMainHost = urlHost.equals(webHost) || urlHost.endsWith("." + webHost);
+        String path = uri.getPath() != null ? uri.getPath() : "";
         
-        // Check for Firebase Auth specific query parameters
-        boolean isFirebaseAuthLink = url.contains("apiKey=") && (url.contains("finishSignIn") || url.contains("verifyEmail"));
+        // 1. App Main Hosts
+        String mainHost = Uri.parse(WEB_URL).getHost();
+        if (host.equals(mainHost) || host.endsWith("." + mainHost)) return true;
 
-        return isMainHost
-                || isFirebaseAuthLink
-                || urlHost.endsWith(".firebaseapp.com")
-                || urlHost.endsWith(".firebaseio.com")
-                || urlHost.endsWith(".web.app")
-                || urlHost.contains("google.com")
-                || urlHost.contains("google.co.in")
-                || urlHost.contains("netlify.app")
-                || urlHost.contains("netlify.com")
-                || urlHost.endsWith(".googleapis.com")
-                || urlHost.equals("accounts.google.com")
-                || urlHost.equals("localhost")
-                || urlHost.equals("10.0.2.2");
+        // 2. Firebase Infrastructure & Auth
+        if (host.endsWith(".firebaseapp.com") || 
+            host.endsWith(".web.app") || 
+            host.endsWith(".firebaseio.com") ||
+            path.contains("/__/auth/")) return true;
+
+        // 3. Google Services (Auth, Identity, Storage)
+        if (host.equals("accounts.google.com") || 
+            host.contains("googleusercontent.com") ||
+            host.endsWith(".googleapis.com") ||
+            host.contains("google.co.in") ||
+            host.contains("google.com")) return true;
+
+        // 4. Hosting & CDN
+        if (host.contains("netlify.app") || 
+            host.contains("netlify.com") ||
+            host.contains("vercel.app")) return true;
+
+        // 5. Development
+        if (host.equals("localhost") || host.equals("10.0.2.2")) return true;
+
+        return false;
     }
 
     private void requestNotificationPermission() {
@@ -757,20 +793,12 @@ public class MainActivity extends AppCompatActivity {
         webView.reload();
     }
 
-    /**
-     * Helper to call a JavaScript function on the web side.
-     * The web side should have a global function 'onAndroidEvent(event, data)'.
-     */
     public void emitToWeb(String event, String data) {
         webView.post(() -> {
             String script = String.format("if(window.onAndroidEvent) { window.onAndroidEvent('%s', '%s'); }", event, data);
             webView.evaluateJavascript(script, null);
         });
     }
-
-    // ──────────────────────────────────────────────────────────
-    //  JAVASCRIPT INTERFACE
-    // ──────────────────────────────────────────────────────────
 
     public static class WebAppInterface {
         private final MainActivity mActivity;
@@ -839,7 +867,6 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public void onWebReady() {
-            // Web app is fully loaded and ready to receive events
             mActivity.runOnUiThread(() -> {
                 mActivity.emitToWeb("app_connected", "Native bridge is active");
             });
