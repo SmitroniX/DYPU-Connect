@@ -185,7 +185,7 @@ export default function SetupProfilePage() {
                 </div>
 
                 {/* Form Card */}
-                <div className="surface p-6 sm:p-8">
+                <div className="glass-panel p-6 sm:p-8">
                     <form className="space-y-6" onSubmit={handleSubmit}>
 
                         {/* Step 1: Identity */}

@@ -108,27 +108,26 @@ function visibilityLabel(visibility: ProfileVisibility): string {
 /* ── Tiny reusable UI pieces ─────────────────────── */
 
 function Badge({ children, variant = 'default' }: { children: React.ReactNode; variant?: 'default' | 'accent' | 'success' | 'warning' }) {
-    const base = 'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black tracking-wider uppercase backdrop-blur-md shadow-sm transition-all duration-300 hover:scale-105';
+    const base = 'badge';
     const styles: Record<string, string> = {
-        default: 'bg-zinc-800/80 text-zinc-300 border border-zinc-700/50',
-        accent: 'bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20 shadow-[0_0_10px_rgba(217,70,239,0.2)]',
-        success: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]',
-        warning: 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]',
+        default: '',
+        accent: '!text-fuchsia-400 !border-fuchsia-500/20 shadow-[0_0_10px_rgba(217,70,239,0.2)]',
+        success: '!text-emerald-400 !border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]',
+        warning: '!text-amber-400 !border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.2)]',
     };
     return <span className={`${base} ${styles[variant]}`}>{children}</span>;
 }
 
 function SectionHeader({ icon: Icon, title, subtitle, action }: { icon: React.ElementType; title: string; subtitle: string; action?: React.ReactNode }) {
     return (
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4 mb-6">
             <div className="flex items-center gap-4">
-                <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-900/80 border border-zinc-700/50 shadow-inner overflow-hidden group">
-                    <div className="absolute inset-0 bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <Icon className="relative z-10 h-6 w-6 text-blue-400 group-hover:text-blue-300 group-hover:scale-110 transition-all duration-300" />
+                <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--ui-accent-dim)] border border-[var(--ui-accent)]/20 shadow-inner overflow-hidden group">
+                    <Icon className="relative z-10 h-6 w-6 text-[var(--ui-accent)] group-hover:scale-110 transition-transform duration-500" />
                 </div>
                 <div>
-                    <h2 className="text-xl font-black text-white tracking-tight">{title}</h2>
-                    <p className="text-sm font-medium text-zinc-400 mt-1">{subtitle}</p>
+                    <h2 className="text-xl font-bold text-white tracking-tight">{title}</h2>
+                    <p className="text-sm font-medium text-[var(--ui-text-muted)] mt-0.5">{subtitle}</p>
                 </div>
             </div>
             {action}
@@ -138,11 +137,8 @@ function SectionHeader({ icon: Icon, title, subtitle, action }: { icon: React.El
 
 function GlassCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
     return (
-        <div className={`relative overflow-hidden rounded-3xl bg-zinc-900/40 backdrop-blur-2xl border border-zinc-800/60 shadow-2xl transition-all duration-300 ${className}`}>
-            <div className="absolute inset-0 bg-linear-to-br from-white/[0.02] to-transparent pointer-events-none" />
-            <div className="relative z-10 p-6 sm:p-8">
-                {children}
-            </div>
+        <div className={`glass-panel p-6 sm:p-8 ${className}`}>
+            {children}
         </div>
     );
 }

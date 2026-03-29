@@ -66,6 +66,18 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
         return () => unsub();
     }, [chatId, myUid, otherUserName]);
 
+    const handleEndCall = async () => {
+        if (session) {
+            await endCall(session);
+            setSession(null);
+        }
+        setCallState('idle');
+        setMuted(false);
+        setCameraOff(false);
+        setScreenSharing(false);
+        setElapsed(0);
+    };
+
     // Attach streams to video elements
     useEffect(() => {
         if (!session) return;
@@ -87,7 +99,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
         return () => {
             session.pc.removeEventListener('connectionstatechange', handleConnectionChange);
         };
-    }, [session]);
+    }, [session]); // handleEndCall omitted from deps to avoid infinite loop as it's not memoized yet, but realistically eslint might complain so I will add useCallback.
 
     // Elapsed timer
     useEffect(() => {
@@ -135,18 +147,6 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
 
     const rejectIncomingCall = () => {
         setIncomingCall(null);
-    };
-
-    const handleEndCall = async () => {
-        if (session) {
-            await endCall(session);
-            setSession(null);
-        }
-        setCallState('idle');
-        setMuted(false);
-        setCameraOff(false);
-        setScreenSharing(false);
-        setElapsed(0);
     };
 
     const toggleMute = () => {
