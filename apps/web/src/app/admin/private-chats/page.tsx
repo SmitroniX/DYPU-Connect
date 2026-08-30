@@ -550,7 +550,15 @@ export default function PrivateChatOversightPage() {
                                                             {msg.text && <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">
                                                                 {/* Highlight search query if active */}
                                                                 {messageSearchQuery && msg.text.toLowerCase().includes(messageSearchQuery.toLowerCase()) ? (
-                                                                    <span dangerouslySetInnerHTML={{ __html: msg.text.replace(new RegExp(`(${messageSearchQuery})`, 'gi'), '<mark class="bg-yellow-500/50 text-white rounded px-0.5">$1</mark>') }} />
+                                                                    <span>
+                                                                        {msg.text.split(new RegExp(`(${messageSearchQuery.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')})`, 'gi')).map((part, i) =>
+                                                                            part.toLowerCase() === messageSearchQuery.toLowerCase() ? (
+                                                                                <mark key={i} className="bg-yellow-500/50 text-white rounded px-0.5">{part}</mark>
+                                                                            ) : (
+                                                                                <span key={i}>{part}</span>
+                                                                            )
+                                                                        )}
+                                                                    </span>
                                                                 ) : msg.text}
                                                             </p>}
                                                             
