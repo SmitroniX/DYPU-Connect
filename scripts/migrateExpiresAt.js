@@ -38,7 +38,6 @@ async function addExpiresAtToOldMessages(collectionName) {
     console.log(`Finished ${collectionName}. Updated ${count} documents.`);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function run() {
     try {
         await addExpiresAtToOldMessages('public_chat');
@@ -50,3 +49,5 @@ async function run() {
 }
 
 // run(); // Intentionally commented out, user might need to run this manually if TTL fails due to missing fields.
+
+module.exports = { run };
