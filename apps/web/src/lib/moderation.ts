@@ -34,10 +34,6 @@ export const moderateTextLocal = (text: string): ModerationResult => {
  */
 export const moderateTextAI = async (text: string): Promise<ModerationResult> => {
   try {
-    // In a real implementation, you would call your backend API here
-    // const response = await fetch('/api/moderate', { method: 'POST', body: JSON.stringify({ text }) });
-    // return await response.json();
-    
     // For now, fall back to local check
     return moderateTextLocal(text);
   } catch (error) {
