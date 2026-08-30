@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useOptimistic } from 'react';
+import { useState, useEffect, useRef, useCallback, useOptimistic, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import ModuleGuard from '@/components/ModuleGuard';
 import ChannelHeader from '@/components/ChannelHeader';
@@ -126,12 +126,12 @@ export default function PublicChatPage() {
             .catch(() => toast.error('Failed to react.'));
     }, [optimisticMessages, user, addOptimisticMessage]);
 
-    const handleStartEdit = (msg: Message) => {
+    const handleStartEdit = useCallback((msg: Message) => {
         setEditingMessageId(msg.id);
         setEditValue(msg.text);
-    };
+    }, []);
 
-    const handleSaveEdit = async (messageId: string) => {
+    const handleSaveEdit = useCallback(async (messageId: string) => {
         if (!editValue.trim()) return;
         try {
             await updatePublicMessage({
@@ -144,9 +144,9 @@ export default function PublicChatPage() {
         } catch {
             toast.error('Failed to edit message.');
         }
-    };
+    }, [editValue]);
 
-    const handleDelete = async (messageId: string) => {
+    const handleDelete = useCallback(async (messageId: string) => {
         if (!confirm('Are you sure you want to delete this message?')) return;
         try {
             await updatePublicMessage({
@@ -158,17 +158,27 @@ export default function PublicChatPage() {
         } catch {
             toast.error('Failed to delete message.');
         }
-    };
+    }, []);
 
-    const handleStartReply = (msg: Message) => {
+    const handleStartReply = useCallback((msg: Message) => {
         setReplyToMessage(msg);
         setEditingMessageId(null);
-    };
+    }, []);
 
-    const handleAvatarClick = (userId: string, event: React.MouseEvent) => {
+    const handleAvatarClick = useCallback((userId: string, event: React.MouseEvent) => {
         const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
         setProfilePopup({ userId, rect });
-    };
+    }, []);
+
+    const handleCancelEdit = useCallback(() => {
+        setEditingMessageId(null);
+    }, []);
+
+    const messageMap = useMemo(() => {
+        const map = new Map<string, Message>();
+        optimisticMessages.forEach((msg) => map.set(msg.id, msg));
+        return map;
+    }, [optimisticMessages]);
 
     return (
         <DashboardLayout>
@@ -201,13 +211,13 @@ export default function PublicChatPage() {
                                 isMine={isMine}
                                 showMsgHeader={showMsgHeader}
                                 currentUserId={user?.uid ?? ''}
-                                replyToMsg={msg.replyToId ? optimisticMessages.find(m => m.id === msg.replyToId) : null}
+                                replyToMsg={msg.replyToId ? messageMap.get(msg.replyToId) : null}
                                 editingMessageId={editingMessageId}
-                                editValue={editValue}
+                                editValue={editingMessageId === msg.id ? editValue : undefined}
                                 setEditValue={setEditValue}
                                 onStartEdit={handleStartEdit}
                                 onSaveEdit={handleSaveEdit}
-                                onCancelEdit={() => setEditingMessageId(null)}
+                                onCancelEdit={handleCancelEdit}
                                 onDelete={handleDelete}
                                 onReply={handleStartReply}
                                 onReact={handleReact}

@@ -1,0 +1,3 @@
+## 2026-08-30 - [Optimize React.memo with inline functions]
+**Learning:** Found an opportunity where `React.memo` was completely defeated due to inline functions and non-memoized handlers being passed as props to a list item component (`MessageItem`). Furthermore, passing a high-frequency state update (`editValue`) down to all items meant all list items were re-rendering on every keystroke, which is disastrous in a chat app.
+**Action:** Always wrap handler functions with `useCallback` when passing them to memoized components, and avoid passing fast-changing state to child components that don't need it (e.g. only pass `editValue` to the specific `MessageItem` being edited).
