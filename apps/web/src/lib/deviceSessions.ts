@@ -232,12 +232,14 @@ export async function removeAllOtherSessions(uid: string): Promise<number> {
     const snapshot = await getDocs(sessionsRef);
     let removed = 0;
 
+    const deletePromises = [];
     for (const d of snapshot.docs) {
         if (d.data().fingerprint !== currentFingerprint) {
-            await deleteDoc(d.ref);
+            deletePromises.push(deleteDoc(d.ref));
             removed++;
         }
     }
+    await Promise.all(deletePromises);
 
     return removed;
 }
