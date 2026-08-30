@@ -1,0 +1,29 @@
+--- apps/web/src/lib/deviceSessions.ts
++++ apps/web/src/lib/deviceSessions.ts
+@@ -49,7 +49,7 @@
+
+ /* ── UA Parsing Helpers ── */
+
+-function parseBrowser(ua: string): string {
++export function parseBrowser(ua: string): string {
+     // Order matters — check specific browsers before generic engine matches
+     if (ua.includes('Edg/')) {
+         const match = ua.match(/Edg\/([\d.]+)/);
+@@ -80,7 +80,7 @@
+     return 'Unknown Browser';
+ }
+
+-function parseOS(ua: string): string {
++export function parseOS(ua: string): string {
+     if (ua.includes('Windows NT 10')) return 'Windows 10/11';
+     if (ua.includes('Windows NT 6.3')) return 'Windows 8.1';
+     if (ua.includes('Windows NT 6.1')) return 'Windows 7';
+@@ -102,7 +102,7 @@
+     return 'Unknown OS';
+ }
+
+-function parseDevice(ua: string): string {
++export function parseDevice(ua: string): string {
+     if (ua.includes('iPhone')) return 'iPhone';
+     if (ua.includes('iPad')) return 'iPad';
+     if (ua.includes('Android') && ua.includes('Mobile')) return 'Android Phone';

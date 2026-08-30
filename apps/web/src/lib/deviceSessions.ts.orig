@@ -48,7 +48,7 @@ export interface DeviceSession {
 
 /* ── UA Parsing Helpers ── */
 
-export function parseBrowser(ua: string): string {
+function parseBrowser(ua: string): string {
     // Order matters — check specific browsers before generic engine matches
     if (ua.includes('Edg/')) {
         const match = ua.match(/Edg\/([\d.]+)/);
@@ -80,15 +80,11 @@ export function parseBrowser(ua: string): string {
     return 'Unknown Browser';
 }
 
-export function parseOS(ua: string): string {
+function parseOS(ua: string): string {
     if (ua.includes('Windows NT 10')) return 'Windows 10/11';
     if (ua.includes('Windows NT 6.3')) return 'Windows 8.1';
     if (ua.includes('Windows NT 6.1')) return 'Windows 7';
     if (ua.includes('Windows')) return 'Windows';
-    if (ua.includes('iPhone') || ua.includes('iPad')) {
-        const match = ua.match(/OS ([\d_]+)/);
-        return `iOS ${match?.[1]?.replace(/_/g, '.') ?? ''}`.trim();
-    }
     if (ua.includes('Mac OS X')) {
         const match = ua.match(/Mac OS X ([\d_]+)/);
         return `macOS ${match?.[1]?.replace(/_/g, '.') ?? ''}`.trim();
@@ -98,11 +94,15 @@ export function parseOS(ua: string): string {
         const match = ua.match(/Android ([\d.]+)/);
         return `Android ${match?.[1] ?? ''}`.trim();
     }
+    if (ua.includes('iPhone') || ua.includes('iPad')) {
+        const match = ua.match(/OS ([\d_]+)/);
+        return `iOS ${match?.[1]?.replace(/_/g, '.') ?? ''}`.trim();
+    }
     if (ua.includes('Linux')) return 'Linux';
     return 'Unknown OS';
 }
 
-export function parseDevice(ua: string): string {
+function parseDevice(ua: string): string {
     if (ua.includes('iPhone')) return 'iPhone';
     if (ua.includes('iPad')) return 'iPad';
     if (ua.includes('Android') && ua.includes('Mobile')) return 'Android Phone';
