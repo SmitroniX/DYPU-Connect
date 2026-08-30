@@ -83,7 +83,7 @@ export function mapToAppError(error: unknown): AppError {
 }
 
 function isFirebaseError(error: unknown): error is FirebaseError {
-    return (error as FirebaseError).code !== undefined && (error as FirebaseError).name === 'FirebaseError';
+    return error !== null && typeof error === 'object' && (error as FirebaseError).code !== undefined && (error as FirebaseError).name === 'FirebaseError';
 }
 
 function mapFirebaseError(error: FirebaseError): AppError {
