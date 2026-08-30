@@ -44,6 +44,7 @@ export default function ChatDetailsDrawer({
                     <h2 className="font-semibold text-[var(--ui-text)]">Contact Info</h2>
                     <button 
                         onClick={onClose}
+                        aria-label="Close contact info"
                         className="p-1.5 rounded-full hover:bg-[var(--ui-bg-hover)] text-[var(--ui-text-muted)] transition-colors"
                     >
                         <X className="w-5 h-5" />

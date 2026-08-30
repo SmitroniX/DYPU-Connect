@@ -74,7 +74,7 @@ function AnnouncementBanner() {
                             <span className={`text-sm font-semibold ${style.text}`}>{ann.title}</span>
                             <span className="text-sm text-[var(--ui-text-muted)] ml-2 truncate">{ann.body}</span>
                         </div>
-                        <button onClick={() => setDismissed(prev => new Set(prev).add(ann.id))} className="p-1 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] shrink-0">
+                        <button onClick={() => setDismissed(prev => new Set(prev).add(ann.id))} aria-label="Dismiss announcement" className="p-1 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] shrink-0">
                             <X className="h-3.5 w-3.5" />
                         </button>
                     </div>
@@ -133,7 +133,7 @@ function PushPromptBanner() {
                     >
                         Allow
                     </button>
-                    <button onClick={handleDismiss} className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-elevated)] rounded-full shrink-0 transition-colors">
+                    <button onClick={handleDismiss} aria-label="Dismiss notification prompt" className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-elevated)] rounded-full shrink-0 transition-colors">
                         <X className="h-4 w-4" />
                     </button>
                 </div>
@@ -438,7 +438,7 @@ export default function DashboardLayout({
                             >
                                 <div className="flex h-16 items-center justify-between px-6 border-b border-white/5">
                                     <span className="font-bold text-white">Menu</span>
-                                    <button onClick={() => setSidebarOpen(false)} className="p-2 -mr-2 text-zinc-500 hover:text-white">
+                                    <button onClick={() => setSidebarOpen(false)} aria-label="Close menu" className="p-2 -mr-2 text-zinc-500 hover:text-white">
                                         <X className="h-5 w-5" />
                                     </button>
                                 </div>
