@@ -17,6 +17,7 @@ import { isAndroidApp, registerAndroidEventListener, triggerNativeGoogleSignIn }
 import { toast } from 'react-hot-toast';
 import { AppError, AppErrorCode, handleError, mapToAppError } from '@/lib/errors';
 import { type ElectronInterface } from '@/lib/desktop';
+import { validateEmail } from '@/lib/validation/authValidation';
 
 declare global {
     interface Window {
@@ -182,10 +183,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [firebaseReady]);
 
 
-    const sendLoginLink = async (email: string) => {
-        if (!email.endsWith('@dypatil.edu')) {
-            throw new AppError(AppErrorCode.AUTH_RESTRICTED_EMAIL, 'Only @dypatil.edu emails are allowed.');
+    const sendLoginLink = async (rawEmail: string) => {
+        const validation = validateEmail(rawEmail);
+        if (!validation.valid || !validation.email) {
+            throw new AppError(AppErrorCode.AUTH_RESTRICTED_EMAIL, validation.error || 'Invalid email.');
         }
+        const email = validation.email;
 
         // For local dev, Firebase auth domain might not be set. Using localhost for Action Code Setting.
         const actionCodeSettings = {

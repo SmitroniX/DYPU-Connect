@@ -22,7 +22,7 @@ export default function SystemProvider({ children }: { children: React.ReactNode
                     showToast('Native features enabled');
                 } else if (event === 'fcm_token_ready' && user?.uid) {
                     console.log('[Android] Saving FCM token...');
-                    updateDoc(doc(db, 'students', user.uid), {
+                    updateDoc(doc(db, 'users', user.uid), {
                         fcmToken: data
                     }).catch(err => console.error('Failed to save FCM token:', err));
                 } else if (event === 'share_intent') {
