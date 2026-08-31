@@ -10,6 +10,9 @@ export enum AppErrorCode {
     AUTH_USER_NOT_FOUND = 'auth/user-not-found',
     AUTH_INVALID_LINK = 'auth/invalid-link',
     AUTH_RESTRICTED_EMAIL = 'auth/restricted-email',
+    AUTH_EXPIRED_ACTION_CODE = 'auth/expired-action-code',
+    AUTH_INVALID_ACTION_CODE = 'auth/invalid-action-code',
+    AUTH_USER_DISABLED = 'auth/user-disabled',
 
     // Firestore Errors
     FIRESTORE_PERMISSION_DENIED = 'firestore/permission-denied',
@@ -104,6 +107,24 @@ function mapFirebaseError(error: FirebaseError): AppError {
             return new AppError(
                 AppErrorCode.AUTH_APP_CHECK_INVALID,
                 'Firebase App Check token is invalid. Configure App Check or disable enforcement during development.',
+                error
+            );
+        case 'auth/expired-action-code':
+            return new AppError(
+                AppErrorCode.AUTH_EXPIRED_ACTION_CODE,
+                'The login link has expired. Please request a new one.',
+                error
+            );
+        case 'auth/invalid-action-code':
+            return new AppError(
+                AppErrorCode.AUTH_INVALID_ACTION_CODE,
+                'The login link is invalid or has already been used.',
+                error
+            );
+        case 'auth/user-disabled':
+            return new AppError(
+                AppErrorCode.AUTH_USER_DISABLED,
+                'This account has been disabled by an administrator.',
                 error
             );
         case 'permission-denied':
