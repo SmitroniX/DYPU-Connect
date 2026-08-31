@@ -75,13 +75,7 @@ export default function VerifyEmailPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--ui-bg-base)] relative overflow-hidden p-4">
-            {/* Background decoration */}
-            <div
-                className="absolute inset-0 bg-linear-to-br from-[var(--ui-accent)]/8 via-[var(--ui-bg-base)] to-[var(--ui-accent)]/5 animate-[gradient-shift_6s_ease_infinite]"
-                style={{ backgroundSize: '200% 200%' }}
-            />
-            
+        <div className="min-h-[100dvh] flex items-center justify-center bg-transparent relative overflow-hidden p-4">
             <div className="relative z-10 max-w-md w-full surface p-8 sm:p-10 text-center animate-[fade-in-up_0.6s_ease-out]">
                 
                 {status === 'verifying' && (
