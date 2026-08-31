@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import ModuleGuard from '@/components/ModuleGuard';
 import PageHeader from '@/components/PageHeader';
