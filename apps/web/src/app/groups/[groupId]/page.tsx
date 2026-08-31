@@ -360,7 +360,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
 
     return (
         <DashboardLayout>
-            <ModuleGuard module="groups">
+            <ModuleGuard moduleKey="disableGroups" moduleName="Groups">
                 <div className="flex flex-col h-[100dvh] bg-[var(--ui-bg-base)]">
                     {/* Fixed Header */}
                     <div className="shrink-0 z-30">
