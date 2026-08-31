@@ -1,0 +1,30 @@
+[00:26:25.078] Server  ERROR   ⨯ ./src/components/Sidebar.tsx:9:1
+Module not found: Can't resolve './ui/Button'
+   7 | import { usePathname } from 'next/navigation';
+   8 | import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, Bell, Search, GraduationCap } from 'lucide-react';
+>  9 | import { cn } from './ui/Button';
+     | ^
+  10 | import NotificationPanel from '@/components/NotificationPanel';
+  11 | import { motion } from 'framer-motion';
+  12 |
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/components/DashboardLayout.tsx
+./src/app/page.tsx
+[00:26:53.777] Server  ERROR   ⨯ ./src/components/Sidebar.tsx:9:1
+Module not found: Can't resolve './ui/Button'
+   7 | import { usePathname, useRouter } from 'next/navigation';
+   8 | import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, Bell, Search, GraduationCap } from 'lucide-react';
+>  9 | import { cn } from './ui/Button';
+     | ^
+  10 | import NotificationPanel from '@/components/NotificationPanel';
+  11 | import { motion } from 'framer-motion';
+  12 |
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/components/DashboardLayout.tsx
+./src/app/page.tsx
