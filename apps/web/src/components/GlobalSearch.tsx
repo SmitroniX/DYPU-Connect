@@ -21,12 +21,14 @@ export default function GlobalSearch() {
     const router = useRouter();
 
     useEffect(() => {
+        let timer: NodeJS.Timeout;
         if (searchModalOpen) {
             setSearchQuery('');
             setUserResults([]);
             setGroupResults([]);
-            setTimeout(() => inputRef.current?.focus(), 50);
+            timer = setTimeout(() => inputRef.current?.focus(), 50);
         }
+        return () => clearTimeout(timer);
     }, [searchModalOpen]);
 
     useEffect(() => {

@@ -81,14 +81,15 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
     const virtuosoRef = useRef<VirtuosoHandle>(null);
 
     useEffect(() => {
+        let isMounted = true;
         const fetchChatInfo = async () => {
             try {
                 const docSnap = await getDoc(doc(db, 'private_chats', chatId));
-                if (docSnap.exists()) {
+                if (isMounted && docSnap.exists()) {
                     setChatInfo(docSnap.data() as ChatInfo);
                 }
             } catch (error) {
-                toast.error('Failed to load chat details.');
+                if (isMounted) toast.error('Failed to load chat details.');
             }
         };
 
@@ -119,7 +120,10 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
             setMessages(data);
         });
 
-        return () => unsubscribe();
+        return () => {
+            isMounted = false;
+            if (unsubscribe) unsubscribe();
+        };
     }, [chatId, user]);
 
     // Clear unread count when viewing messages

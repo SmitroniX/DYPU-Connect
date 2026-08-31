@@ -675,7 +675,7 @@ function AutoBackupSection() {
     const [saving, setSaving] = useState(false);
     const [backingUp, setBackingUp] = useState(false);
     const [enabled, setEnabled] = useState(userProfile?.autoBackup?.enabled ?? false);
-    const [interval, setInterval] = useState<AutoBackupInterval>(userProfile?.autoBackup?.interval ?? '24h');
+    const [interval, setBackupInterval] = useState<AutoBackupInterval>(userProfile?.autoBackup?.interval ?? '24h');
 
     const lastBackupAt = userProfile?.autoBackup?.lastBackupAt;
     const lastBackupFile = userProfile?.autoBackup?.lastBackupFile;
@@ -788,7 +788,7 @@ function AutoBackupSection() {
                             <button
                                 key={opt.value}
                                 type="button"
-                                onClick={() => setInterval(opt.value)}
+                                onClick={() => setBackupInterval(opt.value)}
                                 disabled={!driveConnected}
                                 className={`rounded-lg border px-3 py-2.5 text-xs font-medium transition-all ${
                                     interval === opt.value

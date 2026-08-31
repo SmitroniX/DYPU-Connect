@@ -60,9 +60,10 @@ export function useUserPresence(uid: string | undefined): UserPresence | null {
     const [presence, setPresence] = useState<UserPresence | null>(null);
 
     useEffect(() => {
+        let timer: NodeJS.Timeout | undefined;
         if (!uid || !rtdb) {
-            setTimeout(() => setPresence(null), 0);
-            return;
+            timer = setTimeout(() => setPresence(null), 0);
+            return () => { if (timer) clearTimeout(timer); };
         }
 
         const userStatusRef = ref(rtdb, `/status/${uid}`);

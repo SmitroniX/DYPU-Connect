@@ -82,11 +82,14 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
     })();
 
     useEffect(() => {
+        let isMounted = true;
         if (!user || !userProfile) return;
 
         const fetchGroupDoc = async () => {
             try {
                 const snap = await getDoc(doc(db, 'groups', groupId));
+                if (!isMounted) return;
+                
                 if (snap.exists()) {
                     const groupData = { id: snap.id, ...snap.data() } as Group;
                     setGroup(groupData);
@@ -110,6 +113,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
             }
         };
         fetchGroupDoc();
+        return () => { isMounted = false; };
     }, [groupId, user, userProfile]);
 
     useEffect(() => {
