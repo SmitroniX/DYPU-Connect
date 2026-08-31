@@ -290,11 +290,20 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                 {/* Fixed Header */}
                 <div className="shrink-0 z-30">
                     <ChatHeader 
-                        name={otherName} 
-                        image={otherImage} 
-                        type="dm" 
-                        onMenuClick={() => setIsDrawerOpen(true)}
-                    />
+                        chatId={chatId}
+                        otherUserId={otherUserId}
+                        otherName={otherName}
+                        otherImage={otherImage}
+                        onAvatarClick={(e) => handleAvatarClick(otherUserId, e)}
+                        onActionClick={() => setIsDrawerOpen(true)}
+                    >
+                        <VideoCall
+                            chatId={chatId}
+                            myUid={user.uid}
+                            otherUserId={otherUserId}
+                            otherUserName={otherName}
+                        />
+                    </ChatHeader>
                 </div>
 
                 {/* Main Content Area */}
