@@ -7,21 +7,18 @@ import PageHeader from '@/components/PageHeader';
 import { db } from '@/lib/firebase';
 import {
     collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp,
-    doc, setDoc, updateDoc, increment, getDoc, deleteDoc,
+    doc, setDoc
 } from 'firebase/firestore';
-import type { Timestamp } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
 import { generateAnonymousName } from '@/lib/utils';
-import { sanitiseInput, hasDangerousContent, filterProfanity } from '@/lib/security';
+import { sanitiseInput, hasDangerousContent } from '@/lib/security';
 import { moderateTextAI } from '@/lib/moderation';
 import {
-    Send, Heart, MessageCircle, Flame, Sparkles, Ghost,
-    Clock, TrendingUp, Filter, ChevronDown, X, Share2,
-    Bookmark, Quote, Lock, Camera
+    Send, Flame, Sparkles, Ghost,
+    Clock, TrendingUp, Filter, ChevronDown, X, Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { formatDistanceToNow } from 'date-fns';
 
 import { Confession, getMood, MOODS, MoodKey } from '@/lib/confessions';
 import ConfessionCard from '@/components/ConfessionCard';
