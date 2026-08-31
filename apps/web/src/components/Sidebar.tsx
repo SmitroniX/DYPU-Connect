@@ -95,7 +95,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     };
 
     return (
-        <div className="flex h-full flex-col bg-[var(--ui-bg-surface)] border-r border-[var(--ui-divider)]">
+        <div className="flex h-full flex-col bg-[var(--ui-bg-surface)]/60 backdrop-blur-xl border-r border-[var(--ui-divider)]">
             {/* App header */}
             <div className="flex h-14 shrink-0 items-center justify-between px-5 titlebar-drag">
                 <h1 className="text-base font-semibold text-[var(--ui-text)] tracking-tight no-select">

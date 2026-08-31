@@ -81,15 +81,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--ui-bg-base)] relative overflow-hidden p-4">
-            {/* Background decoration */}
-            <div
-                className="absolute inset-0 bg-linear-to-br from-[var(--ui-accent)]/8 via-[var(--ui-bg-base)] to-[var(--ui-accent)]/5 animate-[gradient-shift_6s_ease_infinite]"
-                style={{ backgroundSize: '200% 200%' }}
-            />
-            <div className="absolute top-1/4 -left-20 w-72 h-72 rounded-full bg-[var(--ui-accent)]/5 blur-3xl" />
-            <div className="absolute bottom-1/4 -right-20 w-80 h-80 rounded-full bg-[var(--ui-accent)]/3 blur-3xl" />
-
+        <div className="min-h-[100dvh] flex items-center justify-center bg-transparent relative overflow-hidden p-4">
             {/* Card */}
             <div className="relative z-10 max-w-md w-full surface p-6 sm:p-10 animate-[fade-in-up_0.6s_ease-out]">
                 

@@ -340,7 +340,7 @@ export default function DashboardLayout({
 
     return (
         <ProtectedRoute>
-            <div className="flex h-screen-dynamic bg-[var(--ui-bg-base)] text-[var(--ui-text)] overflow-hidden">
+            <div className="flex h-screen-dynamic bg-transparent text-[var(--ui-text)] overflow-hidden">
                 
                 {/* Desktop sidebar */}
                 <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-[260px] lg:flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">

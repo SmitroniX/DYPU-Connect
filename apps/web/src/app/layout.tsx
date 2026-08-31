@@ -60,7 +60,12 @@ export default function RootLayout({
                 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" />
                 <link rel="preconnect" href="https://lh3.googleusercontent.com" />
             </head>
-            <body className={inter.className} suppressHydrationWarning>
+            <body className={`${inter.className} min-h-screen bg-[var(--ui-bg-base)] text-[var(--ui-text)] relative overflow-x-hidden`} suppressHydrationWarning>
+                {/* Global Glassmorphism Background */}
+                <div className="fixed inset-0 pointer-events-none -z-10 bg-linear-to-br from-[var(--ui-accent)]/8 via-[var(--ui-bg-base)] to-[var(--ui-accent)]/5" />
+                <div className="fixed top-1/4 -left-20 w-96 h-96 rounded-full bg-[var(--ui-accent)]/6 blur-3xl pointer-events-none -z-10" />
+                <div className="fixed bottom-1/4 -right-20 w-[30rem] h-[30rem] rounded-full bg-[var(--ui-accent)]/5 blur-3xl pointer-events-none -z-10" />
+                
                 <AuthProvider>
                     <SystemProvider>
                         <Suspense fallback={<LoadingSpinner variant="full" message="Preparing your experience..." />}>
