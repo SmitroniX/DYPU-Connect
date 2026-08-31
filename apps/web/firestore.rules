@@ -64,17 +64,19 @@ service cloud.firestore {
     match /public_chat/{docId} {
       allow read, create: if signedIn();
       allow update: if signedIn() && (
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])) ||
+        (resource.data.senderId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'isEdited', 'isDeleted']))
       );
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || (signedIn() && resource.data.senderId == request.auth.uid);
     }
 
     match /anonymous_public_chat/{docId} {
       allow read, create: if signedIn();
       allow update: if signedIn() && (
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])) ||
+        (resource.data.senderId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'isEdited', 'isDeleted']))
       );
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || (signedIn() && resource.data.senderId == request.auth.uid);
     }
 
     match /confessions_public/{docId} {
@@ -103,9 +105,10 @@ service cloud.firestore {
         allow read: if isGroupMember(groupId) || isAdmin();
         allow create: if isGroupMember(groupId);
         allow update: if isGroupMember(groupId) && (
-           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+           (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])) ||
+           (resource.data.senderId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'isEdited', 'isDeleted']))
         );
-        allow delete: if isAdmin();
+        allow delete: if isAdmin() || (isGroupMember(groupId) && resource.data.senderId == request.auth.uid);
       }
     }
 
@@ -116,13 +119,14 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    match /private_messages/{chatId}/messages/{msgId} {
+    match /private_chats/{chatId}/messages/{msgId} {
       allow read: if participant(chatId) || isAdmin();
       allow create: if participant(chatId);
       allow update: if participant(chatId) && (
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])) ||
+         (resource.data.senderId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'isEdited', 'isDeleted']))
       );
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || (participant(chatId) && resource.data.senderId == request.auth.uid);
     }
 
     match /calls/{callId} {

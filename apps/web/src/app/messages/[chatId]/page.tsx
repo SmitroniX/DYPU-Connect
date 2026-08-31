@@ -3,7 +3,7 @@
 import { use, useCallback, useEffect, useRef, useState, useOptimistic, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { collection, doc, getDoc, updateDoc, increment, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
 import { resolveProfileImage } from '@/lib/profileImage';
@@ -22,8 +22,6 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { useTypingStatus } from '@/hooks/useTypingStatus';
 import TypingIndicator from '@/components/TypingIndicator';
 import MessageItem from '@/components/MessageItem';
-import { listDirectMessagesRef, sendDirectMessage, updateDirectMessage } from '@/generated/dataconnect';
-import { subscribe } from 'firebase/data-connect';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { Message } from '@/lib/validation/schemas';
 
@@ -96,28 +94,30 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 
         fetchChatInfo();
 
-        const otherUserId = chatId.split('_').find(id => id !== user?.uid) || '';
-        if (!user || !otherUserId) return;
+        if (!user || !chatId) return;
 
-        const unsubscribe = subscribe(
-            listDirectMessagesRef({ currentUserId: user.uid, otherUserId }),
-            (result) => {
-                const data: Message[] = result.data.directMessages.map((dm) => ({
-                    id: dm.id,
-                    text: dm.messageContent,
-                    senderId: dm.senderStudentId,
-                    gifUrl: dm.gifUrl ?? '',
-                    imageUrl: dm.imageUrl ?? '',
-                    audioUrl: dm.audioUrl ?? '',
-                    reactions: (dm.reactions as Record<string, string[]>) ?? {},
-                    timestamp: dm.sentAt ? new Date(dm.sentAt) : null,
-                    isEdited: dm.isEdited ?? false,
-                    isDeleted: dm.isDeleted ?? false,
-                    replyToId: dm.replyToId ?? undefined,
-                }));
-                setMessages(data);
-            }
-        );
+        const messagesRef = collection(db, 'private_chats', chatId, 'messages');
+        const q = query(messagesRef, orderBy('timestamp', 'asc'));
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const data: Message[] = snapshot.docs.map((docSnap) => {
+                const docData = docSnap.data();
+                return {
+                    id: docSnap.id,
+                    text: docData.text || '',
+                    senderId: docData.senderId || '',
+                    gifUrl: docData.gifUrl || '',
+                    imageUrl: docData.imageUrl || '',
+                    audioUrl: docData.audioUrl || '',
+                    reactions: docData.reactions || {},
+                    timestamp: docData.timestamp?.toDate ? docData.timestamp.toDate() : new Date(),
+                    isEdited: docData.isEdited || false,
+                    isDeleted: docData.isDeleted || false,
+                    replyToId: docData.replyToId || undefined,
+                };
+            });
+            setMessages(data);
+        });
 
         return () => unsubscribe();
     }, [chatId, user]);
@@ -156,14 +156,18 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
         addOptimisticMessage(optimisticMsg);
 
         try {
-            await sendDirectMessage({
+            const messagesRef = collection(db, 'private_chats', chatId, 'messages');
+            await addDoc(messagesRef, {
+                text: cleanMessage,
                 senderId: user.uid,
-                receiverId: otherUid,
-                messageContent: cleanMessage,
-                gifUrl: payload.gifUrl,
-                imageUrl: payload.imageUrl,
-                audioUrl: payload.audioUrl,
-                replyToId: replyToMessage?.id
+                gifUrl: payload.gifUrl || '',
+                imageUrl: payload.imageUrl || '',
+                audioUrl: payload.audioUrl || '',
+                replyToId: replyToMessage?.id || null,
+                timestamp: serverTimestamp(),
+                reactions: {},
+                isEdited: false,
+                isDeleted: false
             });
             setReplyToMessage(null);
 
@@ -204,9 +208,10 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 
         addOptimisticMessage({ ...msg!, reactions: newReactions });
 
-        updateDirectMessage({ id: messageId, reactions: newReactions })
+        const msgRef = doc(db, 'private_chats', chatId, 'messages', messageId);
+        updateDoc(msgRef, { reactions: newReactions })
             .catch(() => toast.error('Failed to react.'));
-    }, [optimisticMessages, user, addOptimisticMessage]);
+    }, [optimisticMessages, user, addOptimisticMessage, chatId]);
 
     const handleStartEdit = useCallback((msg: Message) => {
         setEditingMessageId(msg.id);
@@ -216,9 +221,9 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
     const handleSaveEdit = useCallback(async (messageId: string) => {
         if (!editValue.trim()) return;
         try {
-            await updateDirectMessage({
-                id: messageId,
-                messageContent: editValue.trim(),
+            const msgRef = doc(db, 'private_chats', chatId, 'messages', messageId);
+            await updateDoc(msgRef, {
+                text: editValue.trim(),
                 isEdited: true,
             });
             setEditingMessageId(null);
@@ -226,21 +231,26 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
         } catch {
             toast.error('Failed to edit message.');
         }
-    }, [editValue]);
+    }, [editValue, chatId]);
+
+    const handleCancelEdit = useCallback(() => {
+        setEditingMessageId(null);
+        setEditValue('');
+    }, []);
 
     const handleDelete = useCallback(async (messageId: string) => {
         if (!confirm('Are you sure you want to delete this message?')) return;
         try {
-            await updateDirectMessage({
-                id: messageId,
-                messageContent: 'This message was deleted.',
+            const msgRef = doc(db, 'private_chats', chatId, 'messages', messageId);
+            await updateDoc(msgRef, {
+                text: 'This message was deleted.',
                 isEdited: false,
                 isDeleted: true
             });
         } catch {
             toast.error('Failed to delete message.');
         }
-    }, []);
+    }, [chatId]);
 
     const handleStartReply = useCallback((msg: Message) => {
         setReplyToMessage(msg);
@@ -248,72 +258,67 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
     }, []);
 
     const handleAvatarClick = useCallback((userId: string, event: React.MouseEvent) => {
-        const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+        const rect = (event.target as HTMLElement).getBoundingClientRect();
         setProfilePopup({ userId, rect });
     }, []);
 
-    const handleCancelEdit = useCallback(() => {
-        setEditingMessageId(null);
-    }, []);
+    const filteredMessages = useMemo(() => {
+        if (!searchQuery.trim()) return optimisticMessages;
+        const lowerQ = searchQuery.toLowerCase();
+        return optimisticMessages.filter(m => m.text.toLowerCase().includes(lowerQ));
+    }, [optimisticMessages, searchQuery]);
 
-    const messageMap = useMemo(() => {
-        const map = new Map<string, Message>();
-        optimisticMessages.forEach((msg) => map.set(msg.id, msg));
-        return map;
-    }, [optimisticMessages]);
+    if (!user || !userProfile) return null;
 
-    if (!chatInfo || !user) {
+    if (!chatInfo) {
         return (
             <DashboardLayout>
-                <LoadingSpinner variant="full" message="Loading conversation…" />
+                <div className="flex h-full items-center justify-center">
+                    <LoadingSpinner variant="full" size="lg" message="Loading chat..." />
+                </div>
             </DashboardLayout>
         );
     }
 
-    const otherUserId = chatInfo.participants.find((id) => id !== user.uid) || '';
-    const otherName = chatInfo.participantNames?.[otherUserId] || 'User';
-    const otherImage = resolveProfileImage(chatInfo.participantImages?.[otherUserId], undefined, otherName);
-
-    const filteredMessages = searchQuery.trim() 
-        ? optimisticMessages.filter(m => m.text?.toLowerCase().includes(searchQuery.toLowerCase()))
-        : optimisticMessages;
+    const otherUserId = chatInfo.participants.find(p => p !== user.uid) || '';
+    const otherName = chatInfo.participantNames?.[otherUserId] || 'Unknown User';
+    const otherImage = chatInfo.participantImages?.[otherUserId] || resolveProfileImage(undefined, undefined, otherName);
 
     return (
         <DashboardLayout>
-            <div className="flex h-full w-full overflow-hidden relative">
-                {/* Main Chat Area */}
-                <div className="flex-1 flex flex-col min-w-0 h-full">
+            <div className="flex flex-col h-[100dvh] bg-[var(--ui-bg-base)]">
+                {/* Fixed Header */}
+                <div className="shrink-0 z-30">
                     <ChatHeader 
-                        chatId={chatId}
-                        otherUserId={otherUserId}
-                        otherName={otherName}
-                        otherImage={otherImage}
-                        onAvatarClick={(e) => handleAvatarClick(otherUserId, e)}
-                        onActionClick={() => setIsDrawerOpen(true)}
-                    >
-                        <VideoCall
-                            chatId={chatId}
-                            myUid={user.uid}
-                            otherUserId={otherUserId}
-                            otherUserName={otherName}
-                        />
-                    </ChatHeader>
+                        name={otherName} 
+                        image={otherImage} 
+                        type="dm" 
+                        onMenuClick={() => setIsDrawerOpen(true)}
+                    />
+                </div>
 
+                {/* Main Content Area */}
+                <div className="flex-1 relative flex flex-col min-h-0 bg-gradient-to-b from-[var(--ui-bg-base)] to-[var(--ui-bg-surface)] overflow-hidden">
                     {/* Search Bar */}
                     {isSearching && (
-                        <div className="flex items-center px-4 py-3 bg-[var(--ui-bg-surface)] border-b border-[var(--ui-border)]/50 shrink-0 z-10 animate-[fade-in-down_0.2s_ease-out]">
-                            <Search className="w-4 h-4 text-[var(--ui-text-muted)] mr-3 shrink-0" />
-                            <input 
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search in this chat..."
-                                className="flex-1 bg-transparent border-none outline-none text-[14px] text-[var(--ui-text)] placeholder-[var(--ui-text-muted)]"
-                                autoFocus
-                            />
+                        <div className="absolute top-0 left-0 right-0 p-3 bg-[var(--ui-bg-elevated)] border-b border-[var(--ui-border)] z-10 animate-[fade-in-down_0.2s_ease-out] shadow-sm flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ui-text-muted)]" />
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    placeholder="Search messages..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] rounded-full pl-9 pr-4 py-2 text-sm text-[var(--ui-text)] focus:border-[var(--ui-accent)] focus:ring-1 focus:ring-[var(--ui-accent)] outline-none"
+                                />
+                            </div>
                             <button 
-                                onClick={() => { setIsSearching(false); setSearchQuery(''); }} 
-                                className="p-1.5 ml-2 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] rounded-full hover:bg-[var(--ui-bg-hover)] transition-colors shrink-0"
+                                onClick={() => {
+                                    setIsSearching(false);
+                                    setSearchQuery('');
+                                }}
+                                className="p-2 text-[var(--ui-text-muted)] hover:bg-[var(--ui-bg-surface)] rounded-full transition-colors"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -350,7 +355,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                     isMine={isMine}
                                     showMsgHeader={showMsgHeader}
                                     currentUserId={user.uid}
-                                    replyToMsg={msg.replyToId ? messageMap.get(msg.replyToId) : null}
+                                    replyToMsg={msg.replyToId ? messages.find(m => m.id === msg.replyToId) : null}
                                     editingMessageId={editingMessageId}
                                     editValue={editingMessageId === msg.id ? editValue : undefined}
                                     setEditValue={setEditValue}
@@ -453,4 +458,3 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
     </DashboardLayout>
 );
 }
-

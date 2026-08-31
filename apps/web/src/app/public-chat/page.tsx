@@ -13,8 +13,8 @@ import { sanitiseInput } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
 import { Users } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { listPublicMessagesRef, sendPublicMessage, updatePublicMessage } from '@/generated/dataconnect';
-import { subscribe } from 'firebase/data-connect';
+import { db } from '@/lib/firebase';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, where } from 'firebase/firestore';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { Message } from '@/lib/validation/schemas';
 
@@ -42,29 +42,51 @@ export default function PublicChatPage() {
     const virtuosoRef = useRef<VirtuosoHandle>(null);
 
     useEffect(() => {
-        const now = new Date();
-        const unsubscribe = subscribe(
-            listPublicMessagesRef({ now: now.toISOString() }),
-            (result) => {
-                const data: Message[] = result.data.publicMessages.map((pm) => ({
-                    id: pm.id,
-                    text: pm.messageContent,
-                    senderId: pm.senderStudentId,
-                    senderName: pm.senderStudentId === user?.uid ? userProfile?.name : (pm.sender ? `${pm.sender.firstName} ${pm.sender.lastName}` : 'User'),
-                    senderImage: pm.senderStudentId === user?.uid ? userProfile?.profileImage : (pm.sender?.profilePictureUrl ?? ''),
-                    gifUrl: pm.gifUrl ?? '',
-                    imageUrl: pm.imageUrl ?? '',
-                    audioUrl: pm.audioUrl ?? '',
-                    reactions: (pm.reactions as Record<string, string[]>) ?? {},
-                    timestamp: pm.sentAt ? new Date(pm.sentAt) : null,
-                    isEdited: pm.isEdited ?? false,
-                    isDeleted: pm.isDeleted ?? false,
-                    expiresAt: pm.expiresAt ? new Date(pm.expiresAt) : null,
-                    replyToId: (pm as any).replyToId ?? undefined,
-                }));
-                setMessages(data);
-            }
+        const messagesRef = collection(db, 'public_chat');
+        const q = query(
+            messagesRef,
+            where('expiresAt', '>', new Date()),
+            orderBy('expiresAt', 'asc'),
+            orderBy('timestamp', 'asc')
         );
+
+        // Alternatively, since ordering by two fields might require a composite index, 
+        // we can just order by timestamp, and filter out expired messages client-side.
+        const simplerQ = query(messagesRef, orderBy('timestamp', 'asc'));
+
+        const unsubscribe = onSnapshot(simplerQ, (snapshot) => {
+            const now = new Date();
+            const data: Message[] = [];
+            
+            snapshot.forEach((docSnap) => {
+                const pm = docSnap.data();
+                const expiresAt = pm.expiresAt?.toDate ? pm.expiresAt.toDate() : null;
+                
+                // Filter out expired messages
+                if (expiresAt && expiresAt < now) return;
+
+                data.push({
+                    id: docSnap.id,
+                    text: pm.text || '',
+                    senderId: pm.senderId || '',
+                    senderName: pm.senderName || 'User',
+                    senderImage: pm.senderImage || '',
+                    gifUrl: pm.gifUrl || '',
+                    imageUrl: pm.imageUrl || '',
+                    audioUrl: pm.audioUrl || '',
+                    reactions: pm.reactions || {},
+                    timestamp: pm.timestamp?.toDate ? pm.timestamp.toDate() : new Date(),
+                    isEdited: pm.isEdited || false,
+                    isDeleted: pm.isDeleted || false,
+                    expiresAt: expiresAt,
+                    replyToId: pm.replyToId || undefined,
+                });
+            });
+            setMessages(data);
+        }, (error) => {
+            console.error('Failed to subscribe to public chat:', error);
+        });
+        
         return () => unsubscribe();
     }, [user, userProfile]);
 
@@ -92,15 +114,23 @@ export default function PublicChatPage() {
         addOptimisticMessage(optimisticMsg);
 
         try {
-            await sendPublicMessage({
+            const messagesRef = collection(db, 'public_chat');
+            await addDoc(messagesRef, {
+                text: cleanMessage,
                 senderId: user.uid,
-                messageContent: cleanMessage,
-                gifUrl: payload.gifUrl,
-                imageUrl: payload.imageUrl,
-                audioUrl: payload.audioUrl,
+                senderName: userProfile.name,
+                senderImage: userProfile.profileImage,
+                gifUrl: payload.gifUrl || '',
+                imageUrl: payload.imageUrl || '',
+                audioUrl: payload.audioUrl || '',
+                replyToId: replyToMessage?.id || null,
+                timestamp: serverTimestamp(),
                 expiresAt: expireDate,
-                replyToId: replyToMessage?.id
-            } as any);
+                reactions: {},
+                isEdited: false,
+                isDeleted: false
+            });
+            
             setReplyToMessage(null);
         } catch (error) {
             console.error(error);
@@ -122,7 +152,8 @@ export default function PublicChatPage() {
 
         addOptimisticMessage({ ...msg, reactions: newReactions });
 
-        updatePublicMessage({ id: messageId, reactions: newReactions })
+        const msgRef = doc(db, 'public_chat', messageId);
+        updateDoc(msgRef, { reactions: newReactions })
             .catch(() => toast.error('Failed to react.'));
     }, [optimisticMessages, user, addOptimisticMessage]);
 
@@ -134,9 +165,9 @@ export default function PublicChatPage() {
     const handleSaveEdit = useCallback(async (messageId: string) => {
         if (!editValue.trim()) return;
         try {
-            await updatePublicMessage({
-                id: messageId,
-                messageContent: editValue.trim(),
+            const msgRef = doc(db, 'public_chat', messageId);
+            await updateDoc(msgRef, {
+                text: editValue.trim(),
                 isEdited: true,
             });
             setEditingMessageId(null);
@@ -149,9 +180,9 @@ export default function PublicChatPage() {
     const handleDelete = useCallback(async (messageId: string) => {
         if (!confirm('Are you sure you want to delete this message?')) return;
         try {
-            await updatePublicMessage({
-                id: messageId,
-                messageContent: 'This message was deleted.',
+            const msgRef = doc(db, 'public_chat', messageId);
+            await updateDoc(msgRef, {
+                text: 'This message was deleted.',
                 isEdited: false,
                 isDeleted: true
             });
@@ -200,8 +231,8 @@ export default function PublicChatPage() {
                         const showMsgHeader = shouldShowHeader(
                             msg.senderId,
                             prev?.senderId,
-                            msg.timestamp ?? null,
-                            prev?.timestamp ?? null
+                            msg.timestamp instanceof Date ? msg.timestamp : (msg.timestamp as any)?.toDate?.() ?? null,
+                            prev?.timestamp instanceof Date ? prev.timestamp : (prev?.timestamp as any)?.toDate?.() ?? null
                         );
 
                         return (
@@ -229,12 +260,14 @@ export default function PublicChatPage() {
                         Header: () => (
                             <>
                                 {optimisticMessages.length === 0 && (
-                                    <div className="flex flex-col items-center justify-center h-full text-center py-20">
-                                        <div className="w-16 h-16 rounded-full bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
-                                            <Users className="h-8 w-8 text-[var(--ui-text-muted)]" />
+                                    <div className="flex flex-col items-center justify-center h-full text-center py-20 animate-[fade-in-up_0.5s_ease-out]">
+                                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--ui-accent)] to-purple-500 flex items-center justify-center mb-6 shadow-lg shadow-[var(--ui-accent)]/20">
+                                            <Users className="h-10 w-10 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-[var(--ui-text)]">Welcome to #campus-plaza!</h3>
-                                        <p className="text-sm text-[var(--ui-text-muted)] mt-1">This is the start of the channel. Say hello! 👋</p>
+                                        <h3 className="text-2xl font-bold text-[var(--ui-text)] mb-2">Welcome to Campus Plaza</h3>
+                                        <p className="text-[var(--ui-text-muted)] max-w-sm">
+                                            This is a public space for everyone at DYPU. Messages here automatically disappear after 48 hours.
+                                        </p>
                                     </div>
                                 )}
                             </>
@@ -243,13 +276,11 @@ export default function PublicChatPage() {
                     }}
                 />
 
-                {/* Input Area */}
                 <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20">
                     <div className="max-w-3xl mx-auto transition-all duration-300">
                         <ChatInput
                             onSend={handleSend}
-                            placeholder="Message #campus-plaza"
-                            chatId="public-chat"
+                            placeholder="Message everyone in Campus Plaza..."
                             replyToMessage={replyToMessage}
                             onCancelReply={() => setReplyToMessage(null)}
                         />
