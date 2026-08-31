@@ -371,8 +371,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                         <ChannelHeader 
                             name={group?.name || humanReadableName} 
                             description={`${group?.memberIds?.length || 0} members`} 
-                            type="group"
-                            image={group?.imageUrl}
+                            type="text"
                         >
                             <Link href="/groups" className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] rounded transition-colors mr-2">
                                 <ArrowLeft className="w-5 h-5" />

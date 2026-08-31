@@ -14,7 +14,7 @@ import { shouldShowHeader } from '@/lib/utils';
 import { Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, where } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { Message } from '@/lib/validation/schemas';
 
@@ -43,15 +43,6 @@ export default function PublicChatPage() {
 
     useEffect(() => {
         const messagesRef = collection(db, 'public_chat');
-        const q = query(
-            messagesRef,
-            where('expiresAt', '>', new Date()),
-            orderBy('expiresAt', 'asc'),
-            orderBy('timestamp', 'asc')
-        );
-
-        // Alternatively, since ordering by two fields might require a composite index, 
-        // we can just order by timestamp, and filter out expired messages client-side.
         const simplerQ = query(messagesRef, orderBy('timestamp', 'asc'));
 
         const unsubscribe = onSnapshot(simplerQ, (snapshot) => {
