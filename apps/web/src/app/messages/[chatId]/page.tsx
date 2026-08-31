@@ -274,7 +274,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
         return (
             <DashboardLayout>
                 <div className="flex h-full items-center justify-center">
-                    <LoadingSpinner variant="full" size="lg" message="Loading chat..." />
+                    <LoadingSpinner variant="full" message="Loading chat..." />
                 </div>
             </DashboardLayout>
         );

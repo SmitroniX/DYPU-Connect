@@ -337,7 +337,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
         return (
             <DashboardLayout>
                 <div className="flex h-full items-center justify-center">
-                    <LoadingSpinner variant="full" size="lg" message="Loading group chat…" />
+                    <LoadingSpinner variant="full" message="Loading group chat…" />
                 </div>
             </DashboardLayout>
         );
