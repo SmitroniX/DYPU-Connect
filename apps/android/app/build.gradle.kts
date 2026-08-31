@@ -25,6 +25,12 @@ android {
     }
 
     signingConfigs {
+        create("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         create("release") {
             // Priority: Environment Variables (CI) > Local Keystore File
             val envFile = System.getenv("KEYSTORE_FILE")
@@ -67,6 +73,7 @@ android {
             isDebuggable = true
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
