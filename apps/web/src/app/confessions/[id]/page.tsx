@@ -3,7 +3,6 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
-import PageHeader from '@/components/PageHeader';
 import ConfessionCard from '@/components/ConfessionCard';
 import { Confession } from '@/lib/confessions';
 import { db } from '@/lib/firebase';
@@ -36,7 +35,7 @@ export default function SingleConfessionPage({ params }: { params: Promise<{ id:
                 setConfession(null);
             }
             setLoading(false);
-        }, (err) => {
+        }, () => {
             toast.error("Failed to load confession");
             setLoading(false);
         });
@@ -85,7 +84,7 @@ export default function SingleConfessionPage({ params }: { params: Promise<{ id:
             });
 
             setNewComment('');
-        } catch (err) {
+        } catch {
             toast.error("Failed to post comment");
         } finally {
             setSubmitting(false);

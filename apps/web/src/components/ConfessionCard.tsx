@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Confession, getMood, cardGradient, MOODS } from '@/lib/confessions';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, deleteDoc, updateDoc, increment, serverTimestamp, collection, addDoc } from 'firebase/firestore';
 import { useAuth } from '@/components/AuthProvider';
 import {
     Heart, MessageCircle, Ghost, Clock, Quote,
-    Share2, Bookmark, Camera, MoreVertical, Flag, Trash2, ArrowRight
+    Share2, Bookmark, Camera, MoreVertical, Flag
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -50,7 +50,7 @@ export default function ConfessionCard({ confession, linkToDetail = true, onDele
                 const likeRef = doc(db, 'confessions_public', confession.id, 'likes', user.uid);
                 const likeSnap = await getDoc(likeRef);
                 setIsLiked(likeSnap.exists());
-            } catch (e) {
+            } catch {
                 // Ignore error
             }
         };
@@ -172,7 +172,7 @@ export default function ConfessionCard({ confession, linkToDetail = true, onDele
             link.click();
             
             toast.success('Snapshot ready!', { id: 'screenshot' });
-        } catch (error) {
+        } catch {
             toast.error('Failed to create snapshot.', { id: 'screenshot' });
         }
     };
