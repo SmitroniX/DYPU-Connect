@@ -78,7 +78,14 @@ function createWindow() {
     // If it's an internal URL (like a sub-app or specific auth flow we want in app)
     // but usually for Electron, we want EVERYTHING external to go to system browser
     // to keep the app focused and secure.
-    if (isInternalUrl(url) && !url.includes('accounts.google.com')) {
+    let isGoogleAccountsHost = false;
+    try {
+      isGoogleAccountsHost = new URL(url).hostname === 'accounts.google.com';
+    } catch (e) {
+      isGoogleAccountsHost = false;
+    }
+
+    if (isInternalUrl(url) && !isGoogleAccountsHost) {
       return { action: 'allow' };
     }
     
