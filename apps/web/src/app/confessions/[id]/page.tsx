@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 import { filterProfanity, sanitiseInput, hasDangerousContent } from '@/lib/security';
 import { moderateTextAI } from '@/lib/moderation';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function SingleConfessionPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
