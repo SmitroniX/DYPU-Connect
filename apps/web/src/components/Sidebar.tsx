@@ -4,9 +4,9 @@ import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
 import { useSystemStore } from '@/store/useSystemStore';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, Bell, Search } from 'lucide-react';
-import clsx from 'clsx';
+import { usePathname, useRouter } from 'next/navigation';
+import { Home, MessageSquare, MessagesSquare, Users, MessageCircle, User, Mail, Settings, LogOut, ShieldAlert, Bell, Search, GraduationCap } from 'lucide-react';
+import { cn } from './ui/Button';
 import NotificationPanel from '@/components/NotificationPanel';
 import { motion } from 'framer-motion';
 
@@ -22,18 +22,18 @@ const NAV_SECTIONS = [
         ],
     },
     {
-        label: 'Chat',
+        label: 'Connect',
         items: [
-            { name: 'Confessions', href: '/confessions', icon: MessageSquare },
             { name: 'Public Chat', href: '/public-chat', icon: MessagesSquare },
-            { name: 'Anonymous Chat', href: '/anonymous-chat', icon: MessageCircle },
+            { name: 'Groups', href: '/groups', icon: Users },
+            { name: 'Messages', href: '/messages', icon: Mail },
         ],
     },
     {
-        label: 'Connect',
+        label: 'Discover',
         items: [
-            { name: 'Groups', href: '/groups', icon: Users },
-            { name: 'Messages', href: '/messages', icon: Mail },
+            { name: 'Confessions', href: '/confessions', icon: MessageSquare },
+            { name: 'Anonymous Chat', href: '/anonymous-chat', icon: MessageCircle },
         ],
     },
     {
@@ -47,6 +47,7 @@ const NAV_SECTIONS = [
 
 export default function Sidebar({ onNavigate }: SidebarProps) {
     const { logout } = useAuth();
+    const router = useRouter();
     const { userProfile, unreadCount, unreadMessagesCount, unreadGroupsCount, notificationPanelOpen, setNotificationPanelOpen, setSearchModalOpen } = useStore();
     const { settings } = useSystemStore();
     const pathname = usePathname();
@@ -62,78 +63,50 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
         if (item.name === 'Groups') badgeCount = unreadGroupsCount;
         
         return (
-            <motion.li 
-                key={item.name}
-                whileHover={{ x: 4 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            >
+            <li key={item.name} className="mb-1">
                 <Link
                     href={item.href}
                     onClick={onNavigate}
-                    className={clsx(
-                        'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all duration-200',
+                    className={cn(
+                        'group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]',
                         isActive
-                            ? 'bg-[var(--ui-accent)] text-white font-bold shadow-md shadow-[var(--ui-accent)]/20'
-                            : 'text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)]'
+                            ? 'bg-[var(--ui-accent-dim)] text-[var(--ui-accent-text)]'
+                            : 'text-[var(--ui-text-muted)] hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)]'
                     )}
                 >
-                    <item.icon className={clsx('h-[18px] w-[18px] shrink-0', isActive ? 'text-white' : 'text-[var(--ui-text-muted)] group-hover:text-[var(--ui-accent)]')} />
-                    <span className="truncate flex-1 tracking-tight">{item.name}</span>
+                    <div className="flex items-center gap-3 truncate">
+                       <item.icon className={cn('h-5 w-5 shrink-0 transition-colors', isActive ? 'text-[var(--ui-accent)]' : 'group-hover:text-[var(--ui-text)]')} />
+                       <span className="truncate tracking-wide">{item.name}</span>
+                    </div>
                     {badgeCount > 0 && (
-                        <span className={clsx(
-                            'inline-flex items-center justify-center h-5 min-w-5 rounded-full px-1.5 text-[10px] font-bold shrink-0 shadow-sm',
-                            isActive ? 'bg-white text-[var(--ui-accent)]' : 'bg-[var(--ui-accent)] text-white'
+                        <span className={cn(
+                            'inline-flex items-center justify-center h-5 min-w-[20px] rounded-full px-1.5 text-[10px] font-bold shrink-0 shadow-sm transition-colors',
+                            isActive ? 'bg-[var(--ui-accent)] text-white' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text-secondary)] border border-[var(--ui-border)]'
                         )}>
                             {badgeCount > 99 ? '99+' : badgeCount}
                         </span>
                     )}
-                    {isActive && badgeCount === 0 && <div className="h-1.5 w-1.5 rounded-full bg-white opacity-60 shrink-0" />}
                 </Link>
-            </motion.li>
+            </li>
         );
     };
 
     return (
-        <div className="flex h-full flex-col bg-[var(--ui-bg-surface)] border-r border-[var(--ui-divider)]">
-            {/* App header */}
-            <div className="flex h-14 shrink-0 items-center justify-between px-5 titlebar-drag">
-                <h1 className="text-base font-semibold text-[var(--ui-text)] tracking-tight no-select">
-                    <span className="text-[var(--ui-accent)]">✦</span> DYPU Connect
-                </h1>
-                {/* Actions (Desktop Only) */}
-                <div className="relative hidden lg:flex items-center gap-1.5 titlebar-no-drag">
-                    <motion.button
-                        whileHover={{ scale: 0.98 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setSearchModalOpen(true)}
-                        className="p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
-                        aria-label="Search"
-                    >
-                        <Search className="h-[18px] w-[18px]" />
-                    </motion.button>
-                    <div className="relative">
-                        <motion.button
-                            whileHover={{ scale: 0.98 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
-                            className="relative p-1.5 rounded-lg text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
-                            aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-                        >
-                            <Bell className="h-[18px] w-[18px]" />
-                        {unreadCount > 0 && (
-                                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-[var(--ui-bg-surface)]">
-                                    {unreadCount > 99 ? '99+' : unreadCount}
-                                </span>
-                            )}
-                        </motion.button>
-                        <NotificationPanel align="sidebar" />
-                    </div>
-                </div>
+        <div className="flex h-full flex-col bg-[var(--ui-bg-surface)] backdrop-blur-xl">
+            {/* App header - desktop only */}
+            <div className="hidden lg:flex h-20 shrink-0 items-center justify-between px-6 titlebar-drag">
+                <Link href="/" className="flex items-center gap-3 outline-none rounded-xl focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]">
+                   <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[var(--ui-accent)] to-indigo-400 flex items-center justify-center shadow-md shadow-[var(--ui-accent)]/20 text-white">
+                      <GraduationCap className="h-5 w-5" />
+                   </div>
+                   <h1 className="text-lg font-bold text-[var(--ui-text)] tracking-tight no-select">
+                       DYPU Connect
+                   </h1>
+                </Link>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto px-3 py-1" role="navigation" aria-label="Main navigation">
+            <nav className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide" role="navigation" aria-label="Main navigation">
                 {NAV_SECTIONS.map((section) => ({
                     ...section,
                     items: section.items.filter(item => {
@@ -144,13 +117,13 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                         return true;
                     })
                 })).filter(section => section.items.length > 0 || section.label === 'Account').map((section, i) => (
-                    <div key={section.label ?? i}>
+                    <div key={section.label ?? i} className="mb-6">
                         {section.label && section.items.length > 0 && (
-                            <h3 className="px-3 pt-5 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--ui-text-muted)] select-none">
+                            <h3 className="px-3 mb-2 text-xs font-semibold uppercase tracking-[0.1em] text-[var(--ui-text-muted)] select-none">
                                 {section.label}
                             </h3>
                         )}
-                        <ul className="space-y-0.5">
+                        <ul className="space-y-1">
                             {section.items.map(renderItem)}
                             {section.label === 'Account' && adminItem && renderItem(adminItem)}
                         </ul>
@@ -160,32 +133,33 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
 
             {/* User panel */}
             {userProfile && (
-                <div className="flex items-center gap-3 px-4 py-3 border-t border-[var(--ui-divider)]">
-                    <div className="relative shrink-0">
-                        <img
-                            className="h-8 w-8 rounded-full object-cover object-center"
-                            src={userProfile.profileImage}
-                            alt=""
-                        />
-                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[var(--ui-success)] rounded-full ring-2 ring-[var(--ui-bg-surface)]" />
+                <div className="p-4 mt-auto border-t border-[var(--ui-border)]/50 bg-[var(--ui-bg-base)]/50">
+                    <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--ui-bg-hover)] transition-colors group cursor-pointer" onClick={() => router.push('/profile')}>
+                        <div className="relative shrink-0">
+                            <img
+                                className="h-10 w-10 rounded-xl object-cover object-center ring-1 ring-[var(--ui-border)] group-hover:ring-[var(--ui-accent)] transition-all"
+                                src={userProfile.profileImage || `https://ui-avatars.com/api/?name=${userProfile.name}&background=random`}
+                                alt=""
+                            />
+                            <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-[var(--ui-success)] rounded-full ring-2 ring-[var(--ui-bg-surface)]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-[var(--ui-text)] truncate">
+                                {userProfile.name}
+                            </p>
+                            <p className="text-xs text-[var(--ui-text-muted)] truncate">
+                                {userProfile.field || 'Student'}
+                            </p>
+                        </div>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); logout(); }}
+                            className="p-2 text-[var(--ui-text-muted)] hover:text-[var(--ui-danger)] rounded-lg hover:bg-[var(--ui-danger)]/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-danger)]"
+                            title="Logout"
+                            aria-label="Logout"
+                        >
+                            <LogOut className="h-4 w-4" />
+                        </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-medium text-[var(--ui-text)] truncate leading-tight">
-                            {userProfile.name}
-                        </p>
-                        <p className="text-[11px] text-[var(--ui-text-muted)] truncate leading-tight">
-                            {userProfile.field}
-                        </p>
-                    </div>
-                    <motion.button
-                        whileHover={{ scale: 0.98 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={logout}
-                        className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-danger)] rounded-md hover:bg-[var(--ui-bg-hover)] transition-colors"
-                        title="Logout"
-                    >
-                        <LogOut className="h-4 w-4" />
-                    </motion.button>
                 </div>
             )}
         </div>
