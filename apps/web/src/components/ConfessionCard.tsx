@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Confession, getMood, cardGradient, MOODS } from '@/lib/confessions';
+import { Confession, getMood, cardGradient } from '@/lib/confessions';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, deleteDoc, updateDoc, increment, serverTimestamp, collection, addDoc } from 'firebase/firestore';
 import { useAuth } from '@/components/AuthProvider';
 import {
     Heart, MessageCircle, Ghost, Clock, Quote,
-    Share2, Bookmark, Camera, MoreVertical, Flag
+    Share2, Camera, MoreVertical, Flag
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -17,16 +17,15 @@ import Link from 'next/link';
 interface ConfessionCardProps {
     confession: Confession;
     linkToDetail?: boolean;
-    onDelete?: (id: string) => void;
 }
 
-export default function ConfessionCard({ confession, linkToDetail = true, onDelete }: ConfessionCardProps) {
+export default function ConfessionCard({ confession, linkToDetail = true }: ConfessionCardProps) {
     const cardRef = useRef<HTMLElement>(null);
     const { user } = useAuth();
     
     // State
     const [likesCount, setLikesCount] = useState(confession.likesCount || 0);
-    const [commentsCount, setCommentsCount] = useState(confession.commentsCount || 0);
+    const [commentsCount] = useState(confession.commentsCount || 0);
     const [isLiked, setIsLiked] = useState(false);
     const [likeLoading, setLikeLoading] = useState(false);
     
@@ -84,7 +83,7 @@ export default function ConfessionCard({ confession, linkToDetail = true, onDele
                 await setDoc(likeRef, { userId: user.uid, createdAt: serverTimestamp() });
                 await updateDoc(doc(db, 'confessions_public', confession.id), { likesCount: increment(1) });
             }
-        } catch (error) {
+        } catch {
             // Revert on error
             setIsLiked(previousIsLiked);
             setLikesCount(previousCount);
