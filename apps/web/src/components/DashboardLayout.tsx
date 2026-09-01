@@ -154,8 +154,8 @@ function MobileBottomNav() {
     ];
 
     return (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[var(--ui-bg-surface)]/80 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)] safe-area-bottom">
-            <div className="flex items-center justify-around h-16">
+        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-sm bg-[var(--ui-bg-base)]/50 backdrop-blur-2xl rounded-full border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]">
+            <div className="flex items-center justify-around h-16 px-2">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
                     return (
@@ -163,25 +163,18 @@ function MobileBottomNav() {
                             key={item.name} 
                             href={item.href}
                             className={clsx(
-                                "relative flex flex-col items-center justify-center gap-1 w-full h-full transition-colors duration-300",
-                                isActive ? "text-[var(--ui-accent)]" : "text-[var(--ui-text-muted)]"
+                                "relative flex flex-col items-center justify-center gap-1 h-12 w-12 rounded-full transition-all duration-300",
+                                isActive ? "bg-[var(--ui-accent)] text-white scale-110 shadow-lg shadow-[var(--ui-accent)]/30" : "text-[var(--ui-text-muted)] hover:bg-white/5 active:scale-95"
                             )}
                         >
                             <div className="relative">
-                                <item.icon className={clsx("w-5 h-5 transition-transform duration-300", isActive && "scale-110")} />
+                                <item.icon className={clsx("w-5 h-5 transition-transform duration-300")} />
                                 {item.badge && item.badge > 0 && (
-                                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 px-1 text-[8px] font-black text-white ring-2 ring-[var(--ui-bg-surface)]">
+                                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 px-1 text-[8px] font-black text-white ring-2 ring-[var(--ui-bg-base)]">
                                         {item.badge > 99 ? '99+' : item.badge}
                                     </span>
                                 )}
                             </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest">{item.name}</span>
-                            {isActive && (
-                                <motion.div 
-                                    layoutId="mobile-nav-indicator"
-                                    className="absolute -top-px left-1/4 right-1/4 h-0.5 bg-[var(--ui-accent)] rounded-full shadow-[0_0_8px_var(--ui-accent)]"
-                                />
-                            )}
                         </Link>
                     );
                 })}
@@ -399,7 +392,7 @@ export default function DashboardLayout({
                     <GlobalSearch />
 
                     {/* Content Main */}
-                    <main className="flex-1 overflow-y-auto w-full relative pb-20 lg:pb-0 scrollbar-hide">
+                    <main className="flex-1 overflow-y-auto w-full relative pb-28 lg:pb-0 scrollbar-hide">
                         <AnimatePresence mode="wait" initial={false}>
                             <motion.div
                                 key={pathname}
