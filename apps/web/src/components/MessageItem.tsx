@@ -13,7 +13,6 @@ interface MessageItemProps {
     msg: Message;
     isMine: boolean;
     isRead?: boolean;
-    isLastMessage?: boolean;
     showMsgHeader: boolean;
     currentUserId: string;
     replyToMsg?: Message | null;
@@ -33,7 +32,6 @@ const MessageItem = memo(({
     msg,
     isMine,
     isRead,
-    isLastMessage,
     showMsgHeader,
     currentUserId,
     replyToMsg,
