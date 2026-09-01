@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ThemeToggle } from '@/components/ThemeToggle';
+
 import { AlertCircle, Info, Menu, X, Zap, Bell, Search, Home, MessageCircle, Users, User } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import NotificationPanel from '@/components/NotificationPanel';
@@ -129,7 +131,7 @@ function PushPromptBanner() {
                 <div className="flex items-center gap-2 shrink-0">
                     <button 
                         onClick={handleEnable} 
-                        className="px-3 py-1.5 bg-[var(--ui-accent)] text-white font-medium rounded-full text-[13px] hover:brightness-110 transition-all shadow-sm"
+                        className="px-3 py-1.5 bg-[var(--ui-accent)] text-[var(--ui-text)] font-medium rounded-full text-[13px] hover:brightness-110 transition-all shadow-sm"
                     >
                         Allow
                     </button>
@@ -153,7 +155,7 @@ function MobileBottomNav() {
     ];
 
     return (
-        <nav className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[360px] bg-[var(--ui-bg-surface)]/70 backdrop-blur-3xl rounded-full border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.25)]">
+        <nav className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[360px] bg-[var(--ui-bg-surface)]/70 backdrop-blur-3xl rounded-full border border-[var(--ui-border)] shadow-[0_8px_32px_0_rgba(0,0,0,0.25)]">
             <div className="flex items-center justify-between h-[64px] px-3 sm:px-5">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
@@ -237,7 +239,7 @@ export default function DashboardLayout({
                         <div
                             className={`${
                                 t.visible ? 'animate-[fade-in-up_0.15s_ease-out]' : 'animate-[fade-out-down_0.15s_ease-in]'
-                            } max-w-sm w-full bg-[var(--ui-bg-surface)] shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black/5 border border-white/10 overflow-hidden`}
+                            } max-w-sm w-full bg-[var(--ui-bg-surface)] shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black/5 border border-[var(--ui-border)] overflow-hidden`}
                         >
                             <div className="flex-1 w-0 p-4">
                                 <div className="flex items-start">
@@ -264,7 +266,7 @@ export default function DashboardLayout({
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex border-l border-white/5">
+                            <div className="flex border-l border-[var(--ui-border)]">
                                 <button
                                     onClick={() => {
                                         toast.dismiss(t.id);
@@ -358,7 +360,7 @@ export default function DashboardLayout({
                 {/* Main content area */}
                 <div className="flex-1 flex flex-col lg:pl-[260px] h-full overflow-hidden">
                     {/* Header bar (consistent across platforms) */}
-                    <header className={clsx("items-center justify-between h-16 pt-[env(safe-area-inset-top)] bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-white/5 px-6 shrink-0 relative z-[70]", isSpecificChat ? 'hidden lg:flex' : 'flex') }>
+                    <header className={clsx("items-center justify-between h-16 pt-[env(safe-area-inset-top)] bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-[var(--ui-border)] px-6 shrink-0 relative z-[70]", isSpecificChat ? 'hidden lg:flex' : 'flex') }>
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -369,17 +371,18 @@ export default function DashboardLayout({
                             </button>
                             <div className="flex items-center gap-2">
                                 <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                                    <span className="text-white text-xs font-black">C</span>
+                                    <span className="text-[var(--ui-text)] text-xs font-black">C</span>
                                 </div>
-                                <span className="text-[15px] font-bold text-white tracking-tight hidden sm:block">DYPU Connect</span>
+                                <span className="text-[15px] font-bold text-[var(--ui-text)] tracking-tight hidden sm:block">DYPU Connect</span>
                             </div>
                         </div>
                         
-                        <div className="flex items-center gap-2">
+<div className="flex items-center gap-2">
+                            <ThemeToggle />
                             <motion.button
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setSearchModalOpen(true)}
-                                className="p-2 rounded-xl text-[var(--ui-text-muted)] hover:text-white hover:bg-white/5 transition-all"
+                                className="p-2 rounded-xl text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-all"
                                 aria-label="Search"
                             >
                                 <Search className="h-5 w-5" />
@@ -388,7 +391,7 @@ export default function DashboardLayout({
                                 <motion.button
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
-                                    className="relative p-2 rounded-xl text-[var(--ui-text-muted)] hover:text-white hover:bg-white/5 transition-all"
+                                    className="relative p-2 rounded-xl text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-all"
                                     aria-label="Notifications"
                                 >
                                     <Bell className="h-5 w-5" />
@@ -447,9 +450,9 @@ export default function DashboardLayout({
                                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                                 className="absolute inset-y-0 left-0 w-[280px] bg-[var(--ui-bg-base)] shadow-2xl flex flex-col"
                             >
-                                <div className="flex items-center justify-between px-6 pb-4 pt-[max(env(safe-area-inset-top),16px)] border-b border-white/5">
-                                    <span className="font-bold text-white">Menu</span>
-                                    <button onClick={() => setSidebarOpen(false)} aria-label="Close menu" className="p-2 -mr-2 text-zinc-500 hover:text-white">
+                                <div className="flex items-center justify-between px-6 pb-4 pt-[max(env(safe-area-inset-top),16px)] border-b border-[var(--ui-border)]">
+                                    <span className="font-bold text-[var(--ui-text)]">Menu</span>
+                                    <button onClick={() => setSidebarOpen(false)} aria-label="Close menu" className="p-2 -mr-2 text-zinc-500 hover:text-[var(--ui-text)]">
                                         <X className="h-5 w-5" />
                                     </button>
                                 </div>

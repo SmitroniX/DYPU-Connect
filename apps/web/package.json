@@ -28,6 +28,7 @@
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "next-pwa": "^5.6.0",
+    "next-themes": "^0.4.6",
     "react": "19.2.3",
     "react-blurhash": "^0.3.0",
     "react-dom": "19.2.3",
@@ -57,9 +58,9 @@
     "vitest": "^4.1.0"
   },
   "optionalDependencies": {
-    "lightningcss-linux-x64-gnu": "1.31.1",
-    "lightningcss-linux-x64-musl": "1.31.1",
     "@tailwindcss/oxide-linux-x64-gnu": "4.2.1",
-    "@tailwindcss/oxide-linux-x64-musl": "4.2.1"
+    "@tailwindcss/oxide-linux-x64-musl": "4.2.1",
+    "lightningcss-linux-x64-gnu": "1.31.1",
+    "lightningcss-linux-x64-musl": "1.31.1"
   }
 }

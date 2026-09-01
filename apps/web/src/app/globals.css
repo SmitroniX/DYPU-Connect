@@ -11,44 +11,116 @@
 
 /* ── Premium Native Design Tokens ───────────────── */
 
+
+
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* Surfaces — Deep Premium Zinc */
-  --ui-bg-base:      #030303;
-  --ui-bg-surface:   rgba(24, 24, 27, 0.65); /* Translucent for glass effect */
-  --ui-bg-elevated:  rgba(39, 39, 42, 0.75);
-  --ui-bg-input:     rgba(255, 255, 255, 0.03);
-  --ui-bg-hover:     rgba(255, 255, 255, 0.08);
-  --ui-bg-active:    rgba(255, 255, 255, 0.12);
-  --ui-bg-overlay:   rgba(0, 0, 0, 0.75);
+  /* Surfaces — Pure, bright, minimal */
+  --ui-bg-base:      #FAFAFA;
+  --ui-bg-surface:   rgba(255, 255, 255, 0.75);
+  --ui-bg-elevated:  rgba(255, 255, 255, 0.9);
+  --ui-bg-input:     rgba(0, 0, 0, 0.03);
+  --ui-bg-hover:     rgba(0, 0, 0, 0.05);
+  --ui-bg-active:    rgba(0, 0, 0, 0.08);
+  --ui-bg-overlay:   rgba(0, 0, 0, 0.25);
 
-  /* Text — Crisp contrast */
-  --ui-text:           #ffffff;
-  --ui-text-secondary: #a1a1aa;
-  --ui-text-muted:     #71717a;
-  --ui-text-link:      #818cf8;
+  /* Text — Sharp, high contrast */
+  --ui-text:           #09090B;
+  --ui-text-secondary: #52525B;
+  --ui-text-muted:     #71717A;
+  --ui-text-link:      #4F46E5;
 
-  /* Accent — Vibrant Indigo */
-  --ui-accent:       #6366f1;
-  --ui-accent-hover: #818cf8;
-  --ui-accent-dim:   rgba(99, 102, 241, 0.15);
-  --ui-accent-text:  #ffffff;
+  /* Accent — Vibrant Indigo (Stitch style) */
+  --ui-accent:       #4F46E5;
+  --ui-accent-hover: #4338CA;
+  --ui-accent-dim:   rgba(79, 70, 229, 0.15);
+  --ui-accent-text:  #FFFFFF;
 
   /* Borders & Dividers */
-  --ui-border:  rgba(255, 255, 255, 0.08);
-  --ui-divider: rgba(255, 255, 255, 0.05);
+  --ui-border:  rgba(0, 0, 0, 0.08);
+  --ui-divider: rgba(0, 0, 0, 0.05);
 
   /* Semantic colors */
-  --ui-success: #10b981;
-  --ui-warning: #f59e0b;
-  --ui-danger:  #ef4444;
-  --ui-info:    #3b82f6;
+  --ui-success: #10B981;
+  --ui-warning: #F59E0B;
+  --ui-danger:  #EF4444;
+  --ui-info:    #3B82F6;
 
   /* Legacy compat */
   --background: var(--ui-bg-base);
   --foreground: var(--ui-text);
 }
+
+.dark {
+  color-scheme: dark;
+
+  /* Surfaces — Deep Premium Zinc */
+  --ui-bg-base:      #09090B;
+  --ui-bg-surface:   rgba(24, 24, 27, 0.65);
+  --ui-bg-elevated:  rgba(39, 39, 42, 0.75);
+  --ui-bg-input:     rgba(255, 255, 255, 0.05);
+  --ui-bg-hover:     rgba(255, 255, 255, 0.08);
+  --ui-bg-active:    rgba(255, 255, 255, 0.12);
+  --ui-bg-overlay:   rgba(0, 0, 0, 0.75);
+
+  /* Text — Crisp contrast */
+  --ui-text:           #FAFAFA;
+  --ui-text-secondary: #A1A1AA;
+  --ui-text-muted:     #71717A;
+  --ui-text-link:      #818CF8;
+
+  /* Accent — Vibrant Indigo */
+  --ui-accent:       #6366F1;
+  --ui-accent-hover: #818CF8;
+  --ui-accent-dim:   rgba(99, 102, 241, 0.15);
+  --ui-accent-text:  #FFFFFF;
+
+  /* Borders & Dividers */
+  --ui-border:  rgba(255, 255, 255, 0.08);
+  --ui-divider: rgba(255, 255, 255, 0.06);
+  
+  --ui-success: #10B981;
+  --ui-warning: #F59E0B;
+  --ui-danger:  #EF4444;
+  --ui-info:    #3B82F6;
+}
+
+
+.dark {
+  color-scheme: dark;
+
+  /* Surfaces — Deep Premium Zinc */
+  --ui-bg-base:      #09090B;
+  --ui-bg-surface:   rgba(24, 24, 27, 0.65);
+  --ui-bg-elevated:  rgba(39, 39, 42, 0.75);
+  --ui-bg-input:     rgba(255, 255, 255, 0.05);
+  --ui-bg-hover:     rgba(255, 255, 255, 0.08);
+  --ui-bg-active:    rgba(255, 255, 255, 0.12);
+  --ui-bg-overlay:   rgba(0, 0, 0, 0.75);
+
+  /* Text — Crisp contrast */
+  --ui-text:           #FAFAFA;
+  --ui-text-secondary: #A1A1AA;
+  --ui-text-muted:     #71717A;
+  --ui-text-link:      #818CF8;
+
+  /* Accent — Vibrant Indigo */
+  --ui-accent:       #6366F1;
+  --ui-accent-hover: #818CF8;
+  --ui-accent-dim:   rgba(99, 102, 241, 0.15);
+  --ui-accent-text:  #FFFFFF;
+
+  /* Borders & Dividers */
+  --ui-border:  rgba(255, 255, 255, 0.08);
+  --ui-divider: rgba(255, 255, 255, 0.06);
+  
+  --ui-success: #10B981;
+  --ui-warning: #F59E0B;
+  --ui-danger:  #EF4444;
+  --ui-info:    #3B82F6;
+}
+
 
 @theme inline {
   --color-background: var(--ui-bg-base);

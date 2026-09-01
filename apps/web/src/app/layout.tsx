@@ -7,6 +7,8 @@ import CookieConsentBanner from "@/components/CookieConsentBanner";
 import SystemProvider from '@/components/SystemProvider';
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { ThemeProvider } from '@/components/ThemeProvider';
+
 
 const inter = Inter({
     subsets: ["latin"],
@@ -49,7 +51,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className="dark" style={{ colorScheme: 'dark' }} suppressHydrationWarning>
+        <html lang="en"  suppressHydrationWarning>
             <head>
                 {/* Preload Google Identity Services script to avoid popup-blocked issues */}
                 {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
@@ -66,15 +68,17 @@ export default function RootLayout({
                 <div className="fixed top-1/4 -left-20 w-96 h-96 rounded-full bg-[var(--ui-accent)]/6 blur-3xl pointer-events-none -z-10" />
                 <div className="fixed bottom-1/4 -right-20 w-[30rem] h-[30rem] rounded-full bg-[var(--ui-accent)]/5 blur-3xl pointer-events-none -z-10" />
                 
-                <AuthProvider>
-                    <SystemProvider>
-                        <Suspense fallback={<LoadingSpinner variant="full" message="Preparing your experience..." />}>
-                            {children}
-                        </Suspense>
-                        <Toaster position="top-right" />
-                        <CookieConsentBanner />
-                    </SystemProvider>
-                </AuthProvider>
+                <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+                    <AuthProvider>
+                        <SystemProvider>
+                            <Suspense fallback={<LoadingSpinner variant="full" message="Preparing your experience..." />}>
+                                {children}
+                            </Suspense>
+                            <Toaster position="top-right" />
+                            <CookieConsentBanner />
+                        </SystemProvider>
+                    </AuthProvider>
+                </ThemeProvider>
             </body>
         </html>
     );
