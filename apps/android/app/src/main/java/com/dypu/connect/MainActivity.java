@@ -5,6 +5,8 @@ import android.annotation.SuppressLint;
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -87,6 +89,19 @@ public class MainActivity extends AppCompatActivity {
 
     // ── Views ─────────────────────────────────────────────────
     private WebView webView;
+
+    private final BroadcastReceiver tokenReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("FCM_TOKEN_UPDATE".equals(intent.getAction())) {
+                String token = intent.getStringExtra("token");
+                if (token != null) {
+                    emitToWeb("fcm_token_ready", token);
+                }
+            }
+        }
+    };
+
     private ProgressBar progressBar;
     private SwipeRefreshLayout swipeRefresh;
     private View errorView;

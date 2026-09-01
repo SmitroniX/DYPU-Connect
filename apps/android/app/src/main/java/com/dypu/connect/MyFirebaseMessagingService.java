@@ -4,6 +4,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -29,24 +30,45 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
 
         // Handle notification payload
+        String title = "DYPU Connect";
+        String body = "";
+        String url = null;
+
         if (remoteMessage.getNotification() != null) {
-            String title = remoteMessage.getNotification().getTitle();
-            String body = remoteMessage.getNotification().getBody();
-            sendNotification(title, body);
+            title = remoteMessage.getNotification().getTitle();
+            body = remoteMessage.getNotification().getBody();
+        }
+        
+        if (remoteMessage.getData().size() > 0) {
+            if (remoteMessage.getData().containsKey("title")) title = remoteMessage.getData().get("title");
+            if (remoteMessage.getData().containsKey("body")) body = remoteMessage.getData().get("body");
+            if (remoteMessage.getData().containsKey("url")) url = remoteMessage.getData().get("url");
+        }
+        
+        if (!body.isEmpty()) {
+            sendNotification(title, body, url);
         }
     }
 
     @Override
     public void onNewToken(@NonNull String token) {
         Log.d(TAG, "Refreshed token: " + token);
-        // We'll expose this to the web app via the bridge so it can be saved to the database
+        SharedPreferences prefs = getSharedPreferences("dypu_prefs", MODE_PRIVATE);
+        prefs.edit().putString("fcm_token", token).apply();
+        
+        Intent intent = new Intent("FCM_TOKEN_UPDATE");
+        intent.putExtra("token", token);
+        sendBroadcast(intent);
     }
 
-    private void sendNotification(String title, String messageBody) {
+    private void sendNotification(String title, String messageBody, String url) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
-                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+        if (url != null && !url.isEmpty()) {
+            intent.putExtra("target_url", url);
+        }
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder =
