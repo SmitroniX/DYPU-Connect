@@ -38,8 +38,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.messaging.FirebaseMessaging
-import org.json.JSONException
-import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 
@@ -98,15 +96,15 @@ class MainActivity : AppCompatActivity() {
                 val account = task.getResult(Exception::class.java)
                 val idToken = account?.idToken
                 if (idToken != null) {
-                    emitToWeb("google_signin_success", idToken)
+                    emitToWeb("google_auth_success", idToken)
                 } else {
-                    emitToWeb("google_signin_error", "No ID token found")
+                    emitToWeb("google_auth_error", "No ID token found")
                 }
             } catch (e: Exception) {
-                emitToWeb("google_signin_error", e.message ?: "Unknown error")
+                emitToWeb("google_auth_error", e.message ?: "Unknown error")
             }
         } else {
-            emitToWeb("google_signin_error", "Canceled")
+            emitToWeb("google_auth_error", "Canceled")
         }
     }
 
@@ -187,7 +185,7 @@ class MainActivity : AppCompatActivity() {
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
 
-        webView.addJavascriptInterface(WebAppInterface(), "Android")
+        webView.addJavascriptInterface(WebAppInterface(), "AndroidApp")
 
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -322,16 +320,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun emitToWeb(event: String, data: String) {
-        val json = JSONObject()
-        try {
-            json.put("event", event)
-            json.put("data", data)
-            val escapedJson = json.toString().replace("'", "\\'").replace("\"", "\\\"")
-            val script = "if (window.dispatchEvent) { window.dispatchEvent(new CustomEvent('native_bridge', {detail: '$escapedJson'})); }"
-            runOnUiThread { webView.evaluateJavascript(script, null) }
-        } catch (e: JSONException) {
-            Log.e(TAG, "Error building JSON", e)
-        }
+        val escapedData = data.replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"").replace("\n", "\\n")
+        val script = "if (window.onAndroidEvent) { window.onAndroidEvent('$event', '$escapedData'); }"
+        runOnUiThread { webView.evaluateJavascript(script, null) }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -405,6 +396,11 @@ class MainActivity : AppCompatActivity() {
                 val signInIntent = mGoogleSignInClient.signInIntent
                 googleSignInLauncher.launch(signInIntent)
             }
+        }
+
+        @JavascriptInterface
+        fun getAppVersion(): String {
+            return BuildConfig.VERSION_NAME
         }
 
         @JavascriptInterface
