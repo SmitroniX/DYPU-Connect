@@ -269,7 +269,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 
     return (
         <DashboardLayout>
-            <div className="flex flex-col h-[100dvh] bg-[var(--ui-bg-base)]">
+            <div className="flex flex-col h-full bg-[var(--ui-bg-base)]">
                 {/* Fixed Header */}
                 <div className="shrink-0 z-30">
                     <ChatHeader 

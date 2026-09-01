@@ -350,7 +350,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
     if (!isAuth) {
         return (
             <DashboardLayout>
-                <div className="flex flex-col h-[100dvh] items-center justify-center bg-[var(--ui-bg-base)]">
+                <div className="flex flex-col h-full items-center justify-center bg-[var(--ui-bg-base)]">
                     <ShieldAlert className="h-16 w-16 text-[var(--ui-danger)]/50 mb-4" />
                     <h2 className="text-xl font-bold text-[var(--ui-text)]">Access Denied</h2>
                     <p className="text-sm text-[var(--ui-text-muted)]">You are not a member of this group.</p>
@@ -365,7 +365,7 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
     return (
         <DashboardLayout>
             <ModuleGuard moduleKey="disableGroups" moduleName="Groups">
-                <div className="flex flex-col h-[100dvh] bg-[var(--ui-bg-base)]">
+                <div className="flex flex-col h-full bg-[var(--ui-bg-base)]">
                     {/* Fixed Header */}
                     <div className="shrink-0 z-30">
                         <ChannelHeader 

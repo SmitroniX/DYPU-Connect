@@ -358,7 +358,7 @@ export default function DashboardLayout({
                 {/* Main content area */}
                 <div className="flex-1 flex flex-col lg:pl-[260px] h-full overflow-hidden">
                     {/* Header bar (consistent across platforms) */}
-                    <header className="flex items-center justify-between h-16 pt-[env(safe-area-inset-top)] bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-white/5 px-6 shrink-0 relative z-[70]">
+                    <header className={clsx("items-center justify-between h-16 pt-[env(safe-area-inset-top)] bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-white/5 px-6 shrink-0 relative z-[70]", isSpecificChat ? 'hidden lg:flex' : 'flex') }>
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setSidebarOpen(true)}
