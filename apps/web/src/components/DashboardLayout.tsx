@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Info, Menu, X, Zap, Bell, Search, Home, Mail, Users, User } from 'lucide-react';
+import { AlertCircle, Info, Menu, X, Zap, Bell, Search, Home, MessageCircle, Users, User } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import NotificationPanel from '@/components/NotificationPanel';
 import GlobalSearch from '@/components/GlobalSearch';
@@ -144,18 +144,17 @@ function PushPromptBanner() {
 
 function MobileBottomNav() {
     const pathname = usePathname();
-    const { unreadMessagesCount, unreadGroupsCount } = useStore();
 
     const navItems = [
         { name: 'Home', href: '/', icon: Home },
-        { name: 'Messages', href: '/messages', icon: Mail, badge: unreadMessagesCount },
-        { name: 'Groups', href: '/groups', icon: Users, badge: unreadGroupsCount },
+        { name: 'Messages', href: '/messages', icon: MessageCircle },
+        { name: 'Groups', href: '/groups', icon: Users },
         { name: 'Profile', href: '/profile', icon: User },
     ];
 
     return (
-        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-md bg-[var(--ui-bg-surface)]/60 backdrop-blur-3xl rounded-[2rem] border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.2)]">
-            <div className="flex items-center justify-between h-[76px] px-2 sm:px-4">
+        <nav className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[360px] bg-[var(--ui-bg-surface)]/70 backdrop-blur-3xl rounded-full border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.25)]">
+            <div className="flex items-center justify-between h-[64px] px-3 sm:px-5">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
                     return (
@@ -163,11 +162,11 @@ function MobileBottomNav() {
                             key={item.name} 
                             href={item.href}
                             className={clsx(
-                                "relative flex flex-col items-center justify-center flex-1 h-full gap-1.5 transition-all duration-300",
+                                "relative flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all duration-300",
                                 isActive ? "text-[var(--ui-accent)]" : "text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]"
                             )}
                         >
-                            <div className="relative flex items-center justify-center px-5 py-1.5 rounded-full z-10 transition-all duration-300">
+                            <div className="relative flex items-center justify-center px-4 py-1.5 rounded-full z-10 transition-all duration-300">
                                 {isActive && (
                                     <motion.div
                                         layoutId="nav-pill"
@@ -175,18 +174,17 @@ function MobileBottomNav() {
                                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                     />
                                 )}
-                                <item.icon className={clsx(
-                                    "w-[26px] h-[26px] transition-transform duration-300 relative z-10",
-                                    isActive && "scale-105"
-                                )} />
-                                {item.badge && item.badge > 0 && (
-                                    <span className="absolute -top-1 -right-2 flex items-center justify-center h-5 min-w-[24px] rounded-full rounded-bl-sm bg-blue-500 px-1.5 text-[11px] font-bold text-white shadow-sm ring-2 ring-[var(--ui-bg-surface)] z-20">
-                                        {item.badge > 99 ? '99+' : item.badge}
-                                    </span>
-                                )}
+                                <item.icon 
+                                    className={clsx(
+                                        "w-[22px] h-[22px] transition-all duration-300 relative z-10",
+                                        isActive && "scale-110"
+                                    )} 
+                                    fill={isActive ? 'currentColor' : 'none'}
+                                    strokeWidth={isActive ? 2.5 : 2}
+                                />
                             </div>
                             <span className={clsx(
-                                "text-[12px] tracking-tight transition-all duration-300",
+                                "text-[10px] tracking-wide transition-all duration-300",
                                 isActive ? "font-bold" : "font-medium"
                             )}>
                                 {item.name}
