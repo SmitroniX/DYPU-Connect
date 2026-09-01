@@ -78,6 +78,7 @@ export default function SingleConfessionPage({ params }: { params: Promise<{ id:
                 text: safeText,
                 userId: user.uid,
                 createdAt: serverTimestamp(),
+                anonymousName: generateAnonymousName()
             });
 
             await updateDoc(doc(db, 'confessions_public', id), {
@@ -161,10 +162,12 @@ export default function SingleConfessionPage({ params }: { params: Promise<{ id:
                                 {comments.map(comment => (
                                     <div key={comment.id} className="bg-[var(--ui-bg-elevated)] p-4 rounded-2xl border border-[var(--ui-divider)] animate-[fade-in-up_0.2s_ease-out]">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <div className="h-6 w-6 rounded-full bg-[var(--ui-accent)]/20 flex items-center justify-center text-[10px] font-bold text-[var(--ui-accent)]">
-                                                C
+                                            <div className="h-6 w-6 rounded-full bg-[var(--ui-accent)]/20 flex items-center justify-center text-[10px] font-bold text-[var(--ui-accent)] shadow-sm">
+                                                {comment.anonymousName ? comment.anonymousName.charAt(0) : 'A'}
                                             </div>
-                                            <span className="text-xs font-bold text-[var(--ui-text)]">Student</span>
+                                            <span className="text-xs font-bold text-[var(--ui-text)]">
+                                                {comment.anonymousName || 'Anonymous'}
+                                            </span>
                                             <span className="text-[10px] text-[var(--ui-text-muted)] ml-auto">
                                                 {comment.createdAt?.toDate ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true }) : 'Just now'}
                                             </span>

@@ -13,6 +13,7 @@ import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 import { filterProfanity } from '@/lib/security';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 interface ConfessionCardProps {
     confession: Confession;
@@ -286,7 +287,12 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
                                 : 'text-[var(--ui-text-muted)] hover:text-pink-400 hover:bg-pink-500/10'
                             }`}
                         >
-                            <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
+                            <motion.div
+                                animate={isLiked ? { scale: [1, 1.4, 1], rotate: [0, -10, 10, 0] } : {}}
+                                transition={{ duration: 0.4, type: "spring" }}
+                            >
+                                <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
+                            </motion.div>
                             <span>{likesCount}</span>
                         </button>
                         

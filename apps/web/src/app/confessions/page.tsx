@@ -35,6 +35,7 @@ export default function ConfessionsPage() {
     const [newConfession, setNewConfession] = useState('');
     const [selectedMood, setSelectedMood] = useState<MoodKey | ''>('');
     const [loading, setLoading] = useState(false);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [sortMode, setSortMode] = useState<SortMode>('latest');
     const [filterMood, setFilterMood] = useState<string>('all');
     const [showMoodPicker, setShowMoodPicker] = useState(false);
@@ -54,6 +55,7 @@ export default function ConfessionsPage() {
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Confession[];
             setConfessions(data);
+            setIsInitialLoading(false);
         }, (error) => {
             console.error('[Confessions] Listener error:', error);
             toast.error('Failed to load confessions. Check your permissions.');
@@ -309,7 +311,31 @@ export default function ConfessionsPage() {
                         )}
 
                         {/* ═══════ Feed ═══════ */}
-                        {sortedConfessions.length === 0 ? (
+                        {isInitialLoading ? (
+                            <div className="space-y-4 animate-pulse">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="rounded-3xl border border-[var(--ui-divider)] bg-[var(--ui-bg-surface)] p-6 sm:p-7 h-[200px] flex flex-col justify-between">
+                                        <div className="flex justify-between items-center">
+                                            <div className="h-6 w-24 bg-[var(--ui-bg-elevated)] rounded-full" />
+                                            <div className="h-4 w-16 bg-[var(--ui-bg-elevated)] rounded-md" />
+                                        </div>
+                                        <div className="space-y-3 mt-6">
+                                            <div className="h-4 w-full bg-[var(--ui-bg-elevated)] rounded-md" />
+                                            <div className="h-4 w-5/6 bg-[var(--ui-bg-elevated)] rounded-md" />
+                                        </div>
+                                        <div className="mt-6 flex justify-between">
+                                            <div className="flex gap-2">
+                                                <div className="h-8 w-14 bg-[var(--ui-bg-elevated)] rounded-full" />
+                                                <div className="h-8 w-14 bg-[var(--ui-bg-elevated)] rounded-full" />
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <div className="h-8 w-8 bg-[var(--ui-bg-elevated)] rounded-full" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : sortedConfessions.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-20 text-center">
                                 <div className="h-20 w-20 rounded-3xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
                                     <Flame className="h-10 w-10 text-[var(--ui-text-muted)]" />
