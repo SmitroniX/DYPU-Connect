@@ -447,7 +447,7 @@ export default function DashboardLayout({
                                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                                 className="absolute inset-y-0 left-0 w-[280px] bg-[var(--ui-bg-base)] shadow-2xl flex flex-col"
                             >
-                                <div className="flex h-16 items-center justify-between px-6 border-b border-white/5">
+                                <div className="flex items-center justify-between px-6 pb-4 pt-[max(env(safe-area-inset-top),16px)] border-b border-white/5">
                                     <span className="font-bold text-white">Menu</span>
                                     <button onClick={() => setSidebarOpen(false)} aria-label="Close menu" className="p-2 -mr-2 text-zinc-500 hover:text-white">
                                         <X className="h-5 w-5" />
