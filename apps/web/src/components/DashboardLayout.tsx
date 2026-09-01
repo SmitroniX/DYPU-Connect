@@ -207,6 +207,7 @@ export default function DashboardLayout({
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const pathname = usePathname();
     const { user } = useAuth();
+    const isSpecificChat = /^\/(messages|groups)\/[^\/]+$/.test(pathname) || pathname === '/public-chat';
     const {
         setNotifications,
         setUnreadMessagesCount,
@@ -408,7 +409,10 @@ export default function DashboardLayout({
                     <GlobalSearch />
 
                     {/* Content Main */}
-                    <main className="flex-1 overflow-y-auto w-full relative pb-28 lg:pb-0 scrollbar-hide">
+                    <main className={clsx(
+                        "flex-1 overflow-y-auto w-full relative scrollbar-hide",
+                        isSpecificChat ? "pb-0" : "pb-28 lg:pb-0"
+                    )}>
                         <AnimatePresence mode="wait" initial={false}>
                             <motion.div
                                 key={pathname}
@@ -425,7 +429,7 @@ export default function DashboardLayout({
                 </div>
 
                 {/* Mobile Navigation */}
-                <MobileBottomNav />
+                {!isSpecificChat && <MobileBottomNav />}
 
                 {/* Drawer Overlay (Mobile Only for Sidebar fallback) */}
                 <AnimatePresence>
