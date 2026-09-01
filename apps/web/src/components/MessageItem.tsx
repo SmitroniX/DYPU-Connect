@@ -101,8 +101,8 @@ const MessageItem = memo(({
                         className={`
                             relative px-3 py-2 sm:px-3.5 sm:py-2.5 flex flex-col min-w-[60px] backdrop-blur-sm transition-transform active:scale-[0.99]
                             ${isMine 
-                                ? 'bg-gradient-to-br from-[var(--ui-accent)] to-[#4f46e5] text-white rounded-[18px] rounded-br-[4px] shadow-sm shadow-[var(--ui-accent)]/10' 
-                                : 'bg-zinc-900/90 text-[#fafafa] rounded-[18px] rounded-bl-[4px] border border-white/5 shadow-sm'}
+                                ? 'bg-[var(--ui-accent)]/80 backdrop-blur-xl text-white rounded-[22px] rounded-br-[6px] border border-[var(--ui-accent)]/30 shadow-md shadow-[var(--ui-accent)]/10' 
+                                : 'bg-[var(--ui-bg-surface)]/80 backdrop-blur-xl text-[#fafafa] rounded-[22px] rounded-bl-[6px] border border-white/10 shadow-md shadow-black/10'}
                         `}
                     >
                         {/* Reply snippet inside the bubble */}

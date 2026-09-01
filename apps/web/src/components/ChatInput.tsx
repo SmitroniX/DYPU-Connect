@@ -222,7 +222,7 @@ export default function ChatInput({
                     )}
                 </AnimatePresence>
 
-                <div className="flex items-end gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-[28px] sm:rounded-[32px] bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] focus-within:border-[var(--ui-accent)]/30 focus-within:bg-white/[0.06] transition-all duration-500 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] group/input">
+                <div className="flex items-end gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-3xl bg-[var(--ui-bg-surface)]/70 hover:bg-[var(--ui-bg-surface)]/80 border border-white/10 focus-within:border-[var(--ui-accent)]/50 focus-within:bg-[var(--ui-bg-surface)] transition-all duration-300 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.25)] group/input">
                     
                     {/* Integrated Action Bar */}
                     <div className="shrink-0 pl-0.5 pb-0.5">
