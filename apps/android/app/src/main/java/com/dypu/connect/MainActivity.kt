@@ -58,6 +58,8 @@ class MainActivity : AppCompatActivity() {
 
     private val BASE_URL = BuildConfig.WEB_APP_URL
     private val TAG = "DYPUConnectNative"
+    private var safeAreaTopDp = 0
+    private var safeAreaBottomDp = 0
 
     private val tokenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -130,14 +132,9 @@ class MainActivity : AppCompatActivity() {
             val top = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()).top
             val bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()).bottom
             val density = resources.displayMetrics.density
-            val topDp = (top / density).toInt()
-            val bottomDp = (bottom / density).toInt()
-
-            webView.evaluateJavascript(
-                "document.documentElement.style.setProperty('--android-safe-area-top', '${topDp}px');" +
-                "document.documentElement.style.setProperty('--android-safe-area-bottom', '${bottomDp}px');",
-                null
-            )
+            safeAreaTopDp = (top / density).toInt()
+            safeAreaBottomDp = (bottom / density).toInt()
+            injectSafeAreaInsets()
             WindowInsetsCompat.CONSUMED
         }
 
@@ -197,6 +194,7 @@ class MainActivity : AppCompatActivity() {
                 progressBar.visibility = View.GONE
                 swipeRefresh.isRefreshing = false
                 CookieManager.getInstance().flush()
+                injectSafeAreaInsets()
             }
 
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
@@ -317,6 +315,14 @@ class MainActivity : AppCompatActivity() {
         errorView.visibility = View.GONE
         progressBar.visibility = View.VISIBLE
         webView.reload()
+    }
+
+    private fun injectSafeAreaInsets() {
+        webView.evaluateJavascript(
+            "document.documentElement.style.setProperty('--android-safe-area-top', '${safeAreaTopDp}px');" +
+            "document.documentElement.style.setProperty('--android-safe-area-bottom', '${safeAreaBottomDp}px');",
+            null
+        )
     }
 
     fun emitToWeb(event: String, data: String) {
