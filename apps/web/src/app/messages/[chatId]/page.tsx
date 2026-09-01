@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useCallback, useEffect, useRef, useState, useOptimistic, useMemo } from 'react';
+import { use, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, updateDoc, increment, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
