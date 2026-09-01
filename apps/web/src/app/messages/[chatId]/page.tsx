@@ -158,7 +158,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 
             await updateDoc(doc(db, 'private_chats', chatId), {
                 lastMessage: cleanMessage || (payload.audioUrl ? '🎤 Voice Message' : (payload.imageUrl ? '📷 Photo' : 'GIF')),
-                updatedAt: new Date(),
+                updatedAt: serverTimestamp(),
                 [`unreadCount.${otherUid}`]: increment(1)
             });
 

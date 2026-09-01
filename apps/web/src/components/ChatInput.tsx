@@ -180,7 +180,7 @@ export default function ChatInput({
     };
 
     return (
-        <div className="px-3 pb-4 sm:px-4 sm:pb-6 shrink-0 relative pt-2 sm:pt-4 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent z-30">
+        <div className="px-3 pb-[max(env(safe-area-inset-bottom),16px)] sm:px-4 sm:pb-6 shrink-0 relative pt-2 sm:pt-4 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent z-30">
             <AnimatePresence>
                 {typingIndicator && (
                     <motion.div 
@@ -239,7 +239,7 @@ export default function ChatInput({
                     </div>
 
                     {/* Text Field */}
-                    <div className="flex-1 min-w-0 py-2 sm:py-2.5">
+                    <div className="flex-1 min-w-0 py-1.5 sm:py-2">
                         <textarea
                             ref={textareaRef} 
                             value={message}   
@@ -249,7 +249,7 @@ export default function ChatInput({
                             disabled={disabled}
                             maxLength={maxLength}
                             rows={1}
-                            className="w-full bg-transparent text-[15px] sm:text-[16px] leading-[1.5] text-white placeholder-white/30 focus:outline-none resize-none overflow-y-auto min-h-[36px] max-h-[160px] px-1 scrollbar-hide selection:bg-[var(--ui-accent)]/30"     
+                            className="w-full bg-transparent text-[15px] sm:text-[16px] leading-tight pt-1 text-white placeholder-white/40 focus:outline-none resize-none overflow-y-auto max-h-[160px] px-1 scrollbar-hide selection:bg-[var(--ui-accent)]/30"     
                         />
                     </div>
 
