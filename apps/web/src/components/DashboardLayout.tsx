@@ -452,7 +452,7 @@ export default function DashboardLayout({
                             >
                                 <div className="flex items-center justify-between px-6 pb-4 pt-[max(env(safe-area-inset-top),16px)] border-b border-[var(--ui-border)]">
                                     <span className="font-bold text-[var(--ui-text)]">Menu</span>
-                                    <button onClick={() => setSidebarOpen(false)} aria-label="Close menu" className="p-2 -mr-2 text-zinc-500 hover:text-[var(--ui-text)]">
+                                    <button onClick={() => setSidebarOpen(false)} aria-label="Close menu" className="p-2 -mr-2 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]">
                                         <X className="h-5 w-5" />
                                     </button>
                                 </div>

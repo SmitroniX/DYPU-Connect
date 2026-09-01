@@ -33,7 +33,7 @@ interface Report {
 const STATUS_CONFIG: Record<ReportStatus, { label: string; color: string; icon: React.ElementType }> = {
     pending: { label: 'Pending', color: 'bg-amber-500/15 text-amber-400 ring-amber-500/20', icon: Clock },
     resolved: { label: 'Resolved', color: 'bg-emerald-500/15 text-emerald-400 ring-emerald-500/20', icon: CheckCircle },
-    dismissed: { label: 'Dismissed', color: 'bg-zinc-500/15 text-zinc-400 ring-zinc-500/20', icon: XCircle },
+    dismissed: { label: 'Dismissed', color: 'bg-zinc-500/15 text-[var(--ui-text-secondary)] ring-zinc-500/20', icon: XCircle },
 };
 
 const CONTENT_TYPE_LABELS: Record<ContentType, string> = {

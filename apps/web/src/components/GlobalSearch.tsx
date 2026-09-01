@@ -127,16 +127,16 @@ export default function GlobalSearch() {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -20 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
+                        className="relative w-full max-w-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] rounded-2xl shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
                     >
                         {/* Search Input Bar */}
-                        <div className="flex items-center px-4 py-3 border-b border-zinc-800">
-                            <Search className="w-5 h-5 text-zinc-400 shrink-0" />
+                        <div className="flex items-center px-4 py-3 border-b border-[var(--ui-border)]">
+                            <Search className="w-5 h-5 text-[var(--ui-text-secondary)] shrink-0" />
                             <input
                                 ref={inputRef}
                                 type="text"
                                 placeholder="Search users and groups..."
-                                className="flex-1 bg-transparent border-none outline-none px-3 text-zinc-100 placeholder-zinc-500 font-medium text-base"
+                                className="flex-1 bg-transparent border-none outline-none px-3 text-[var(--ui-text)] placeholder-zinc-500 font-medium text-base"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -149,7 +149,7 @@ export default function GlobalSearch() {
                             )}
                             <button 
                                 onClick={() => setSearchModalOpen(false)}
-                                className="p-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                                className="p-1 rounded-md text-[var(--ui-text-secondary)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-elevated)] transition-colors"
                                 title="Close (Esc)"
                             >
                                 <X className="w-5 h-5" />
@@ -168,7 +168,7 @@ export default function GlobalSearch() {
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
-                                        className="px-4 py-12 text-center text-zinc-500 text-sm"
+                                        className="px-4 py-12 text-center text-[var(--ui-text-muted)] text-sm"
                                     >
                                         Type to start searching across DYPU Connect.
                                         <div className="mt-2 text-xs opacity-60">Press Ctrl+K (or Cmd+K) anywhere to search.</div>
@@ -181,7 +181,7 @@ export default function GlobalSearch() {
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
-                                        className="px-4 py-6 text-center text-zinc-500 text-sm"
+                                        className="px-4 py-6 text-center text-[var(--ui-text-muted)] text-sm"
                                     >
                                         Keep typing...
                                     </motion.div>
@@ -193,7 +193,7 @@ export default function GlobalSearch() {
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
-                                        className="px-4 py-12 text-center text-zinc-500 text-sm"
+                                        className="px-4 py-12 text-center text-[var(--ui-text-muted)] text-sm"
                                     >
                                         No results found for &quot;{searchQuery}&quot;
                                     </motion.div>
@@ -208,7 +208,7 @@ export default function GlobalSearch() {
                                         exit={{ opacity: 0, y: 10 }}
                                         className="space-y-1"
                                     >
-                                        <div className="px-3 py-1 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                                        <div className="px-3 py-1 text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">
                                             Users
                                         </div>
                                         {userResults.map((user) => (
@@ -216,7 +216,7 @@ export default function GlobalSearch() {
                                                 layout
                                                 key={user.userId}
                                                 onClick={() => handleUserClick(user.userId)}
-                                                className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-zinc-800/50 transition-colors group"
+                                                className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-[var(--ui-bg-elevated)] transition-colors group"
                                             >
                                                 {user.profileImage ? (
                                                     <Image
@@ -224,19 +224,19 @@ export default function GlobalSearch() {
                                                         alt={user.name}
                                                         width={36}
                                                         height={36}
-                                                        className="rounded-full object-cover w-9 h-9 border border-zinc-800 group-hover:border-zinc-700"
+                                                        className="rounded-full object-cover w-9 h-9 border border-[var(--ui-border)] group-hover:border-[var(--ui-border)]"
                                                     />
                                                 ) : (
-                                                    <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                                                        <UserIcon className="w-4 h-4 text-zinc-400" />
+                                                    <div className="w-9 h-9 rounded-full bg-[var(--ui-bg-elevated)] flex items-center justify-center border border-[var(--ui-border)]">
+                                                        <UserIcon className="w-4 h-4 text-[var(--ui-text-secondary)]" />
                                                     </div>
                                                 )}
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="text-sm font-medium text-zinc-200 truncate group-hover:text-white transition-colors">
+                                                    <div className="text-sm font-medium text-[var(--ui-text)] truncate group-hover:text-white transition-colors">
                                                         {user.name}
                                                     </div>
                                                     {user.field && (
-                                                        <div className="text-xs text-zinc-500 truncate">
+                                                        <div className="text-xs text-[var(--ui-text-muted)] truncate">
                                                             {user.field} • {user.year}
                                                         </div>
                                                     )}
@@ -255,7 +255,7 @@ export default function GlobalSearch() {
                                         exit={{ opacity: 0, y: 10 }}
                                         className="space-y-1"
                                     >
-                                        <div className="px-3 py-1 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                                        <div className="px-3 py-1 text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">
                                             Groups
                                         </div>
                                         {groupResults.map((group: any) => (
@@ -263,7 +263,7 @@ export default function GlobalSearch() {
                                                 layout
                                                 key={group.id}
                                                 onClick={() => handleGroupClick(group.id)}
-                                                className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-zinc-800/50 transition-colors group"
+                                                className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-[var(--ui-bg-elevated)] transition-colors group"
                                             >
                                                 {group.avatarUrl ? (
                                                     <Image
@@ -271,19 +271,19 @@ export default function GlobalSearch() {
                                                         alt={group.name}
                                                         width={36}
                                                         height={36}
-                                                        className="rounded-md object-cover w-9 h-9 border border-zinc-800 group-hover:border-zinc-700"
+                                                        className="rounded-md object-cover w-9 h-9 border border-[var(--ui-border)] group-hover:border-[var(--ui-border)]"
                                                     />
                                                 ) : (
-                                                    <div className="w-9 h-9 rounded-md bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                                                        <Users className="w-4 h-4 text-zinc-400" />
+                                                    <div className="w-9 h-9 rounded-md bg-[var(--ui-bg-elevated)] flex items-center justify-center border border-[var(--ui-border)]">
+                                                        <Users className="w-4 h-4 text-[var(--ui-text-secondary)]" />
                                                     </div>
                                                 )}
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="text-sm font-medium text-zinc-200 truncate group-hover:text-white transition-colors">
+                                                    <div className="text-sm font-medium text-[var(--ui-text)] truncate group-hover:text-white transition-colors">
                                                         {group.name}
                                                     </div>
                                                     {group.type && (
-                                                        <div className="text-xs text-zinc-500 truncate capitalize">
+                                                        <div className="text-xs text-[var(--ui-text-muted)] truncate capitalize">
                                                             {group.type} {group.memberIds ? `• ${group.memberIds.length} members` : ''}
                                                         </div>
                                                     )}

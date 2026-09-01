@@ -126,7 +126,7 @@ function SectionHeader({ icon: Icon, title, subtitle, action }: { icon: React.El
                     <Icon className="relative z-10 h-6 w-6 text-[var(--ui-accent)] group-hover:scale-110 transition-transform duration-500" />
                 </div>
                 <div>
-                    <h2 className="text-xl font-bold text-white tracking-tight">{title}</h2>
+                    <h2 className="text-xl font-bold text-[var(--ui-text)] tracking-tight">{title}</h2>
                     <p className="text-sm font-medium text-[var(--ui-text-muted)] mt-0.5">{subtitle}</p>
                 </div>
             </div>
@@ -146,10 +146,10 @@ function GlassCard({ children, className = '' }: { children: React.ReactNode; cl
 function InputField({ label, id, ...props }: { label: string; id: string } & React.InputHTMLAttributes<HTMLInputElement>) {
     return (
         <div className="group">
-            <label htmlFor={id} className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2 transition-colors group-focus-within:text-blue-400">{label}</label>
+            <label htmlFor={id} className="block text-[11px] font-bold uppercase tracking-wider text-[var(--ui-text-muted)] mb-2 transition-colors group-focus-within:text-blue-400">{label}</label>
             <input
                 id={id}
-                className="w-full rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-zinc-600"
+                className="w-full rounded-xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] px-4 py-3 text-sm text-[var(--ui-text)] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-[var(--ui-text-muted)]"
                 {...props}
             />
         </div>
@@ -159,16 +159,16 @@ function InputField({ label, id, ...props }: { label: string; id: string } & Rea
 function SelectField({ label, id, children, ...props }: { label: string; id: string; children: React.ReactNode } & React.SelectHTMLAttributes<HTMLSelectElement>) {
     return (
         <div className="group">
-            <label htmlFor={id} className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2 transition-colors group-focus-within:text-blue-400">{label}</label>
+            <label htmlFor={id} className="block text-[11px] font-bold uppercase tracking-wider text-[var(--ui-text-muted)] mb-2 transition-colors group-focus-within:text-blue-400">{label}</label>
             <div className="relative">
                 <select
                     id={id}
-                    className="w-full rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all appearance-none"
+                    className="w-full rounded-xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] px-4 py-3 text-sm text-[var(--ui-text)] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all appearance-none"
                     {...props}
                 >
                     {children}
                 </select>
-                <ChevronUp className="h-4 w-4 text-zinc-500 absolute right-4 top-1/2 -translate-y-1/2 rotate-180 pointer-events-none" />
+                <ChevronUp className="h-4 w-4 text-[var(--ui-text-muted)] absolute right-4 top-1/2 -translate-y-1/2 rotate-180 pointer-events-none" />
             </div>
         </div>
     );
@@ -177,7 +177,7 @@ function SelectField({ label, id, children, ...props }: { label: string; id: str
 function PrimaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
     return (
         <button
-            className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-bold text-[var(--ui-text)] shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             {...props}
         >
             <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -189,7 +189,7 @@ function PrimaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLBu
 function SecondaryButton({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
     return (
         <button
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700/50 bg-zinc-800/50 px-5 py-3 text-sm font-bold text-zinc-300 transition-all duration-300 hover:bg-zinc-700 hover:text-white hover:border-zinc-600 disabled:opacity-40 disabled:cursor-not-allowed backdrop-blur-md"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-bg-elevated)] px-5 py-3 text-sm font-bold text-[var(--ui-text-secondary)] transition-all duration-300 hover:bg-[var(--ui-bg-hover)] hover:text-[var(--ui-text)] hover:border-zinc-600 disabled:opacity-40 disabled:cursor-not-allowed backdrop-blur-md"
             {...props}
         >
             {children}
@@ -216,7 +216,7 @@ function TabBar({ activeTab, setActiveTab, storiesCount, highlightsCount, galler
     ];
 
     return (
-        <div className="flex gap-2 p-1.5 rounded-2xl bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/80 overflow-x-auto custom-scrollbar shadow-inner relative z-10">
+        <div className="flex gap-2 p-1.5 rounded-2xl bg-[var(--ui-bg-surface)] backdrop-blur-xl border border-[var(--ui-border)] overflow-x-auto custom-scrollbar shadow-inner relative z-10">
             {tabs.map(({ key, label, icon: TabIcon, count }) => {
                 const isActive = activeTab === key;
                 return (
@@ -225,12 +225,12 @@ function TabBar({ activeTab, setActiveTab, storiesCount, highlightsCount, galler
                         onClick={() => setActiveTab(key)}
                         className={`relative flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all duration-300 whitespace-nowrap overflow-hidden group ${
                             isActive
-                                ? 'text-white'
-                                : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50'
+                                ? 'text-[var(--ui-text)]'
+                                : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-elevated)]'
                         }`}
                     >
                         {isActive && (
-                            <div className="absolute inset-0 bg-zinc-800/80 shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-xl" />
+                            <div className="absolute inset-0 bg-[var(--ui-bg-elevated)] shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-xl" />
                         )}
                         <span className="relative z-10 flex items-center gap-2">
                             <TabIcon className={`h-4 w-4 ${isActive ? 'text-blue-400' : 'group-hover:text-blue-400/70 transition-colors'}`} />
@@ -238,7 +238,7 @@ function TabBar({ activeTab, setActiveTab, storiesCount, highlightsCount, galler
                         </span>
                         {count !== undefined && count > 0 && (
                             <span className={`relative z-10 ml-1 rounded-full px-2 py-0.5 text-[10px] font-black tracking-wider ${
-                                isActive ? 'bg-blue-500/20 text-blue-300' : 'bg-zinc-800 text-zinc-400'
+                                isActive ? 'bg-blue-500/20 text-blue-300' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text-secondary)]'
                             }`}>
                                 {count}
                             </span>
@@ -533,7 +533,7 @@ export default function ProfilePage() {
                         
                         {/* Encryption badge on banner */}
                         {userProfile.encryptionEnabled && (
-                            <div className="absolute top-4 right-4 flex items-center gap-1.5 rounded-full bg-zinc-950/50 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                            <div className="absolute top-4 right-4 flex items-center gap-1.5 rounded-full bg-[var(--ui-bg-surface)] backdrop-blur-md px-3 py-1.5 text-xs font-bold text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                                 <ShieldCheck className="h-4 w-4" /> Encrypted
                             </div>
                         )}
@@ -547,7 +547,7 @@ export default function ProfilePage() {
                                 {/* The glowing ring background effect */}
                                 <div className="absolute -inset-1 rounded-full bg-linear-to-br from-violet-500 via-fuchsia-500 to-blue-500 opacity-70 blur-md group-hover:opacity-100 transition-opacity duration-500" />
                                 
-                                <div className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-full p-2 bg-zinc-950 z-10">
+                                <div className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-full p-2 bg-[var(--ui-bg-base)] z-10">
                                     {/* SVG Progress Ring */}
                                     <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 100 100">
                                         <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="3" />
@@ -567,7 +567,7 @@ export default function ProfilePage() {
                                         </defs>
                                     </svg>
                                     
-                                    <div className="w-full h-full rounded-full overflow-hidden bg-zinc-800">
+                                    <div className="w-full h-full rounded-full overflow-hidden bg-[var(--ui-bg-elevated)]">
                                         <img
                                             src={resolvedPreviewImage}
                                             alt={userProfile.name}
@@ -577,7 +577,7 @@ export default function ProfilePage() {
                                     </div>
                                     
                                     {/* Completion tooltip */}
-                                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 text-zinc-200 text-[10px] font-black px-3 py-1 rounded-full shadow-lg whitespace-nowrap z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] text-[var(--ui-text)] text-[10px] font-black px-3 py-1 rounded-full shadow-lg whitespace-nowrap z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                                         {profileCompletion}% Complete
                                     </div>
                                 </div>
@@ -586,7 +586,7 @@ export default function ProfilePage() {
                             {/* Name & Details */}
                             <div className="flex-1 text-center sm:text-left space-y-3 pb-2 w-full">
                                 <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-3">
-                                    <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight drop-shadow-md">
+                                    <h1 className="text-3xl sm:text-4xl font-black text-[var(--ui-text)] tracking-tight drop-shadow-md">
                                         {userProfile.name}
                                     </h1>
                                     <div className="flex gap-2">
@@ -601,7 +601,7 @@ export default function ProfilePage() {
                                         )}
                                         <button
                                             onClick={() => router.replace('/profile/edit')}
-                                            className="ml-2 flex flex-none items-center gap-1.5 px-4 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition-colors whitespace-nowrap border border-zinc-700 shadow-sm"
+                                            className="ml-2 flex flex-none items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[var(--ui-bg-elevated)] hover:bg-[var(--ui-bg-hover)] text-[var(--ui-text)] text-xs font-bold transition-colors whitespace-nowrap border border-[var(--ui-border)] shadow-sm"
                                         >                                            <Edit3 className="h-3.5 w-3.5" /> Edit Profile
                                         </button>
                                     </div>
@@ -609,26 +609,26 @@ export default function ProfilePage() {
 
                                 {/* Bio */}
                                 {userProfile.bio && (
-                                    <p className="text-sm text-zinc-300 max-w-2xl leading-relaxed">
+                                    <p className="text-sm text-[var(--ui-text-secondary)] max-w-2xl leading-relaxed">
                                         {userProfile.bio}
                                     </p>
                                 )}
 
                                 {/* Academic Glass Cards */}
                                 <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-center sm:justify-start gap-3 pt-2">
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-4 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 backdrop-blur-md text-left">
-                                        <span className="text-[10px] text-zinc-500 uppercase font-black tracking-wider">Field</span>
-                                        <span className="text-sm font-bold text-zinc-200">{userProfile.field}</span>
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-4 py-2.5 rounded-xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] backdrop-blur-md text-left">
+                                        <span className="text-[10px] text-[var(--ui-text-muted)] uppercase font-black tracking-wider">Field</span>
+                                        <span className="text-sm font-bold text-[var(--ui-text)]">{userProfile.field}</span>
                                     </div>
                                     {userProfile.branch && (
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-4 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 backdrop-blur-md text-left">
-                                            <span className="text-[10px] text-zinc-500 uppercase font-black tracking-wider">Branch</span>
-                                            <span className="text-sm font-bold text-zinc-200">{userProfile.branch}</span>
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-4 py-2.5 rounded-xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] backdrop-blur-md text-left">
+                                            <span className="text-[10px] text-[var(--ui-text-muted)] uppercase font-black tracking-wider">Branch</span>
+                                            <span className="text-sm font-bold text-[var(--ui-text)]">{userProfile.branch}</span>
                                         </div>
                                     )}
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-4 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 backdrop-blur-md text-left">
-                                        <span className="text-[10px] text-zinc-500 uppercase font-black tracking-wider">Year/Div</span>
-                                        <span className="text-sm font-bold text-zinc-200">{userProfile.year} • {userProfile.division}</span>
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-4 py-2.5 rounded-xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] backdrop-blur-md text-left">
+                                        <span className="text-[10px] text-[var(--ui-text-muted)] uppercase font-black tracking-wider">Year/Div</span>
+                                        <span className="text-sm font-bold text-[var(--ui-text)]">{userProfile.year} • {userProfile.division}</span>
                                     </div>
                                 </div>
 
@@ -637,19 +637,19 @@ export default function ProfilePage() {
                                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-2">
                                         {userProfile.socialLinks.instagram && (
                                             <a href={`https://instagram.com/${userProfile.socialLinks.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer"
-                                               className="flex items-center gap-2 rounded-xl bg-pink-500/10 border border-pink-500/20 px-3 py-1.5 text-xs font-bold text-pink-400 hover:bg-pink-500 hover:text-white transition-all duration-300">
+                                               className="flex items-center gap-2 rounded-xl bg-pink-500/10 border border-pink-500/20 px-3 py-1.5 text-xs font-bold text-pink-400 hover:bg-pink-500 hover:text-[var(--ui-text)] transition-all duration-300">
                                                 <Instagram className="h-4 w-4" /> {userProfile.socialLinks.instagram}
                                             </a>
                                         )}
                                         {userProfile.socialLinks.linkedin && (
                                             <a href={userProfile.socialLinks.linkedin.startsWith('http') ? userProfile.socialLinks.linkedin : `https://linkedin.com/in/${userProfile.socialLinks.linkedin}`} target="_blank" rel="noopener noreferrer"
-                                               className="flex items-center gap-2 rounded-xl bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 text-xs font-bold text-blue-400 hover:bg-blue-600 hover:text-white transition-all duration-300">
+                                               className="flex items-center gap-2 rounded-xl bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 text-xs font-bold text-blue-400 hover:bg-blue-600 hover:text-[var(--ui-text)] transition-all duration-300">
                                                 <Linkedin className="h-4 w-4" /> LinkedIn
                                             </a>
                                         )}
                                         {userProfile.socialLinks.github && (
                                             <a href={userProfile.socialLinks.github.startsWith('http') ? userProfile.socialLinks.github : `https://github.com/${userProfile.socialLinks.github}`} target="_blank" rel="noopener noreferrer"
-                                               className="flex items-center gap-2 rounded-xl bg-zinc-800 border border-zinc-700 px-3 py-1.5 text-xs font-bold text-zinc-300 hover:bg-white hover:text-black transition-all duration-300">
+                                               className="flex items-center gap-2 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] px-3 py-1.5 text-xs font-bold text-[var(--ui-text-secondary)] hover:bg-white hover:text-black transition-all duration-300">
                                                 <Github className="h-4 w-4" /> {userProfile.socialLinks.github}
                                             </a>
                                         )}
@@ -659,15 +659,15 @@ export default function ProfilePage() {
                         </div>
 
                         {/* Badges / Stats Footer */}
-                        <div className="mt-8 pt-6 border-t border-zinc-800/80 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div className="mt-8 pt-6 border-t border-[var(--ui-border)] flex flex-col sm:flex-row items-center justify-between gap-6">
                             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
-                                <div className="flex items-center gap-2 text-zinc-400 text-sm bg-zinc-900/50 px-4 py-2 rounded-xl border border-zinc-800">
+                                <div className="flex items-center gap-2 text-[var(--ui-text-secondary)] text-sm bg-[var(--ui-bg-surface)]/50 px-4 py-2 rounded-xl border border-[var(--ui-border)]">
                                     <Mail className="h-4 w-4" /> {userProfile.email}
                                 </div>
-                                <div className="flex items-center gap-2 text-zinc-400 text-sm bg-zinc-900/50 px-4 py-2 rounded-xl border border-zinc-800">
+                                <div className="flex items-center gap-2 text-[var(--ui-text-secondary)] text-sm bg-[var(--ui-bg-surface)]/50 px-4 py-2 rounded-xl border border-[var(--ui-border)]">
                                     <User className="h-4 w-4" /> {userProfile.gender.charAt(0).toUpperCase() + userProfile.gender.slice(1)}
                                 </div>
-                                <div className="flex items-center gap-2 text-zinc-500 text-xs pl-2">
+                                <div className="flex items-center gap-2 text-[var(--ui-text-muted)] text-xs pl-2">
                                     Member since {createdOn}
                                 </div>
                             </div>
@@ -720,13 +720,13 @@ export default function ProfilePage() {
 
                         {/* Add Story Form — Drive upload only */}
                         {showAddStory && (
-                            <form className="mt-5 p-5 rounded-3xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md shadow-inner space-y-4 animate-[fade-in-up_0.2s_ease-out] relative overflow-hidden" onSubmit={addStory}>
+                            <form className="mt-5 p-5 rounded-3xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] backdrop-blur-md shadow-inner space-y-4 animate-[fade-in-up_0.2s_ease-out] relative overflow-hidden" onSubmit={addStory}>
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-fuchsia-500/5 rounded-full filter blur-[50px] pointer-events-none" />
                                 {storyDraft.imageSource && (
                                     <div className="relative w-24 h-32 rounded-lg overflow-hidden border border-(--ui-border)">
                                         <img src={storyDraft.imageSource} alt="Story preview" className="h-full w-full object-cover" onError={handleImgError} />
                                         <button type="button" onClick={() => setStoryDraft((p) => ({ ...p, imageSource: '' }))} className="absolute top-1 right-1 h-5 w-5 rounded bg-black/60 flex items-center justify-center">
-                                            <X className="h-3 w-3 text-white" />
+                                            <X className="h-3 w-3 text-[var(--ui-text)]" />
                                         </button>
                                     </div>
                                 )}
@@ -756,9 +756,9 @@ export default function ProfilePage() {
                         {/* Stories Grid */}
                         <div className="mt-5">
                             {activeStories.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-16 text-center rounded-4xl bg-zinc-900/30 border border-zinc-800/50 border-dashed backdrop-blur-sm">
-                                    <div className="h-16 w-16 rounded-2xl bg-zinc-800/50 flex items-center justify-center mb-4">
-                                        <Clock className="h-8 w-8 text-zinc-500" />
+                                <div className="flex flex-col items-center justify-center py-16 text-center rounded-4xl bg-[var(--ui-bg-surface)]/30 border border-[var(--ui-border)]/50 border-dashed backdrop-blur-sm">
+                                    <div className="h-16 w-16 rounded-2xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
+                                        <Clock className="h-8 w-8 text-[var(--ui-text-muted)]" />
                                     </div>
                                     <p className="text-sm text-(--ui-text-muted)">No active stories</p>
                                     <p className="text-xs text-(--ui-text-muted) mt-1">Stories disappear after 24 hours</p>
@@ -767,20 +767,20 @@ export default function ProfilePage() {
                                 <div className="flex gap-4 overflow-x-auto pb-2">
                                     {activeStories.map((story) => (
                                         <div key={story.id} className="group relative min-w-35 max-w-35 shrink-0">
-                                            <div className="relative overflow-hidden rounded-4xl ring-1 ring-zinc-800 bg-zinc-950/50 shadow-2xl transition-all duration-300 hover:ring-fuchsia-500/50 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] hover:-translate-y-1">
+                                            <div className="relative overflow-hidden rounded-4xl ring-1 ring-zinc-800 bg-[var(--ui-bg-surface)] shadow-2xl transition-all duration-300 hover:ring-fuchsia-500/50 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] hover:-translate-y-1">
                                                 <img
                                                     src={story.imageUrl}
                                                     alt="Story"
                                                     onError={handleImgError}
-                                                    className="h-50 w-full object-cover object-center bg-zinc-900 transition-transform duration-500 group-hover:scale-110"
+                                                    className="h-50 w-full object-cover object-center bg-[var(--ui-bg-surface)] transition-transform duration-500 group-hover:scale-110"
                                                 />
                                                 <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
                                                 <div className="absolute bottom-2 left-2 right-2">
-                                                    <div className="flex items-center gap-1 text-[10px] text-white/80">
+                                                    <div className="flex items-center gap-1 text-[10px] text-[var(--ui-text)]/80">
                                                         <Clock className="h-3 w-3" />
                                                         {formatDistanceToNowStrict(new Date(story.expiresAt))}
                                                     </div>
-                                                    <div className="flex items-center gap-1 text-[10px] text-white/60 mt-0.5">
+                                                    <div className="flex items-center gap-1 text-[10px] text-[var(--ui-text)]/60 mt-0.5">
                                                         {story.visibility === 'public' ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                                                         {visibilityLabel(story.visibility)}
                                                     </div>
@@ -790,7 +790,7 @@ export default function ProfilePage() {
                                                     className="absolute top-2 right-2 h-7 w-7 rounded-lg bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all duration-200 shadow-lg"
                                                     title="Remove story"
                                                 >
-                                                    <X className="h-3.5 w-3.5 text-white" />
+                                                    <X className="h-3.5 w-3.5 text-[var(--ui-text)]" />
                                                 </button>
                                             </div>
                                         </div>
@@ -817,7 +817,7 @@ export default function ProfilePage() {
                         />
 
                         {showAddHighlight && (
-                            <form className="mt-5 p-5 rounded-3xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md shadow-inner space-y-4 animate-[fade-in-up_0.2s_ease-out] relative overflow-hidden" onSubmit={addHighlight}>
+                            <form className="mt-5 p-5 rounded-3xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] backdrop-blur-md shadow-inner space-y-4 animate-[fade-in-up_0.2s_ease-out] relative overflow-hidden" onSubmit={addHighlight}>
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full filter blur-[50px] pointer-events-none" />
                                 <InputField
                                     label="Title"
@@ -830,7 +830,7 @@ export default function ProfilePage() {
                                     <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-(--ui-border)">
                                         <img src={highlightDraft.coverSource} alt="Cover preview" className="h-full w-full object-cover" onError={handleImgError} />
                                         <button type="button" onClick={() => setHighlightDraft((p) => ({ ...p, coverSource: '' }))} className="absolute top-1 right-1 h-5 w-5 rounded bg-black/60 flex items-center justify-center">
-                                            <X className="h-3 w-3 text-white" />
+                                            <X className="h-3 w-3 text-[var(--ui-text)]" />
                                         </button>
                                     </div>
                                 )}
@@ -860,9 +860,9 @@ export default function ProfilePage() {
 
                         <div className="mt-5">
                             {userProfile.highlights.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-16 text-center rounded-4xl bg-zinc-900/30 border border-zinc-800/50 border-dashed backdrop-blur-sm">
-                                    <div className="h-16 w-16 rounded-2xl bg-zinc-800/50 flex items-center justify-center mb-4">
-                                        <Star className="h-8 w-8 text-zinc-500" />
+                                <div className="flex flex-col items-center justify-center py-16 text-center rounded-4xl bg-[var(--ui-bg-surface)]/30 border border-[var(--ui-border)]/50 border-dashed backdrop-blur-sm">
+                                    <div className="h-16 w-16 rounded-2xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
+                                        <Star className="h-8 w-8 text-[var(--ui-text-muted)]" />
                                     </div>
                                     <p className="text-sm text-(--ui-text-muted)">No highlights yet</p>
                                     <p className="text-xs text-(--ui-text-muted) mt-1">Pin your best moments here</p>
@@ -871,7 +871,7 @@ export default function ProfilePage() {
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                     {userProfile.highlights.map((highlight) => (
                                         <div key={highlight.id} className="group relative">
-                                            <div className="relative overflow-hidden rounded-4xl bg-zinc-950/50 ring-1 ring-zinc-800 shadow-2xl transition-all duration-300 hover:ring-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:-translate-y-1">
+                                            <div className="relative overflow-hidden rounded-4xl bg-[var(--ui-bg-surface)] ring-1 ring-zinc-800 shadow-2xl transition-all duration-300 hover:ring-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:-translate-y-1">
                                                 <img
                                                     src={highlight.coverImageUrl}
                                                     alt={highlight.title}
@@ -880,8 +880,8 @@ export default function ProfilePage() {
                                                 />
                                                 <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
                                                 <div className="absolute bottom-2 left-2 right-2">
-                                                    <p className="text-sm font-semibold text-white truncate">{highlight.title}</p>
-                                                    <div className="flex items-center gap-1 text-[10px] text-white/60 mt-0.5">
+                                                    <p className="text-sm font-semibold text-[var(--ui-text)] truncate">{highlight.title}</p>
+                                                    <div className="flex items-center gap-1 text-[10px] text-[var(--ui-text)]/60 mt-0.5">
                                                         {highlight.visibility === 'public' ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                                                         {visibilityLabel(highlight.visibility)}
                                                     </div>
@@ -891,7 +891,7 @@ export default function ProfilePage() {
                                                     className="absolute top-2 right-2 h-7 w-7 rounded-lg bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all duration-200 shadow-lg"
                                                     title="Remove highlight"
                                                 >
-                                                    <Trash2 className="h-3.5 w-3.5 text-white" />
+                                                    <Trash2 className="h-3.5 w-3.5 text-[var(--ui-text)]" />
                                                 </button>
                                             </div>
                                         </div>
@@ -918,13 +918,13 @@ export default function ProfilePage() {
                         />
 
                         {showAddGallery && (
-                            <form className="mt-5 p-5 rounded-3xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md shadow-inner space-y-4 animate-[fade-in-up_0.2s_ease-out] relative overflow-hidden" onSubmit={addGalleryItem}>
+                            <form className="mt-5 p-5 rounded-3xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] backdrop-blur-md shadow-inner space-y-4 animate-[fade-in-up_0.2s_ease-out] relative overflow-hidden" onSubmit={addGalleryItem}>
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full filter blur-[50px] pointer-events-none" />
                                 {galleryDraft.imageSource && (
                                     <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-(--ui-border)">
                                         <img src={galleryDraft.imageSource} alt="Gallery preview" className="h-full w-full object-cover" onError={handleImgError} />
                                         <button type="button" onClick={() => setGalleryDraft((p) => ({ ...p, imageSource: '' }))} className="absolute top-1 right-1 h-5 w-5 rounded bg-black/60 flex items-center justify-center">
-                                            <X className="h-3 w-3 text-white" />
+                                            <X className="h-3 w-3 text-[var(--ui-text)]" />
                                         </button>
                                     </div>
                                 )}
@@ -962,9 +962,9 @@ export default function ProfilePage() {
 
                         <div className="mt-5">
                             {userProfile.gallery.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-16 text-center rounded-4xl bg-zinc-900/30 border border-zinc-800/50 border-dashed backdrop-blur-sm">
-                                    <div className="h-16 w-16 rounded-2xl bg-zinc-800/50 flex items-center justify-center mb-4">
-                                        <Grid3X3 className="h-8 w-8 text-zinc-500" />
+                                <div className="flex flex-col items-center justify-center py-16 text-center rounded-4xl bg-[var(--ui-bg-surface)]/30 border border-[var(--ui-border)]/50 border-dashed backdrop-blur-sm">
+                                    <div className="h-16 w-16 rounded-2xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
+                                        <Grid3X3 className="h-8 w-8 text-[var(--ui-text-muted)]" />
                                     </div>
                                     <p className="text-sm text-(--ui-text-muted)">No photos yet</p>
                                     <p className="text-xs text-(--ui-text-muted) mt-1">Start building your gallery</p>
@@ -974,7 +974,7 @@ export default function ProfilePage() {
                                     {userProfile.gallery.map((item) => (
                                         <div key={item.id} className="group relative">
                                             <div
-                                                className="relative overflow-hidden rounded-4xl bg-zinc-950/50 ring-1 ring-zinc-800 shadow-2xl transition-all duration-300 cursor-pointer hover:ring-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                                                className="relative overflow-hidden rounded-4xl bg-[var(--ui-bg-surface)] ring-1 ring-zinc-800 shadow-2xl transition-all duration-300 cursor-pointer hover:ring-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)]"
                                                 onClick={() => setGalleryPreview(galleryPreview === item.id ? null : item.id)}
                                             >
                                                 <img
@@ -989,9 +989,9 @@ export default function ProfilePage() {
 
                                                 <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                                                     {item.caption && (
-                                                        <p className="text-sm text-white font-medium truncate">{item.caption}</p>
+                                                        <p className="text-sm text-[var(--ui-text)] font-medium truncate">{item.caption}</p>
                                                     )}
-                                                    <div className="flex items-center gap-1 text-[10px] text-white/60 mt-0.5">
+                                                    <div className="flex items-center gap-1 text-[10px] text-[var(--ui-text)]/60 mt-0.5">
                                                         {item.visibility === 'public' ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                                                         {visibilityLabel(item.visibility)}
                                                     </div>
@@ -1002,7 +1002,7 @@ export default function ProfilePage() {
                                                     className="absolute top-2 right-2 h-7 w-7 rounded-lg bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all duration-200 shadow-lg"
                                                     title="Remove photo"
                                                 >
-                                                    <Trash2 className="h-3.5 w-3.5 text-white" />
+                                                    <Trash2 className="h-3.5 w-3.5 text-[var(--ui-text)]" />
                                                 </button>
                                             </div>
                                         </div>

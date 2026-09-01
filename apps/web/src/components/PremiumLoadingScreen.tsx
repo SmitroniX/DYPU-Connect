@@ -29,7 +29,7 @@ export default function PremiumLoadingScreen() {
                 <div className="absolute w-24 h-24 rounded-full border border-fuchsia-500/20 border-l-fuchsia-400/80 animate-[spin_3s_linear_infinite_reverse]"></div>
                 
                 {/* Center Core */}
-                <div className="relative w-20 h-20 rounded-full bg-zinc-900 border border-zinc-800 shadow-[0_0_30px_rgba(59,130,246,0.2)] flex items-center justify-center overflow-hidden p-2">
+                <div className="relative w-20 h-20 rounded-full bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] shadow-[0_0_30px_rgba(59,130,246,0.2)] flex items-center justify-center overflow-hidden p-2">
                     <div className="absolute inset-0 bg-linear-to-tr from-blue-500/20 to-fuchsia-500/20 mix-blend-overlay"></div>
                     <Image 
                         src="/logo.png" 
@@ -50,7 +50,7 @@ export default function PremiumLoadingScreen() {
                     <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-bounce [animation-delay:-0.15s]"></span>
                     <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-bounce [animation-delay:-0.3s]"></span>
                 </div>
-                <p className="text-[10px] text-zinc-500 tracking-[0.2em] uppercase mt-4 font-medium">Initializing encrypted session</p>
+                <p className="text-[10px] text-[var(--ui-text-muted)] tracking-[0.2em] uppercase mt-4 font-medium">Initializing encrypted session</p>
             </div>
         </div>
     );

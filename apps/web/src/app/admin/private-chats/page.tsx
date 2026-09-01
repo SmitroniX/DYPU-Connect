@@ -223,9 +223,9 @@ export default function PrivateChatOversightPage() {
     };
 
     return (
-        <div className="h-full flex flex-col font-sans animate-[fade-in-up_0.4s_ease-out] bg-zinc-950 text-zinc-300">
+        <div className="h-full flex flex-col font-sans animate-[fade-in-up_0.4s_ease-out] bg-[var(--ui-bg-base)] text-[var(--ui-text-secondary)]">
                 {/* Header */}
-                <div className="px-6 py-5 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-900/50 backdrop-blur-md shrink-0">
+                <div className="px-6 py-5 border-b border-[var(--ui-border)] flex items-center justify-between bg-[var(--ui-bg-surface)] backdrop-blur-md shrink-0">
                     <div className="flex items-center gap-3 relative">
                         {/* Radioactive pulse effect behind icon */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-red-500/20 rounded-full blur-xl animate-pulse" />
@@ -236,7 +236,7 @@ export default function PrivateChatOversightPage() {
                             <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
                                 Private Chat Oversight
                             </h1>
-                            <p className="text-xs text-zinc-400 mt-0.5">
+                            <p className="text-xs text-[var(--ui-text-secondary)] mt-0.5">
                                 Classified deep-inspection of end-to-end encrypted user communications.
                             </p>
                         </div>
@@ -251,20 +251,20 @@ export default function PrivateChatOversightPage() {
                 <div className="flex-1 flex overflow-hidden">
                     
                     {/* Pane 1: Search & User Select */}
-                    <div className="w-80 border-r border-zinc-800/80 flex flex-col bg-zinc-900/40 shrink-0">
-                        <div className="p-4 border-b border-zinc-800/80 bg-zinc-900/80">
-                            <div className="flex items-center gap-2 mb-3 text-zinc-500 uppercase text-[10px] font-bold tracking-widest">
+                    <div className="w-80 border-r border-[var(--ui-border)] flex flex-col bg-[var(--ui-bg-surface)] shrink-0">
+                        <div className="p-4 border-b border-[var(--ui-border)] bg-[var(--ui-bg-surface)]">
+                            <div className="flex items-center gap-2 mb-3 text-[var(--ui-text-muted)] uppercase text-[10px] font-bold tracking-widest">
                                 <Search className="w-3 h-3" />
                                 User Selection
                             </div>
                             <form onSubmit={handleSearch} className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--ui-text-muted)]" />
                                 <input
                                     type="text"
                                     placeholder="Search users by email..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-9 pr-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all shadow-inner"
+                                    className="w-full pl-9 pr-4 py-2 bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] rounded-lg text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all shadow-inner"
                                 />
                             </form>
                         </div>
@@ -272,7 +272,7 @@ export default function PrivateChatOversightPage() {
                             {loadingUsers ? (
                                 <div className="p-4 flex justify-center"><LoadingSpinner variant="inline" /></div>
                             ) : users.length === 0 ? (
-                                <p className="p-4 text-center text-sm text-zinc-500">No users found.</p>
+                                <p className="p-4 text-center text-sm text-[var(--ui-text-muted)]">No users found.</p>
                             ) : (
                                 <div className="space-y-1">
                                     {users.map(u => (
@@ -282,7 +282,7 @@ export default function PrivateChatOversightPage() {
                                             className={`w-full text-left flex items-center gap-3 p-3 rounded-xl transition-all ${
                                                 selectedUser?.uid === u.uid 
                                                     ? 'bg-blue-500/10 ring-1 ring-blue-500/30 shadow-[inset_0_0_15px_rgba(59,130,246,0.05)]' 
-                                                    : 'hover:bg-zinc-900/80 border border-transparent hover:border-zinc-800/50'
+                                                    : 'hover:bg-[var(--ui-bg-surface)] border border-transparent hover:border-[var(--ui-border)]'
                                             }`}
                                         >
                                             <div className="relative">
@@ -294,8 +294,8 @@ export default function PrivateChatOversightPage() {
                                                 <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-zinc-950 ${u.status === 'online' ? 'bg-green-500' : 'bg-zinc-600'}`}></div>
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <p className={`text-sm font-semibold truncate ${selectedUser?.uid === u.uid ? 'text-blue-400' : 'text-zinc-200'}`}>{u.name}</p>
-                                                <p className="text-xs text-zinc-500 truncate">{u.email}</p>
+                                                <p className={`text-sm font-semibold truncate ${selectedUser?.uid === u.uid ? 'text-blue-400' : 'text-[var(--ui-text)]'}`}>{u.name}</p>
+                                                <p className="text-xs text-[var(--ui-text-muted)] truncate">{u.email}</p>
                                             </div>
                                         </button>
                                     ))}
@@ -305,29 +305,29 @@ export default function PrivateChatOversightPage() {
                     </div>
 
                     {/* Pane 2: Target User's Active Chats */}
-                    <div className="w-80 border-r border-zinc-800/80 flex flex-col bg-zinc-900/60 shrink-0">
-                        <div className="p-4 border-b border-zinc-800/80 bg-zinc-900/80">
+                    <div className="w-80 border-r border-[var(--ui-border)] flex flex-col bg-[var(--ui-bg-surface)] shrink-0">
+                        <div className="p-4 border-b border-[var(--ui-border)] bg-[var(--ui-bg-surface)]">
                             <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                                <MessageSquare className="h-4 w-4 text-zinc-400" />
+                                <MessageSquare className="h-4 w-4 text-[var(--ui-text-secondary)]" />
                                 Active Conversations
                             </h2>
                             {selectedUser && (
-                                <p className="text-xs text-zinc-500 mt-1 truncate">
+                                <p className="text-xs text-[var(--ui-text-muted)] mt-1 truncate">
                                     Intercepting <span className="text-blue-400 font-medium">{selectedUser.name}</span>
                                 </p>
                             )}
                             
                             {/* Filter Tabs */}
-                            <div className="flex gap-1 mt-4 p-1 bg-zinc-950 rounded-lg border border-zinc-800">
+                            <div className="flex gap-1 mt-4 p-1 bg-[var(--ui-bg-base)] rounded-lg border border-[var(--ui-border)]">
                                 <button
                                     onClick={() => setChatFilter('all')}
-                                    className={`flex-1 text-[11px] font-bold uppercase tracking-wider py-1.5 rounded-md transition-all ${chatFilter === 'all' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                    className={`flex-1 text-[11px] font-bold uppercase tracking-wider py-1.5 rounded-md transition-all ${chatFilter === 'all' ? 'bg-[var(--ui-bg-elevated)] text-white shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text-secondary)]'}`}
                                 >
                                     All Chats
                                 </button>
                                 <button
                                     onClick={() => setChatFilter('flagged')}
-                                    className={`flex-1 text-[11px] font-bold uppercase tracking-wider py-1.5 rounded-md transition-all flex items-center justify-center gap-1 ${chatFilter === 'flagged' ? 'bg-red-500/20 text-red-400 shadow-sm' : 'text-zinc-500 hover:text-red-400/70'}`}
+                                    className={`flex-1 text-[11px] font-bold uppercase tracking-wider py-1.5 rounded-md transition-all flex items-center justify-center gap-1 ${chatFilter === 'flagged' ? 'bg-red-500/20 text-red-400 shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-red-400/70'}`}
                                 >
                                     <ShieldAlert className="w-3 h-3" /> Flagged
                                 </button>
@@ -336,14 +336,14 @@ export default function PrivateChatOversightPage() {
                         
                         <div className="flex-1 overflow-y-auto p-2">
                             {!selectedUser ? (
-                                <div className="h-full flex flex-col items-center justify-center p-6 text-center text-zinc-600">
+                                <div className="h-full flex flex-col items-center justify-center p-6 text-center text-[var(--ui-text-muted)]">
                                     <UserIcon className="h-10 w-10 mb-3 opacity-20" />
                                     <p className="text-sm">Select a user to view their active chats.</p>
                                 </div>
                             ) : loadingChats ? (
                                 <div className="p-4 flex justify-center"><LoadingSpinner variant="inline" /></div>
                             ) : userChats.length === 0 ? (
-                                <p className="p-4 text-center text-sm text-zinc-500">This user has no private chats.</p>
+                                <p className="p-4 text-center text-sm text-[var(--ui-text-muted)]">This user has no private chats.</p>
                             ) : (
                                 <div className="space-y-1">
                                     {userChats.map(chat => {
@@ -362,24 +362,24 @@ export default function PrivateChatOversightPage() {
                                                 onClick={() => setSelectedChat(chat)}
                                                 className={`w-full text-left flex gap-3 p-3 rounded-xl transition-all group ${
                                                     selectedChat?.id === chat.id 
-                                                        ? 'bg-zinc-800/80 ring-1 ring-zinc-700 shadow-sm' 
-                                                        : 'hover:bg-zinc-800/40 border border-transparent'
+                                                        ? 'bg-[var(--ui-bg-elevated)] ring-1 ring-zinc-700 shadow-sm' 
+                                                        : 'hover:bg-[var(--ui-bg-elevated)] border border-transparent'
                                                 }`}
                                             >
                                                 <div className="relative shrink-0">
-                                                    <img src={partnerImage} alt="" className="w-10 h-10 rounded-full object-cover border border-zinc-800/50" />
+                                                    <img src={partnerImage} alt="" className="w-10 h-10 rounded-full object-cover border border-[var(--ui-border)]" />
                                                     <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 ring-2 ring-zinc-900 shadow-sm">
                                                         <Activity className="w-2.5 h-2.5 text-white animate-pulse" />
                                                     </div>
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex justify-between items-baseline mb-0.5">
-                                                        <p className={`text-sm font-semibold truncate pr-2 ${selectedChat?.id === chat.id ? 'text-white' : 'text-zinc-200'}`}>
+                                                        <p className={`text-sm font-semibold truncate pr-2 ${selectedChat?.id === chat.id ? 'text-white' : 'text-[var(--ui-text)]'}`}>
                                                             {partnerName}
                                                         </p>
-                                                        <span className="text-[10px] text-zinc-500 shrink-0">{timeAgo}</span>
+                                                        <span className="text-[10px] text-[var(--ui-text-muted)] shrink-0">{timeAgo}</span>
                                                     </div>
-                                                    <p className="text-xs text-zinc-400 truncate opacity-80 decoration-red-400/30">
+                                                    <p className="text-xs text-[var(--ui-text-secondary)] truncate opacity-80 decoration-red-400/30">
                                                         {chat.lastMessage || 'New connection'}
                                                     </p>
                                                 </div>
@@ -392,9 +392,9 @@ export default function PrivateChatOversightPage() {
                     </div>
 
                     {/* Pane 3: Deep Inspection Stream */}
-                    <div className="flex-1 flex flex-col bg-zinc-950 relative">
+                    <div className="flex-1 flex flex-col bg-[var(--ui-bg-base)] relative">
                         {/* Top Header */}
-                        <div className="px-6 py-4 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-900/50 backdrop-blur-md shrink-0">
+                        <div className="px-6 py-4 border-b border-[var(--ui-border)] flex items-center justify-between bg-[var(--ui-bg-surface)] backdrop-blur-md shrink-0">
                             <div className="flex items-center gap-4">
                                 {selectedChat ? (
                                     <>
@@ -402,12 +402,12 @@ export default function PrivateChatOversightPage() {
                                             <Activity className="w-3.5 h-3.5 animate-pulse" />
                                             LIVE INTERCEPT
                                         </div>
-                                        <p className="text-xs text-zinc-400 flex items-center gap-1 font-mono">
+                                        <p className="text-xs text-[var(--ui-text-secondary)] flex items-center gap-1 font-mono">
                                             <Lock className="w-3 h-3 text-red-400" /> E2EE BYPASS
                                         </p>
                                     </>
                                 ) : (
-                                    <h2 className="text-sm font-semibold text-zinc-500 flex items-center gap-2">
+                                    <h2 className="text-sm font-semibold text-[var(--ui-text-muted)] flex items-center gap-2">
                                         <Info className="h-4 w-4" /> Message Stream Offline
                                     </h2>
                                 )}
@@ -416,14 +416,14 @@ export default function PrivateChatOversightPage() {
                              {/* Advanced Quick Actions */}
                              {selectedChat && selectedUser && (
                                  <div className="flex items-center gap-2 opacity-0 animate-[fade-in_0.3s_ease-out_forwards]">
-                                     <button onClick={handleMuteUser} className="p-2 text-zinc-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-lg transition-all" title="Mute User">
+                                     <button onClick={handleMuteUser} className="p-2 text-[var(--ui-text-secondary)] hover:text-orange-400 hover:bg-orange-500/10 rounded-lg transition-all" title="Mute User">
                                          <MicOff className="w-4 h-4" />
                                      </button>
                                      <button onClick={handleBanUser} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-lg text-xs font-bold transition-all shadow-sm" title="Ban User">
                                          <Ban className="w-3.5 h-3.5" /> BAN
                                      </button>
-                                     <div className="h-4 w-px bg-zinc-800 mx-1"></div>
-                                     <a href={`/profile/${selectedUser.uid}`} target="_blank" className="p-2 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all" title="Full Profile">
+                                     <div className="h-4 w-px bg-[var(--ui-bg-elevated)] mx-1"></div>
+                                     <a href={`/profile/${selectedUser.uid}`} target="_blank" className="p-2 text-[var(--ui-text-secondary)] hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all" title="Full Profile">
                                          <ExternalLink className="w-4 h-4" />
                                      </a>
                                  </div>
@@ -432,23 +432,23 @@ export default function PrivateChatOversightPage() {
 
                         {/* Secondary Toolbar */}
                         {selectedChat && (
-                            <div className="px-4 py-2 bg-zinc-900/40 border-b border-zinc-800 flex items-center justify-between shrink-0">
-                                <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800/80">
+                            <div className="px-4 py-2 bg-[var(--ui-bg-surface)] border-b border-[var(--ui-border)] flex items-center justify-between shrink-0">
+                                <div className="flex items-center gap-1 bg-[var(--ui-bg-base)] p-1 rounded-lg border border-[var(--ui-border)]">
                                     <button 
                                         onClick={() => setActiveTab('stream')}
-                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'stream' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'stream' ? 'bg-[var(--ui-bg-elevated)] text-white shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text-secondary)]'}`}
                                     >
                                         <Activity className="w-3.5 h-3.5" /> Stream
                                     </button>
                                     <button 
                                         onClick={() => setActiveTab('media')}
-                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'media' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'media' ? 'bg-[var(--ui-bg-elevated)] text-white shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text-secondary)]'}`}
                                     >
                                         <ImageIcon className="w-3.5 h-3.5" /> Media Gallery
                                     </button>
                                     <button 
                                         onClick={() => setActiveTab('log')}
-                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'log' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'log' ? 'bg-[var(--ui-bg-elevated)] text-white shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text-secondary)]'}`}
                                     >
                                         <Info className="w-3.5 h-3.5" /> Action Log
                                     </button>
@@ -456,13 +456,13 @@ export default function PrivateChatOversightPage() {
                                 
                                 {activeTab === 'stream' && (
                                     <div className="relative">
-                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
+                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--ui-text-muted)]" />
                                         <input 
                                             type="text" 
                                             placeholder="Search messages..." 
                                             value={messageSearchQuery}
                                             onChange={(e) => setMessageSearchQuery(e.target.value)}
-                                            className="pl-8 pr-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 w-48 transition-all"
+                                            className="pl-8 pr-3 py-1.5 bg-[var(--ui-bg-base)] border border-[var(--ui-border)] rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 w-48 transition-all"
                                         />
                                     </div>
                                 )}
@@ -482,11 +482,11 @@ export default function PrivateChatOversightPage() {
                             ) : loadingMessages ? (
                                 <div className="flex items-center justify-center h-full"><LoadingSpinner variant="inline" message="Bypassing encryption..." /></div>
                             ) : messages.length === 0 ? (
-                                <p className="text-center text-sm text-zinc-500 italic">No internal messages recorded in this channel.</p>
+                                <p className="text-center text-sm text-[var(--ui-text-muted)] italic">No internal messages recorded in this channel.</p>
                             ) : activeTab === 'media' ? (
                                 <div className="grid grid-cols-3 gap-2 pb-4">
                                     {messages.filter(m => m.imageUrl || m.gifUrl).map(m => (
-                                        <div key={m.id} className="aspect-square bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 relative group">
+                                        <div key={m.id} className="aspect-square bg-[var(--ui-bg-surface)] rounded-lg overflow-hidden border border-[var(--ui-border)] relative group">
                                             <img src={m.imageUrl || m.gifUrl} alt="Media" className="w-full h-full object-cover" />
                                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-sm">
                                                 <button onClick={() => handleDeleteMessage(m.id)} className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg transform scale-90 group-hover:scale-100 transition-all">
@@ -496,11 +496,11 @@ export default function PrivateChatOversightPage() {
                                         </div>
                                     ))}
                                     {messages.filter(m => m.imageUrl || m.gifUrl).length === 0 && (
-                                        <div className="col-span-3 text-center text-sm text-zinc-500 py-10">No media files intercepted in this chat.</div>
+                                        <div className="col-span-3 text-center text-sm text-[var(--ui-text-muted)] py-10">No media files intercepted in this chat.</div>
                                     )}
                                 </div>
                             ) : activeTab === 'log' ? (
-                                <div className="text-center text-sm text-zinc-500 py-10 font-mono">
+                                <div className="text-center text-sm text-[var(--ui-text-muted)] py-10 font-mono">
                                     [SYSTEM_LOG] Action history not available.
                                 </div>
                             ) : (
@@ -534,8 +534,8 @@ export default function PrivateChatOversightPage() {
                                                 <div className={`flex flex-col ${isTarget ? 'items-end' : 'items-start'}`}>
                                                     {showHeader && (
                                                         <div className="flex items-baseline gap-2 mb-1 px-1">
-                                                            <span className="text-[13px] font-semibold text-zinc-200">{senderName}</span>
-                                                            <span className="text-[10px] text-zinc-500">{format(msg.timestamp?.toDate() || new Date(), 'dd MMM, HH:mm')}</span>
+                                                            <span className="text-[13px] font-semibold text-[var(--ui-text)]">{senderName}</span>
+                                                            <span className="text-[10px] text-[var(--ui-text-muted)]">{format(msg.timestamp?.toDate() || new Date(), 'dd MMM, HH:mm')}</span>
                                                         </div>
                                                     )}
                                                     
@@ -543,7 +543,7 @@ export default function PrivateChatOversightPage() {
                                                         <div className={`px-4 py-2.5 rounded-2xl relative group-hover/msg:shadow-md transition-all ${
                                                             isTarget 
                                                                 ? 'bg-blue-600/90 text-white rounded-tr-sm border border-blue-500/30' 
-                                                                : 'bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-tl-sm'
+                                                                : 'bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] text-[var(--ui-text)] rounded-tl-sm'
                                                         }`}>
                                                             {msg.gifUrl && <img src={msg.gifUrl} alt="GIF" className="max-w-[250px] rounded-lg mb-1" />}
                                                             {msg.imageUrl && <img src={msg.imageUrl} alt="Photo" className="max-w-[250px] rounded-lg mb-1" />}
@@ -563,7 +563,7 @@ export default function PrivateChatOversightPage() {
                                                             </p>}
                                                             
                                                             {/* Timestamp overlay */}
-                                                            <span className={`text-[9px] mt-1 block text-right select-none ${isTarget ? 'text-white/60' : 'text-zinc-500'}`}>
+                                                            <span className={`text-[9px] mt-1 block text-right select-none ${isTarget ? 'text-white/60' : 'text-[var(--ui-text-muted)]'}`}>
                                                                 {ts}
                                                             </span>
                                                         </div>
@@ -571,7 +571,7 @@ export default function PrivateChatOversightPage() {
                                                         {/* Advanced Admin Controls (Delete) */}
                                                         <button 
                                                             onClick={() => handleDeleteMessage(msg.id)}
-                                                            className="opacity-0 group-hover/msg:opacity-100 p-1.5 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all shrink-0"
+                                                            className="opacity-0 group-hover/msg:opacity-100 p-1.5 text-[var(--ui-text-muted)] hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all shrink-0"
                                                             title="Purge Message"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
@@ -588,8 +588,8 @@ export default function PrivateChatOversightPage() {
                         </div>
                         
                         {/* Fake Input to make it look like a chat app */}
-                        <div className="p-4 border-t border-zinc-800/80 bg-zinc-900/60 flex gap-2 shrink-0 opacity-50 cursor-not-allowed pointer-events-none relative z-10">
-                             <div className="w-full h-11 bg-zinc-950 border border-zinc-800 rounded-full flex items-center px-4 text-sm text-zinc-500">
+                        <div className="p-4 border-t border-[var(--ui-border)] bg-[var(--ui-bg-surface)] flex gap-2 shrink-0 opacity-50 cursor-not-allowed pointer-events-none relative z-10">
+                             <div className="w-full h-11 bg-[var(--ui-bg-base)] border border-[var(--ui-border)] rounded-full flex items-center px-4 text-sm text-[var(--ui-text-muted)]">
                                  Read-only mode (Deep Inspection)...
                              </div>
                         </div>

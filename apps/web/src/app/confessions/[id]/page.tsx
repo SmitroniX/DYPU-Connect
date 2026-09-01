@@ -10,6 +10,7 @@ import { doc, onSnapshot, collection, query, orderBy, addDoc, serverTimestamp, u
 import { useAuth } from '@/components/AuthProvider';
 import { ArrowLeft, Send, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { generateAnonymousName } from "@/lib/utils";
 import { filterProfanity, sanitiseInput, hasDangerousContent } from '@/lib/security';
 import { moderateTextAI } from '@/lib/moderation';
 import LoadingSpinner from '@/components/LoadingSpinner';

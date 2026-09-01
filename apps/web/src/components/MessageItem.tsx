@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { filterProfanity } from '@/lib/security';
+import { Check, CheckCheck } from 'lucide-react';
 import { MessageHoverToolbar, MessageReactions } from '@/components/MessageReactions';
 import { Message } from '@/lib/validation/schemas';
 import { Blurhash } from 'react-blurhash';
@@ -12,6 +13,8 @@ import { Blurhash } from 'react-blurhash';
 interface MessageItemProps {
     msg: Message;
     isMine: boolean;
+    isRead?: boolean;
+    isLastMessage?: boolean;
     showMsgHeader: boolean;
     currentUserId: string;
     replyToMsg?: Message | null;
@@ -30,6 +33,8 @@ interface MessageItemProps {
 const MessageItem = memo(({
     msg,
     isMine,
+    isRead,
+    isLastMessage,
     showMsgHeader,
     currentUserId,
     replyToMsg,
@@ -176,9 +181,9 @@ const MessageItem = memo(({
                                         a: (props) => <a className={`${isMine ? 'text-white underline font-semibold' : 'text-[var(--ui-accent)] hover:underline'}`} target="_blank" rel="noopener noreferrer" {...props} />,
                                         strong: (props) => <strong className="font-semibold" {...props} />,
                                         em: (props) => <em className="italic" {...props} />,
-                                        code: (props) => <code className={`px-1 rounded text-[12px] sm:text-[13px] font-mono ${isMine ? 'bg-white/20 text-white' : 'bg-zinc-800 text-[var(--ui-accent)]'}`} {...props} />,
+                                        code: (props) => <code className={`px-1 rounded text-[12px] sm:text-[13px] font-mono ${isMine ? 'bg-white/20 text-white' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)]'}`} {...props} />,
                                         pre: (props) => <pre className={`p-2 sm:p-3 my-2 rounded-lg ${isMine ? 'bg-black/20 text-white/90' : 'bg-[#1e1e1e] text-[#d4d4d4]'} overflow-x-auto text-[12px] sm:text-[13px] font-mono shadow-inner border border-[var(--ui-border)] scrollbar-hide`} {...props} />,
-                                        blockquote: (props) => <blockquote className={`border-l-3 pl-3 my-2 italic ${isMine ? 'border-[var(--ui-border)]0 bg-[var(--ui-bg-active)] text-white/90' : 'border-[var(--ui-accent)]/50 bg-zinc-800/50 text-[var(--ui-text-muted)]'} py-1 pr-2 rounded-r`} {...props} />,
+                                        blockquote: (props) => <blockquote className={`border-l-3 pl-3 my-2 italic ${isMine ? 'border-[var(--ui-border)]0 bg-[var(--ui-bg-active)] text-white/90' : 'border-[var(--ui-accent)]/50 bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)]'} py-1 pr-2 rounded-r`} {...props} />,
                                         ul: (props) => <ul className="list-disc pl-4 my-1" {...props} />,
                                         ol: (props) => <ol className="list-decimal pl-4 my-1" {...props} />,
                                         li: (props) => <li className="mb-0.5" {...props} />

@@ -95,12 +95,12 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left', trigge
             {triggerElement}
 
             {open && (
-                <div className={`absolute z-40 bottom-14 ${panelAlignment} w-[320px] rounded-2xl border border-[var(--ui-border)] bg-zinc-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[scale-in_0.2s_ease-out]`}>
+                <div className={`absolute z-40 bottom-14 ${panelAlignment} w-[320px] rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-bg-surface)] backdrop-blur-xl shadow-2xl p-4 animate-[scale-in_0.2s_ease-out]`}>
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-xs font-bold text-white uppercase tracking-widest opacity-60">GIPHY Express</h3>
                         <button
                             type="button"
-                            className="p-1.5 rounded-full text-zinc-500 hover:text-white hover:bg-[var(--ui-bg-hover)] transition-colors"
+                            className="p-1.5 rounded-full text-[var(--ui-text-muted)] hover:text-white hover:bg-[var(--ui-bg-hover)] transition-colors"
                             onClick={() => setOpen(false)}
                         >
                             <X className="w-4 h-4" />
@@ -108,17 +108,17 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left', trigge
                     </div>
 
                     <div className="relative mb-4">
-                        <Search className="h-4 w-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Search className="h-4 w-4 text-[var(--ui-text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Search GIFs..."
-                            className="w-full bg-[var(--ui-bg-hover)] border border-[var(--ui-border)] rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-[var(--ui-accent)]/50 transition-colors placeholder:text-zinc-600"
+                            className="w-full bg-[var(--ui-bg-hover)] border border-[var(--ui-border)] rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-[var(--ui-accent)]/50 transition-colors placeholder:text-[var(--ui-text-muted)]"
                         />
                     </div>
 
                     {loading && (
-                        <div className="py-10 flex flex-col items-center justify-center text-zinc-500 text-xs gap-3">
+                        <div className="py-10 flex flex-col items-center justify-center text-[var(--ui-text-muted)] text-xs gap-3">
                             <Loader2 className="h-5 w-5 animate-spin text-[var(--ui-accent)]" /> 
                             <span>Fetching GIFs...</span>
                         </div>
@@ -152,7 +152,7 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left', trigge
                                 </button>
                             ))}
                             {gifs.length === 0 && (
-                                <p className="col-span-2 text-xs text-zinc-600 py-10 text-center font-medium">No GIFs matching your search.</p>
+                                <p className="col-span-2 text-xs text-[var(--ui-text-muted)] py-10 text-center font-medium">No GIFs matching your search.</p>
                             )}
                         </div>
                     )}

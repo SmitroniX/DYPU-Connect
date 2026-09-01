@@ -181,7 +181,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
                     >
-                        <div className="bg-zinc-900 border border-[var(--ui-border)] rounded-3xl p-8 w-80 text-center space-y-6 shadow-2xl relative overflow-hidden">
+                        <div className="bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] rounded-3xl p-8 w-80 text-center space-y-6 shadow-2xl relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 animate-pulse" />
                             
                             <div className="relative">
@@ -193,7 +193,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
 
                             <div className="space-y-1">
                                 <h3 className="text-xl font-bold text-white">Incoming {incomingCall.data.type}</h3>
-                                <p className="text-zinc-400 font-medium">{otherUserName}</p>
+                                <p className="text-[var(--ui-text-secondary)] font-medium">{otherUserName}</p>
                             </div>
 
                             <div className="flex gap-4 justify-center pt-4">
@@ -209,7 +209,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={rejectIncomingCall}
-                                    className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-zinc-800 py-4 text-sm font-bold text-white border border-[var(--ui-border)] hover:bg-zinc-700 transition-colors"
+                                    className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[var(--ui-bg-elevated)] py-4 text-sm font-bold text-white border border-[var(--ui-border)] hover:bg-zinc-700 transition-colors"
                                 >
                                     <X className="h-4 w-4" /> Decline
                                 </motion.button>
@@ -263,7 +263,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                             />
 
                             {callState === 'calling' && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center space-y-8 bg-zinc-950/40 backdrop-blur-sm">
+                                <div className="absolute inset-0 flex flex-col items-center justify-center space-y-8 bg-[var(--ui-bg-base)] backdrop-blur-sm">
                                     <div className="relative">
                                         <div className="h-32 w-32 rounded-full border border-[var(--ui-border)] flex items-center justify-center animate-[ping_3s_infinite] opacity-20" />
                                         <div className="absolute inset-0 flex items-center justify-center">
@@ -280,7 +280,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                             <motion.div 
                                 drag
                                 dragConstraints={{ left: -200, right: 200, top: -200, bottom: 200 }}
-                                className="absolute bottom-32 right-8 w-40 sm:w-64 aspect-video rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] bg-zinc-900 group"
+                                className="absolute bottom-32 right-8 w-40 sm:w-64 aspect-video rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] bg-[var(--ui-bg-surface)] group"
                             >
                                 <video
                                     ref={localVideoRef}
@@ -290,7 +290,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                                     className="w-full h-full object-cover"
                                 />
                                 {cameraOff && (
-                                    <div className="absolute inset-0 bg-zinc-900 flex flex-col items-center justify-center gap-2">
+                                    <div className="absolute inset-0 bg-[var(--ui-bg-surface)] flex flex-col items-center justify-center gap-2">
                                         <VideoOff className="h-8 w-8 text-white/20" />
                                         <span className="text-[10px] font-bold text-white/20 uppercase tracking-tighter">Camera Off</span>
                                     </div>
@@ -305,7 +305,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
 
                         {/* Control Bar */}
                         <div className="h-32 flex items-center justify-center relative z-20">
-                            <div className="flex items-center gap-6 px-10 py-5 bg-zinc-900/80 backdrop-blur-2xl border border-[var(--ui-border)] rounded-[40px] shadow-2xl">
+                            <div className="flex items-center gap-6 px-10 py-5 bg-[var(--ui-bg-surface)] backdrop-blur-2xl border border-[var(--ui-border)] rounded-[40px] shadow-2xl">
                                 <ControlBtn 
                                     active={!muted} 
                                     onClick={toggleMute} 
