@@ -130,7 +130,7 @@ export default function SingleConfessionPage({ params }: { params: Promise<{ id:
                     </h1>
                 </div>
 
-                <div className="flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
+                <div className="flex-1 overflow-y-auto pb-[var(--safe-bottom)]">
                     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
                         <ConfessionCard confession={confession} linkToDetail={false} />
 

@@ -13,7 +13,7 @@ interface PageHeaderProps {
 
 export default function PageHeader({ title, description, icon, children }: PageHeaderProps) {
     return (
-        <div className="page-header sticky top-0 z-30 bg-[var(--ui-bg-surface)]/70 backdrop-blur-3xl border-b border-[var(--ui-border)] shadow-[0_4px_32px_0_rgba(0,0,0,0.1)] px-4 pb-3 pt-[max(env(safe-area-inset-top),12px)] sm:px-6">
+        <div className="page-header sticky top-0 z-30 bg-[var(--ui-bg-surface)]/70 backdrop-blur-3xl border-b border-[var(--ui-border)] shadow-[0_4px_32px_0_rgba(0,0,0,0.1)] px-4 pb-3 pt-[max(var(--safe-top),12px)] sm:px-6">
             <div className="flex items-center gap-3 min-w-0 flex-1">
                 {icon && (
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)] shrink-0 shadow-sm border border-[var(--ui-border)]">

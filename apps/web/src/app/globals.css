@@ -13,7 +13,11 @@
 
 
 
+
 :root {
+  --safe-top: max(env(safe-area-inset-top), var(--android-safe-area-top, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom), var(--android-safe-area-bottom, 0px));
+
   color-scheme: light;
 
   /* Surfaces — Pure, bright, minimal */

@@ -353,14 +353,14 @@ export default function DashboardLayout({
             <div className="flex h-screen-dynamic bg-transparent text-[var(--ui-text)] overflow-hidden">
                 
                 {/* Desktop sidebar */}
-                <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-[260px] lg:flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+                <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-[260px] lg:flex-col pt-[var(--safe-top)] pb-[var(--safe-bottom)]">
                     <Sidebar />
                 </div>
 
                 {/* Main content area */}
                 <div className="flex-1 flex flex-col lg:pl-[260px] h-full overflow-hidden">
                     {/* Header bar (consistent across platforms) */}
-                    <header className={clsx("items-center justify-between h-16 pt-[env(safe-area-inset-top)] bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-[var(--ui-border)] px-6 shrink-0 relative z-[70]", isSpecificChat ? 'hidden lg:flex' : 'flex') }>
+                    <header className={clsx("items-center justify-between min-h-[calc(4rem+var(--safe-top))] pt-[var(--safe-top)] bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-[var(--ui-border)] px-6 shrink-0 relative z-[70]", isSpecificChat ? 'hidden lg:flex' : 'flex') }>
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -450,7 +450,7 @@ export default function DashboardLayout({
                                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                                 className="absolute inset-y-0 left-0 w-[280px] bg-[var(--ui-bg-base)] shadow-2xl flex flex-col"
                             >
-                                <div className="flex items-center justify-between px-6 pb-4 pt-[max(env(safe-area-inset-top),16px)] border-b border-[var(--ui-border)]">
+                                <div className="flex items-center justify-between px-6 pb-4 pt-[max(var(--safe-top),16px)] border-b border-[var(--ui-border)]">
                                     <span className="font-bold text-[var(--ui-text)]">Menu</span>
                                     <button onClick={() => setSidebarOpen(false)} aria-label="Close menu" className="p-2 -mr-2 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]">
                                         <X className="h-5 w-5" />
