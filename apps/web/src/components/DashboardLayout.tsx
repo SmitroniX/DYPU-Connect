@@ -154,8 +154,8 @@ function MobileBottomNav() {
     ];
 
     return (
-        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-sm bg-[var(--ui-bg-base)]/50 backdrop-blur-2xl rounded-full border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]">
-            <div className="flex items-center justify-around h-16 px-2">
+        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-md bg-[var(--ui-bg-surface)]/60 backdrop-blur-3xl rounded-[2rem] border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.2)]">
+            <div className="flex items-center justify-between h-[76px] px-2 sm:px-4">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
                     return (
@@ -163,18 +163,30 @@ function MobileBottomNav() {
                             key={item.name} 
                             href={item.href}
                             className={clsx(
-                                "relative flex flex-col items-center justify-center gap-1 h-12 w-12 rounded-full transition-all duration-300",
-                                isActive ? "bg-[var(--ui-accent)] text-white scale-110 shadow-lg shadow-[var(--ui-accent)]/30" : "text-[var(--ui-text-muted)] hover:bg-white/5 active:scale-95"
+                                "relative flex flex-col items-center justify-center flex-1 h-full gap-1.5 transition-all duration-300",
+                                isActive ? "text-[var(--ui-accent)]" : "text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]"
                             )}
                         >
-                            <div className="relative">
-                                <item.icon className={clsx("w-5 h-5 transition-transform duration-300")} />
+                            <div className={clsx(
+                                "relative flex items-center justify-center px-5 py-1.5 rounded-full transition-all duration-300",
+                                isActive ? "bg-[var(--ui-accent)]/15" : "bg-transparent"
+                            )}>
+                                <item.icon className={clsx(
+                                    "w-[26px] h-[26px] transition-transform duration-300",
+                                    isActive && "scale-105"
+                                )} />
                                 {item.badge && item.badge > 0 && (
-                                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 px-1 text-[8px] font-black text-white ring-2 ring-[var(--ui-bg-base)]">
+                                    <span className="absolute -top-1 -right-2 flex items-center justify-center h-5 min-w-[24px] rounded-full rounded-bl-sm bg-blue-500 px-1.5 text-[11px] font-bold text-white shadow-sm ring-2 ring-[var(--ui-bg-surface)]">
                                         {item.badge > 99 ? '99+' : item.badge}
                                     </span>
                                 )}
                             </div>
+                            <span className={clsx(
+                                "text-[12px] tracking-tight transition-all duration-300",
+                                isActive ? "font-bold" : "font-medium"
+                            )}>
+                                {item.name}
+                            </span>
                         </Link>
                     );
                 })}
