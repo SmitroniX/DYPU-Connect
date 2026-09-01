@@ -167,16 +167,20 @@ function MobileBottomNav() {
                                 isActive ? "text-[var(--ui-accent)]" : "text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]"
                             )}
                         >
-                            <div className={clsx(
-                                "relative flex items-center justify-center px-5 py-1.5 rounded-full transition-all duration-300",
-                                isActive ? "bg-[var(--ui-accent)]/15" : "bg-transparent"
-                            )}>
+                            <div className="relative flex items-center justify-center px-5 py-1.5 rounded-full z-10 transition-all duration-300">
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="nav-pill"
+                                        className="absolute inset-0 rounded-full bg-[var(--ui-accent)]/15 -z-10"
+                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    />
+                                )}
                                 <item.icon className={clsx(
-                                    "w-[26px] h-[26px] transition-transform duration-300",
+                                    "w-[26px] h-[26px] transition-transform duration-300 relative z-10",
                                     isActive && "scale-105"
                                 )} />
                                 {item.badge && item.badge > 0 && (
-                                    <span className="absolute -top-1 -right-2 flex items-center justify-center h-5 min-w-[24px] rounded-full rounded-bl-sm bg-blue-500 px-1.5 text-[11px] font-bold text-white shadow-sm ring-2 ring-[var(--ui-bg-surface)]">
+                                    <span className="absolute -top-1 -right-2 flex items-center justify-center h-5 min-w-[24px] rounded-full rounded-bl-sm bg-blue-500 px-1.5 text-[11px] font-bold text-white shadow-sm ring-2 ring-[var(--ui-bg-surface)] z-20">
                                         {item.badge > 99 ? '99+' : item.badge}
                                     </span>
                                 )}

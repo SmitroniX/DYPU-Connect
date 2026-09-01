@@ -521,9 +521,9 @@ export default function ProfilePage() {
             <div className="max-w-4xl mx-auto py-6 px-2 sm:px-4 space-y-6">
 
                 {/* ═══════════ HERO PROFILE HEADER ═══════════ */}
-                <div className="relative overflow-hidden rounded-4xl bg-zinc-950 border border-zinc-800/60 shadow-2xl mb-8">
+                <div className="relative overflow-hidden rounded-4xl bg-[var(--ui-bg-surface)]/60 backdrop-blur-2xl border border-[var(--ui-border)] shadow-2xl mb-8">
                     {/* Vibrant Neon Gradient Banner */}
-                    <div className="h-44 sm:h-56 bg-linear-to-br from-violet-600/40 via-fuchsia-600/20 to-blue-600/40 relative overflow-hidden">
+                    <div className="h-44 sm:h-56 bg-gradient-to-r from-blue-500/20 via-cyan-500/20 to-emerald-500/20 backdrop-blur-3xl relative overflow-hidden">
                         {/* Animated gradient orbs */}
                         <div className="absolute top-0 left-1/4 w-96 h-96 bg-fuchsia-500/30 rounded-full mix-blend-screen filter blur-[100px] animate-[pulse_8s_infinite]" />
                         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/30 rounded-full mix-blend-screen filter blur-[100px] animate-[pulse_10s_infinite_reverse]" />

@@ -36,18 +36,7 @@ interface ChatInfo {
 export default function PrivateChatDetail({ params }: { params: Promise<{ chatId: string }> }) {
     const { chatId } = use(params);
     const [messages, setMessages] = useState<Message[]>([]);
-    const [optimisticMessages, addOptimisticMessage] = useOptimistic(
-        messages,
-        (state, newMessage: Message) => {
-            const index = state.findIndex(m => m.id === newMessage.id);
-            if (index !== -1) {
-                const newState = [...state];
-                newState[index] = { ...state[index], ...newMessage };
-                return newState;
-            }
-            return [...state, newMessage];
-        }
-    );
+
     const [chatInfo, setChatInfo] = useState<ChatInfo | null>(null);
     const [profilePopup, setProfilePopup] = useState<{ userId: string; rect: DOMRect } | null>(null);
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -56,6 +45,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
     const { user } = useAuth();
     const { userProfile } = useStore();
@@ -118,6 +108,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                 };
             });
             setMessages(data);
+            setIsLoading(false);
         });
 
         return () => {
@@ -146,19 +137,6 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
         const otherUid = chatInfo?.participants.find((p) => p !== user.uid);
         if (!otherUid) return;
 
-        const optimisticMsg: Message = {
-            id: 'temp-' + Date.now(),
-            text: cleanMessage,
-            senderId: user.uid,
-            timestamp: new Date(),
-            gifUrl: payload.gifUrl,
-            imageUrl: payload.imageUrl,
-            audioUrl: payload.audioUrl,
-            replyToId: replyToMessage?.id
-        };
-
-        addOptimisticMessage(optimisticMsg);
-
         try {
             const messagesRef = collection(db, 'private_chats', chatId, 'messages');
             await addDoc(messagesRef, {
@@ -173,7 +151,10 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                 isEdited: false,
                 isDeleted: false
             });
-            setReplyToMessage(null);
+            
+            if (replyToMessage) {
+                setReplyToMessage(null);
+            }
 
             await updateDoc(doc(db, 'private_chats', chatId), {
                 lastMessage: cleanMessage || (payload.audioUrl ? '🎤 Voice Message' : (payload.imageUrl ? '📷 Photo' : 'GIF')),
@@ -194,11 +175,11 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
         } catch (error) {
             toast.error('Failed to send message');
         }
-    }, [chatId, user, chatInfo, replyToMessage, addOptimisticMessage]);
+    }, [chatId, user, chatInfo, replyToMessage]);
 
     const handleReact = useCallback((messageId: string, emoji: string) => {
         if (!user) return;
-        const msg = optimisticMessages.find((m) => m.id === messageId);
+        const msg = messages.find((m) => m.id === messageId);
         const reactions = msg?.reactions ?? {};
         const current = reactions[emoji] ?? [];
         const hasReacted = current.includes(user.uid);
@@ -210,12 +191,10 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
         if (updated.length === 0) delete newReactions[emoji];
         else newReactions[emoji] = updated;
 
-        addOptimisticMessage({ ...msg!, reactions: newReactions });
-
         const msgRef = doc(db, 'private_chats', chatId, 'messages', messageId);
         updateDoc(msgRef, { reactions: newReactions })
             .catch(() => toast.error('Failed to react.'));
-    }, [optimisticMessages, user, addOptimisticMessage, chatId]);
+    }, [messages, user, chatId]);
 
     const handleStartEdit = useCallback((msg: Message) => {
         setEditingMessageId(msg.id);
@@ -267,10 +246,10 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
     }, []);
 
     const filteredMessages = useMemo(() => {
-        if (!searchQuery.trim()) return optimisticMessages;
+        if (!searchQuery.trim()) return messages;
         const lowerQ = searchQuery.toLowerCase();
-        return optimisticMessages.filter(m => m.text.toLowerCase().includes(lowerQ));
-    }, [optimisticMessages, searchQuery]);
+        return messages.filter(m => m.text.toLowerCase().includes(lowerQ));
+    }, [messages, searchQuery]);
 
     if (!user || !userProfile) return null;
 
@@ -339,11 +318,16 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                     )}
 
                     {/* Messages stream */}
-                    <Virtuoso
-                        ref={virtuosoRef}
-                        data={filteredMessages}
-                        initialTopMostItemIndex={Math.max(0, filteredMessages.length - 1)}
-                        followOutput="auto"
+                    {isLoading ? (
+                        <div className="flex-1 flex items-center justify-center">
+                            <LoadingSpinner />
+                        </div>
+                    ) : (
+                        <Virtuoso
+                            ref={virtuosoRef}
+                            data={filteredMessages}
+                            initialTopMostItemIndex={Math.max(0, filteredMessages.length - 1)}
+                            followOutput="smooth"
                         className="flex-1 overflow-x-hidden px-4"
                         itemContent={(i, msg) => {
                             const isMine = msg.senderId === user.uid;
@@ -391,7 +375,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                             <span>End-to-end encrypted</span>
                                         </div>
                                     </div>
-                                    {optimisticMessages.length === 0 && (
+                                    {messages.length === 0 && (
                                         <div className="flex flex-col items-center justify-center h-full text-center py-10">
                                             <div className="w-16 h-16 rounded-full overflow-hidden mb-4">
                                                 <img src={otherImage} alt={otherName} className="w-16 h-16 rounded-full object-cover" />
@@ -430,6 +414,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                             )
                             }}
                             />
+                    )}
 
                             {/* Input Area */}
                             <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20">
@@ -451,7 +436,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                 onClose={() => setIsDrawerOpen(false)}
                 otherName={otherName}
                 otherImage={otherImage}
-                messages={optimisticMessages}
+                messages={messages}
                 onSearchClick={() => {
                     setIsDrawerOpen(false);
                     setIsSearching(true);
