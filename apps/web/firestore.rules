@@ -82,13 +82,19 @@ service cloud.firestore {
     match /confessions_public/{docId} {
       allow read, create: if signedIn();
       allow update: if signedIn() && (
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions', 'likesCount'])
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions', 'likesCount', 'commentsCount'])
       );
       allow delete: if isAdmin();
 
       match /likes/{likeUserId} {
         allow read: if signedIn();
         allow create, delete: if signedIn() && request.auth.uid == likeUserId;
+      }
+      
+      match /comments/{commentId} {
+        allow read: if signedIn();
+        allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+        allow delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
       }
     }
 
