@@ -32,7 +32,7 @@ export default function ChatHeader({ otherUserId, otherName, otherImage, onAvata
     }
 
     return (
-        <div className="flex items-center justify-between px-4 pb-3 pt-[max(env(safe-area-inset-top),12px)] bg-[var(--ui-bg-surface)]/70 backdrop-blur-3xl border-b border-white/10 z-10 shrink-0 shadow-[0_4px_32px_0_rgba(0,0,0,0.1)] sticky top-0">
+        <div className="flex items-center justify-between px-4 pb-3 pt-[max(env(safe-area-inset-top),12px)] bg-[var(--ui-bg-surface)]/70 backdrop-blur-3xl border-b border-[var(--ui-border)] z-10 shrink-0 shadow-[0_4px_32px_0_rgba(0,0,0,0.1)] sticky top-0">
             <div className="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
                 <motion.div
                     whileHover={{ scale: 0.98 }}

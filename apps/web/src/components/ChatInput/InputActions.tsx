@@ -34,7 +34,7 @@ export default function InputActions({
     const imageInputRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="flex items-center gap-0.5 px-2 py-1.5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-inner group/actions transition-all duration-500 hover:bg-white/10 hover:border-white/20">
+        <div className="flex items-center gap-0.5 px-2 py-1.5 bg-[var(--ui-bg-hover)] backdrop-blur-md rounded-2xl border border-[var(--ui-border)] shadow-inner group/actions transition-all duration-500 hover:bg-[var(--ui-bg-active)] hover:border-white/20">
             {/* Logo Icon as a "Plus" or Main Action trigger */}
             <motion.div 
                 whileHover={{ rotate: 90, scale: 1.1 }}

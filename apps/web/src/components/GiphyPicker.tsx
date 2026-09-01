@@ -95,12 +95,12 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left', trigge
             {triggerElement}
 
             {open && (
-                <div className={`absolute z-40 bottom-14 ${panelAlignment} w-[320px] rounded-2xl border border-white/10 bg-zinc-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[scale-in_0.2s_ease-out]`}>
+                <div className={`absolute z-40 bottom-14 ${panelAlignment} w-[320px] rounded-2xl border border-[var(--ui-border)] bg-zinc-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[scale-in_0.2s_ease-out]`}>
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-xs font-bold text-white uppercase tracking-widest opacity-60">GIPHY Express</h3>
                         <button
                             type="button"
-                            className="p-1.5 rounded-full text-zinc-500 hover:text-white hover:bg-white/5 transition-colors"
+                            className="p-1.5 rounded-full text-zinc-500 hover:text-white hover:bg-[var(--ui-bg-hover)] transition-colors"
                             onClick={() => setOpen(false)}
                         >
                             <X className="w-4 h-4" />
@@ -113,7 +113,7 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left', trigge
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Search GIFs..."
-                            className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-[var(--ui-accent)]/50 transition-colors placeholder:text-zinc-600"
+                            className="w-full bg-[var(--ui-bg-hover)] border border-[var(--ui-border)] rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-[var(--ui-accent)]/50 transition-colors placeholder:text-zinc-600"
                         />
                     </div>
 
@@ -140,7 +140,7 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left', trigge
                                         onSelect(gif);
                                         setOpen(false);
                                     }}
-                                    className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-white/5 transition-all active:scale-95"
+                                    className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-[var(--ui-bg-hover)] transition-all active:scale-95"
                                     title={gif.title}
                                 >
                                     <img

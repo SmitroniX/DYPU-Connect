@@ -35,7 +35,7 @@ export default function SendButton({
                 className={`h-11 w-11 flex items-center justify-center rounded-2xl transition-all duration-500 shadow-2xl relative overflow-hidden group/btn ${
                     canSend && !overLimit
                         ? 'bg-white text-black shadow-white/10 cursor-pointer'
-                        : 'bg-white/10 text-white/20 cursor-not-allowed border border-white/5'
+                        : 'bg-[var(--ui-bg-active)] text-white/20 cursor-not-allowed border border-[var(--ui-border)]'
                 }`}
                 title="Send message"
             >

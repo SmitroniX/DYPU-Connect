@@ -72,13 +72,13 @@ export default function DashboardPage() {
               {getTimeGreeting()}, <span className="text-[var(--ui-accent)]">{userProfile?.name?.split(' ')[0]}</span>!
             </h2>
             <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className="px-2.5 py-1 rounded-full bg-[var(--ui-bg-elevated)]/50 backdrop-blur-md border border-white/5 text-[11px] font-semibold text-[var(--ui-text-secondary)] uppercase tracking-wider">
+                <span className="px-2.5 py-1 rounded-full bg-[var(--ui-bg-elevated)]/50 backdrop-blur-md border border-[var(--ui-border)] text-[11px] font-semibold text-[var(--ui-text-secondary)] uppercase tracking-wider">
                     {userProfile?.field}
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-[var(--ui-bg-elevated)]/50 backdrop-blur-md border border-white/5 text-[11px] font-semibold text-[var(--ui-text-secondary)] uppercase tracking-wider">
+                <span className="px-2.5 py-1 rounded-full bg-[var(--ui-bg-elevated)]/50 backdrop-blur-md border border-[var(--ui-border)] text-[11px] font-semibold text-[var(--ui-text-secondary)] uppercase tracking-wider">
                     {userProfile?.year}
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-[var(--ui-bg-elevated)]/50 backdrop-blur-md border border-white/5 text-[11px] font-semibold text-[var(--ui-text-secondary)] uppercase tracking-wider">
+                <span className="px-2.5 py-1 rounded-full bg-[var(--ui-bg-elevated)]/50 backdrop-blur-md border border-[var(--ui-border)] text-[11px] font-semibold text-[var(--ui-text-secondary)] uppercase tracking-wider">
                     {userProfile?.division} ({userProfile?.branch})
                 </span>
             </div>
@@ -95,7 +95,7 @@ export default function DashboardPage() {
               <motion.div key={ch.name} variants={itemVariants}>
                 <Link
                   href={ch.href}
-                  className="relative flex items-center gap-4 px-5 py-4 group rounded-2xl bg-[var(--ui-bg-elevated)]/40 backdrop-blur-md border border-white/5 hover:border-[var(--ui-accent)]/30 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md"
+                  className="relative flex items-center gap-4 px-5 py-4 group rounded-2xl bg-[var(--ui-bg-elevated)]/40 backdrop-blur-md border border-[var(--ui-border)] hover:border-[var(--ui-accent)]/30 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md"
                 >
                   <div className={`absolute inset-0 bg-gradient-to-r ${ch.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                   <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--ui-accent-dim)] shrink-0 group-hover:scale-110 transition-transform duration-300">
@@ -133,7 +133,7 @@ export default function DashboardPage() {
               <motion.div key={action.name} variants={itemVariants}>
                 <Link
                   href={action.href}
-                  className="flex flex-col items-center justify-center py-6 px-4 group rounded-2xl bg-[var(--ui-bg-elevated)]/40 backdrop-blur-md border border-white/5 hover:border-[var(--ui-accent)]/30 hover:bg-[var(--ui-bg-elevated)]/60 transition-all duration-300 shadow-sm"
+                  className="flex flex-col items-center justify-center py-6 px-4 group rounded-2xl bg-[var(--ui-bg-elevated)]/40 backdrop-blur-md border border-[var(--ui-border)] hover:border-[var(--ui-accent)]/30 hover:bg-[var(--ui-bg-elevated)]/60 transition-all duration-300 shadow-sm"
                 >
                   <div className="h-12 w-12 rounded-xl bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm">
                     <action.icon className="h-6 w-6 text-[var(--ui-text-muted)] group-hover:text-[var(--ui-accent)] transition-colors" />

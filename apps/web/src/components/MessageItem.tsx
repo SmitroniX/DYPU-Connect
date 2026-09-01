@@ -102,12 +102,12 @@ const MessageItem = memo(({
                             relative px-3 py-2 sm:px-3.5 sm:py-2.5 flex flex-col min-w-[60px] backdrop-blur-sm transition-transform active:scale-[0.99]
                             ${isMine 
                                 ? 'bg-[var(--ui-accent)]/80 backdrop-blur-xl text-white rounded-[22px] rounded-br-[6px] border border-[var(--ui-accent)]/30 shadow-md shadow-[var(--ui-accent)]/10' 
-                                : 'bg-[var(--ui-bg-surface)]/80 backdrop-blur-xl text-[#fafafa] rounded-[22px] rounded-bl-[6px] border border-white/10 shadow-md shadow-black/10'}
+                                : 'bg-[var(--ui-bg-surface)]/80 backdrop-blur-xl text-[#fafafa] rounded-[22px] rounded-bl-[6px] border border-[var(--ui-border)] shadow-md shadow-black/10'}
                         `}
                     >
                         {/* Reply snippet inside the bubble */}
                         {msg.replyToId && replyToMsg && (
-                            <div className={`mb-2 pl-2 border-l-[2px] rounded-r-md text-[11px] sm:text-[12px] opacity-85 cursor-pointer transition-opacity hover:opacity-100 ${isMine ? 'border-white/60 bg-white/10 p-1.5' : 'border-[var(--ui-accent)] bg-[var(--ui-accent)]/10 p-1.5'}`}>
+                            <div className={`mb-2 pl-2 border-l-[2px] rounded-r-md text-[11px] sm:text-[12px] opacity-85 cursor-pointer transition-opacity hover:opacity-100 ${isMine ? 'border-white/60 bg-[var(--ui-bg-active)] p-1.5' : 'border-[var(--ui-accent)] bg-[var(--ui-accent)]/10 p-1.5'}`}>
                                 <div className="font-semibold tracking-wide text-[10px] uppercase mb-0.5">
                                     {replyToMsg.senderId === currentUserId ? 'You' : (replyToMsg.senderName || 'User')}
                                 </div>
@@ -177,8 +177,8 @@ const MessageItem = memo(({
                                         strong: (props) => <strong className="font-semibold" {...props} />,
                                         em: (props) => <em className="italic" {...props} />,
                                         code: (props) => <code className={`px-1 rounded text-[12px] sm:text-[13px] font-mono ${isMine ? 'bg-white/20 text-white' : 'bg-zinc-800 text-[var(--ui-accent)]'}`} {...props} />,
-                                        pre: (props) => <pre className={`p-2 sm:p-3 my-2 rounded-lg ${isMine ? 'bg-black/20 text-white/90' : 'bg-[#1e1e1e] text-[#d4d4d4]'} overflow-x-auto text-[12px] sm:text-[13px] font-mono shadow-inner border border-white/5 scrollbar-hide`} {...props} />,
-                                        blockquote: (props) => <blockquote className={`border-l-3 pl-3 my-2 italic ${isMine ? 'border-white/50 bg-white/10 text-white/90' : 'border-[var(--ui-accent)]/50 bg-zinc-800/50 text-[var(--ui-text-muted)]'} py-1 pr-2 rounded-r`} {...props} />,
+                                        pre: (props) => <pre className={`p-2 sm:p-3 my-2 rounded-lg ${isMine ? 'bg-black/20 text-white/90' : 'bg-[#1e1e1e] text-[#d4d4d4]'} overflow-x-auto text-[12px] sm:text-[13px] font-mono shadow-inner border border-[var(--ui-border)] scrollbar-hide`} {...props} />,
+                                        blockquote: (props) => <blockquote className={`border-l-3 pl-3 my-2 italic ${isMine ? 'border-[var(--ui-border)]0 bg-[var(--ui-bg-active)] text-white/90' : 'border-[var(--ui-accent)]/50 bg-zinc-800/50 text-[var(--ui-text-muted)]'} py-1 pr-2 rounded-r`} {...props} />,
                                         ul: (props) => <ul className="list-disc pl-4 my-1" {...props} />,
                                         ol: (props) => <ol className="list-decimal pl-4 my-1" {...props} />,
                                         li: (props) => <li className="mb-0.5" {...props} />

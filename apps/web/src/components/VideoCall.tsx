@@ -181,7 +181,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
                     >
-                        <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 w-80 text-center space-y-6 shadow-2xl relative overflow-hidden">
+                        <div className="bg-zinc-900 border border-[var(--ui-border)] rounded-3xl p-8 w-80 text-center space-y-6 shadow-2xl relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 animate-pulse" />
                             
                             <div className="relative">
@@ -209,7 +209,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={rejectIncomingCall}
-                                    className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-zinc-800 py-4 text-sm font-bold text-white border border-white/5 hover:bg-zinc-700 transition-colors"
+                                    className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-zinc-800 py-4 text-sm font-bold text-white border border-[var(--ui-border)] hover:bg-zinc-700 transition-colors"
                                 >
                                     <X className="h-4 w-4" /> Decline
                                 </motion.button>
@@ -228,7 +228,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                         {/* Status Bar */}
                         <div className="absolute top-0 left-0 w-full z-20 flex items-center justify-between px-8 py-6 bg-gradient-to-b from-black/60 to-transparent">
                             <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center overflow-hidden">
+                                <div className="h-12 w-12 rounded-2xl bg-[var(--ui-bg-hover)] backdrop-blur-xl border border-[var(--ui-border)] flex items-center justify-center overflow-hidden">
                                     <img 
                                         src={`https://ui-avatars.com/api/?name=${otherUserName}&background=random`} 
                                         alt={otherUserName}
@@ -247,7 +247,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                             </div>
                             
                             <div className="flex items-center gap-3">
-                                <div className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-[10px] font-bold text-white/60 uppercase tracking-widest">
+                                <div className="px-3 py-1.5 rounded-full bg-[var(--ui-bg-hover)] border border-[var(--ui-border)] backdrop-blur-md text-[10px] font-bold text-white/60 uppercase tracking-widest">
                                     Encrypted
                                 </div>
                             </div>
@@ -265,7 +265,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                             {callState === 'calling' && (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center space-y-8 bg-zinc-950/40 backdrop-blur-sm">
                                     <div className="relative">
-                                        <div className="h-32 w-32 rounded-full border border-white/5 flex items-center justify-center animate-[ping_3s_infinite] opacity-20" />
+                                        <div className="h-32 w-32 rounded-full border border-[var(--ui-border)] flex items-center justify-center animate-[ping_3s_infinite] opacity-20" />
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             <div className="h-24 w-24 rounded-full bg-[var(--ui-accent)]/10 flex items-center justify-center border border-[var(--ui-accent)]/20 animate-pulse">
                                                 <Phone className="h-10 w-10 text-[var(--ui-accent)]" />
@@ -305,7 +305,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
 
                         {/* Control Bar */}
                         <div className="h-32 flex items-center justify-center relative z-20">
-                            <div className="flex items-center gap-6 px-10 py-5 bg-zinc-900/80 backdrop-blur-2xl border border-white/5 rounded-[40px] shadow-2xl">
+                            <div className="flex items-center gap-6 px-10 py-5 bg-zinc-900/80 backdrop-blur-2xl border border-[var(--ui-border)] rounded-[40px] shadow-2xl">
                                 <ControlBtn 
                                     active={!muted} 
                                     onClick={toggleMute} 
@@ -372,8 +372,8 @@ function ControlBtn({ active, onClick, icon: Icon, danger, accent, label }: Cont
                         : accent && active
                             ? 'bg-[var(--ui-accent)] border-[var(--ui-accent)] text-[var(--ui-accent-text)] shadow-lg shadow-[var(--ui-accent)]/20'
                             : active 
-                                ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' 
-                                : 'bg-white/5 border-white/10 text-white/40'
+                                ? 'bg-[var(--ui-bg-hover)] border-[var(--ui-border)] text-white hover:bg-[var(--ui-bg-active)]' 
+                                : 'bg-[var(--ui-bg-hover)] border-[var(--ui-border)] text-white/40'
                 }`}
                 title={label}
             >
@@ -385,7 +385,7 @@ function ControlBtn({ active, onClick, icon: Icon, danger, accent, label }: Cont
 
 function CallButtons({ onStartCall, disabled }: { onStartCall: (type: 'audio' | 'video') => void; disabled: boolean }) {
     return (
-        <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/5">
+        <div className="flex items-center gap-1.5 bg-[var(--ui-bg-hover)] p-1 rounded-xl border border-[var(--ui-border)]">
             <button
                 onClick={() => onStartCall('audio')}
                 disabled={disabled}

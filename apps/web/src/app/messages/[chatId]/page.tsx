@@ -38,6 +38,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
     const [messages, setMessages] = useState<Message[]>([]);
 
     const [chatInfo, setChatInfo] = useState<ChatInfo | null>(null);
+    const [chatError, setChatError] = useState<string | null>(null);
     const [profilePopup, setProfilePopup] = useState<{ userId: string; rect: DOMRect } | null>(null);
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
@@ -75,11 +76,19 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
         const fetchChatInfo = async () => {
             try {
                 const docSnap = await getDoc(doc(db, 'private_chats', chatId));
-                if (isMounted && docSnap.exists()) {
-                    setChatInfo(docSnap.data() as ChatInfo);
+                if (isMounted) {
+                    if (docSnap.exists()) {
+                        setChatInfo(docSnap.data() as ChatInfo);
+                    } else {
+                        setChatError('Chat not found');
+                        setIsLoading(false);
+                    }
                 }
             } catch (error) {
-                if (isMounted) toast.error('Failed to load chat details.');
+                if (isMounted) {
+                    setChatError('Failed to load chat details.');
+                    setIsLoading(false);
+                }
             }
         };
 
@@ -109,6 +118,16 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
             });
             setMessages(data);
             setIsLoading(false);
+        }, (error) => {
+            console.error("Error fetching messages:", error);
+            if (isMounted) {
+                if (error.code === 'failed-precondition') {
+                    toast.error('Chat index is building. Please wait a minute and refresh.');
+                } else if (error.code === 'permission-denied') {
+                    setChatError('Permission denied');
+                }
+                setIsLoading(false);
+            }
         });
 
         return () => {
@@ -252,6 +271,24 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
     }, [messages, searchQuery]);
 
     if (!user || !userProfile) return null;
+
+    if (chatError) {
+        return (
+            <DashboardLayout>
+                <div className="flex flex-col h-full items-center justify-center text-center p-6">
+                    <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+                        <Lock className="w-8 h-8 text-red-500" />
+                    </div>
+                    <h2 className="text-xl font-bold text-[var(--ui-text)] mb-2">{chatError}</h2>
+                    <p className="text-[var(--ui-text-muted)] max-w-sm">
+                        {chatError === 'Permission denied' 
+                            ? "You don't have access to this conversation, or it has been deleted."
+                            : "There was a problem loading this conversation."}
+                    </p>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     if (!chatInfo) {
         return (

@@ -101,7 +101,7 @@ export default function ProfilePopup({ userId, anchorRect, onClose }: ProfilePop
                     ) : (
                         <>
                             {/* Banner */}
-                            <div className="h-20 bg-gradient-to-br from-[var(--ui-accent)]/40 via-[var(--ui-bg-surface)] to-[var(--ui-bg-base)] relative border-b border-white/5">
+                            <div className="h-20 bg-gradient-to-br from-[var(--ui-accent)]/40 via-[var(--ui-bg-surface)] to-[var(--ui-bg-base)] relative border-b border-[var(--ui-border)]">
                                 <button
                                     onClick={onClose}
                                     className="absolute top-3 right-3 p-1.5 rounded-full bg-black/20 text-white/70 hover:text-white hover:bg-black/40 backdrop-blur-md transition-all"

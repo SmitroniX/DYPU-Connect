@@ -187,7 +187,7 @@ export default function ChatInput({
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                        className="absolute -top-4 left-6 sm:-top-6 sm:left-8 h-6 flex items-center bg-[var(--ui-bg-surface)]/80 backdrop-blur-md px-3 rounded-full border border-white/5 text-[10px] font-medium text-[var(--ui-text-secondary)] shadow-sm"
+                        className="absolute -top-4 left-6 sm:-top-6 sm:left-8 h-6 flex items-center bg-[var(--ui-bg-surface)]/80 backdrop-blur-md px-3 rounded-full border border-[var(--ui-border)] text-[10px] font-medium text-[var(--ui-text-secondary)] shadow-sm"
                     >
                         {typingIndicator}     
                     </motion.div>
@@ -215,14 +215,14 @@ export default function ChatInput({
                             exit={{ opacity: 0, y: 10 }}
                             className="absolute -top-10 left-1/2 -translate-x-1/2 z-30 hidden sm:block"
                         >
-                            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl px-1 py-1 shadow-2xl">
+                            <div className="bg-black/40 backdrop-blur-xl border border-[var(--ui-border)] rounded-xl px-1 py-1 shadow-2xl">
                                 <MarkdownToolbar onWrapSelection={wrapSelection} />
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                <div className="flex items-end gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-3xl bg-[var(--ui-bg-surface)]/70 hover:bg-[var(--ui-bg-surface)]/80 border border-white/10 focus-within:border-[var(--ui-accent)]/50 focus-within:bg-[var(--ui-bg-surface)] transition-all duration-300 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.25)] group/input">
+                <div className="flex items-end gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-3xl bg-[var(--ui-bg-surface)]/70 hover:bg-[var(--ui-bg-surface)]/80 border border-[var(--ui-border)] focus-within:border-[var(--ui-accent)]/50 focus-within:bg-[var(--ui-bg-surface)] transition-all duration-300 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.25)] group/input">
                     
                     {/* Integrated Action Bar */}
                     <div className="shrink-0 pl-0.5 pb-0.5">
@@ -268,10 +268,10 @@ export default function ChatInput({
             {/* Keyboard hint (hidden on mobile) */}
             <div className="hidden sm:flex items-center justify-center mt-3">
                 <p className="text-[10px] text-white/20 font-medium tracking-wide flex items-center gap-2">
-                    <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/5">Enter</span>
+                    <span className="px-1.5 py-0.5 rounded-md bg-[var(--ui-bg-hover)] border border-[var(--ui-border)]">Enter</span>
                     <span>to send</span>
-                    <span className="w-1 h-1 rounded-full bg-white/10" />
-                    <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/5">Shift + Enter</span>
+                    <span className="w-1 h-1 rounded-full bg-[var(--ui-bg-active)]" />
+                    <span className="px-1.5 py-0.5 rounded-md bg-[var(--ui-bg-hover)] border border-[var(--ui-border)]">Shift + Enter</span>
                     <span>for new line</span>
                 </p>
             </div>
