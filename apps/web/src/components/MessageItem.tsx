@@ -5,7 +5,6 @@ import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { filterProfanity } from '@/lib/security';
-import { Check, CheckCheck } from 'lucide-react';
 import { MessageHoverToolbar, MessageReactions } from '@/components/MessageReactions';
 import { Message } from '@/lib/validation/schemas';
 import { Blurhash } from 'react-blurhash';
