@@ -198,9 +198,9 @@ const MessageItem = memo(({
                         <div className={`absolute bottom-1 right-2 flex items-center gap-0.5 text-[8px] sm:text-[9px] font-medium tracking-wide ${isMine ? 'text-white/80' : 'text-[#71717a]'}`}>
                             <span>{ts ? format(ts, 'HH:mm') : '...'}</span>
                             {isMine && (
-                                <svg className="w-[12px] h-[12px] sm:w-[14px] sm:h-[14px] ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <svg className={`w-[12px] h-[12px] sm:w-[14px] sm:h-[14px] ml-0.5 transition-colors ${isRead ? 'text-blue-300' : 'opacity-80'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="m18 6-11 11-5-5"></path>
-                                    <path d="m22 10-7.5 7.5L13 16"></path>
+                                    {isRead && <path d="m22 10-7.5 7.5L13 16"></path>}
                                 </svg>
                             )}
                         </div>
