@@ -326,7 +326,7 @@ class MainActivity : AppCompatActivity() {
         try {
             json.put("event", event)
             json.put("data", data)
-            val escapedJson = json.toString().replace("'", "\'").replace(""", "\"")
+            val escapedJson = json.toString().replace("'", "\\'").replace("\"", "\\\"")
             val script = "if (window.dispatchEvent) { window.dispatchEvent(new CustomEvent('native_bridge', {detail: '$escapedJson'})); }"
             runOnUiThread { webView.evaluateJavascript(script, null) }
         } catch (e: JSONException) {
