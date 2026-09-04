@@ -14,8 +14,9 @@ import { shouldShowHeader } from '@/lib/utils';
 import { Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, limit } from 'firebase/firestore';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { Message } from '@/lib/validation/schemas';
 
 export default function PublicChatPage() {
@@ -36,6 +37,7 @@ export default function PublicChatPage() {
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
     const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
+    const [loading, setLoading] = useState(true);
     
     const { user } = useAuth();
     const { userProfile } = useStore();
@@ -43,7 +45,7 @@ export default function PublicChatPage() {
 
     useEffect(() => {
         const messagesRef = collection(db, 'public_chat');
-        const simplerQ = query(messagesRef, orderBy('timestamp', 'asc'));
+        const simplerQ = query(messagesRef, orderBy('timestamp', 'asc'), limit(200));
 
         const unsubscribe = onSnapshot(simplerQ, (snapshot) => {
             const now = new Date();
@@ -74,8 +76,10 @@ export default function PublicChatPage() {
                 });
             });
             setMessages(data);
+            setLoading(false);
         }, (error) => {
             console.error('Failed to subscribe to public chat:', error);
+            setLoading(false);
         });
         
         return () => unsubscribe();
@@ -210,62 +214,68 @@ export default function PublicChatPage() {
                     <Users className="h-4 w-4 text-[var(--ui-text-muted)]" />
                 </ChannelHeader>
 
-                <Virtuoso
-                    ref={virtuosoRef}
-                    data={optimisticMessages}
-                    initialTopMostItemIndex={Math.max(0, optimisticMessages.length - 1)}
-                    followOutput="auto"
-                    className="flex-1 overflow-x-hidden px-4"
-                    itemContent={(i, msg) => {
-                        const isMine = msg.senderId === user?.uid;
-                        const prev = i > 0 ? optimisticMessages[i - 1] : null;
-                        const showMsgHeader = shouldShowHeader(
-                            msg.senderId,
-                            prev?.senderId,
-                            msg.timestamp instanceof Date ? msg.timestamp : (msg.timestamp as any)?.toDate?.() ?? null,
-                            prev?.timestamp instanceof Date ? prev.timestamp : (prev?.timestamp as any)?.toDate?.() ?? null
-                        );
+                {loading ? (
+                    <div className="flex-1 flex items-center justify-center">
+                        <LoadingSpinner />
+                    </div>
+                ) : (
+                    <Virtuoso
+                        ref={virtuosoRef}
+                        data={optimisticMessages}
+                        initialTopMostItemIndex={Math.max(0, optimisticMessages.length - 1)}
+                        followOutput="auto"
+                        className="flex-1 overflow-x-hidden px-4"
+                        itemContent={(i, msg) => {
+                            const isMine = msg.senderId === user?.uid;
+                            const prev = i > 0 ? optimisticMessages[i - 1] : null;
+                            const showMsgHeader = shouldShowHeader(
+                                msg.senderId,
+                                prev?.senderId,
+                                msg.timestamp instanceof Date ? msg.timestamp : (msg.timestamp as any)?.toDate?.() ?? null,
+                                prev?.timestamp instanceof Date ? prev.timestamp : (prev?.timestamp as any)?.toDate?.() ?? null
+                            );
 
-                        return (
-                            <MessageItem
-                                key={msg.id}
-                                msg={msg}
-                                isMine={isMine}
-                                showMsgHeader={showMsgHeader}
-                                currentUserId={user?.uid ?? ''}
-                                replyToMsg={msg.replyToId ? messageMap.get(msg.replyToId) : null}
-                                editingMessageId={editingMessageId}
-                                editValue={editingMessageId === msg.id ? editValue : undefined}
-                                setEditValue={setEditValue}
-                                onStartEdit={handleStartEdit}
-                                onSaveEdit={handleSaveEdit}
-                                onCancelEdit={handleCancelEdit}
-                                onDelete={handleDelete}
-                                onReply={handleStartReply}
-                                onReact={handleReact}
-                                onAvatarClick={handleAvatarClick}
-                            />
-                        );
-                    }}
-                    components={{
-                        Header: () => (
-                            <>
-                                {optimisticMessages.length === 0 && (
-                                    <div className="flex flex-col items-center justify-center h-full text-center py-20 animate-[fade-in-up_0.5s_ease-out]">
-                                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--ui-accent)] to-purple-500 flex items-center justify-center mb-6 shadow-lg shadow-[var(--ui-accent)]/20">
-                                            <Users className="h-10 w-10 text-white" />
+                            return (
+                                <MessageItem
+                                    key={msg.id}
+                                    msg={msg}
+                                    isMine={isMine}
+                                    showMsgHeader={showMsgHeader}
+                                    currentUserId={user?.uid ?? ''}
+                                    replyToMsg={msg.replyToId ? messageMap.get(msg.replyToId) : null}
+                                    editingMessageId={editingMessageId}
+                                    editValue={editingMessageId === msg.id ? editValue : undefined}
+                                    setEditValue={setEditValue}
+                                    onStartEdit={handleStartEdit}
+                                    onSaveEdit={handleSaveEdit}
+                                    onCancelEdit={handleCancelEdit}
+                                    onDelete={handleDelete}
+                                    onReply={handleStartReply}
+                                    onReact={handleReact}
+                                    onAvatarClick={handleAvatarClick}
+                                />
+                            );
+                        }}
+                        components={{
+                            Header: () => (
+                                <>
+                                    {optimisticMessages.length === 0 && (
+                                        <div className="flex flex-col items-center justify-center h-full text-center py-20 animate-[fade-in-up_0.5s_ease-out]">
+                                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--ui-accent)] to-purple-500 flex items-center justify-center mb-6 shadow-lg shadow-[var(--ui-accent)]/20">
+                                                <Users className="h-10 w-10 text-white" />
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-[var(--ui-text)] mb-2">Welcome to Campus Plaza</h3>
+                                            <p className="text-[var(--ui-text-muted)] max-w-sm">
+                                                This is a public space for everyone at DYPU. Messages here automatically disappear after 48 hours.
+                                            </p>
                                         </div>
-                                        <h3 className="text-2xl font-bold text-[var(--ui-text)] mb-2">Welcome to Campus Plaza</h3>
-                                        <p className="text-[var(--ui-text-muted)] max-w-sm">
-                                            This is a public space for everyone at DYPU. Messages here automatically disappear after 48 hours.
-                                        </p>
-                                    </div>
-                                )}
-                            </>
-                        ),
-                        Footer: () => <div className="h-4" />
-                    }}
-                />
+                                    )}
+                                </>
+                            ),
+                            Footer: () => <div className="h-4" />
+                        }}
+                    />
+                )}
 
                 <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20">
                     <div className="max-w-3xl mx-auto transition-all duration-300">

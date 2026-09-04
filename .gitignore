@@ -62,3 +62,13 @@ apps/web/public/sw.js.map
 apps/web/public/workbox-*.js
 apps/web/public/swe-worker-*.js
 .agents/mcp_config.json
+
+# Monorepo fixes
+.next/
+node_modules/
+out/
+.cache/
+
+# Scratch scripts
+*.py
+*.patch

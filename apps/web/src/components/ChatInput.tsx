@@ -58,6 +58,7 @@ export default function ChatInput({
     const [selectedAudioUrl, setSelectedAudioUrl] = useState('');
     const [uploading, setUploading] = useState(false);
     const [sending, setSending] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
@@ -100,10 +101,24 @@ export default function ChatInput({
         }
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSend();
+            return;
+        }
+        
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'b') {
+                e.preventDefault();
+                wrapSelection('**', '**');
+            } else if (e.key === 'i') {
+                e.preventDefault();
+                wrapSelection('*', '*');
+            } else if (e.key === 'k') {
+                e.preventDefault();
+                wrapSelection('`', '`');
+            }
         }
     };
 
@@ -145,7 +160,7 @@ export default function ChatInput({
         });
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement> | { target: { files: FileList | File[] } }) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -172,6 +187,24 @@ export default function ChatInput({
         }
     };
 
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        if (features.image) setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        if (features.image && e.dataTransfer.files?.length > 0) {
+            handleImageUpload({ target: { files: e.dataTransfer.files } });
+        }
+    };
+
     const handleRemoveAttachments = () => {   
         setSelectedGifUrl('');
         setSelectedImageUrl('');
@@ -180,7 +213,12 @@ export default function ChatInput({
     };
 
     return (
-        <div className="px-3 pb-[max(var(--safe-bottom),16px)] sm:px-4 sm:pb-6 shrink-0 relative pt-2 sm:pt-4 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent z-30">
+        <div 
+            className="px-3 pb-[max(var(--safe-bottom),16px)] sm:px-4 sm:pb-6 shrink-0 relative pt-2 sm:pt-4 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent z-30"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
             <AnimatePresence>
                 {typingIndicator && (
                     <motion.div 
@@ -206,7 +244,7 @@ export default function ChatInput({
             {/* Premium Input Container */}
             <div className="flex flex-col relative z-20 transition-all duration-500 max-w-5xl mx-auto w-full">
                 
-                {/* Floating Markdown Toolbar */}
+                {/* Floating Markdown Toolbar (Desktop) */}
                 <AnimatePresence>
                     {features.markdown && message.length > 0 && (       
                         <motion.div 
@@ -222,7 +260,23 @@ export default function ChatInput({
                     )}
                 </AnimatePresence>
 
-                <div className="flex items-end gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-3xl bg-[var(--ui-bg-surface)]/70 hover:bg-[var(--ui-bg-surface)]/80 border border-[var(--ui-border)] focus-within:border-[var(--ui-accent)]/50 focus-within:bg-[var(--ui-bg-surface)] transition-all duration-300 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.25)] group/input">
+                {/* Drop Zone Overlay */}
+                <AnimatePresence>
+                    {isDragging && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            className="absolute inset-0 z-40 bg-[var(--ui-accent)]/20 backdrop-blur-sm border-2 border-dashed border-[var(--ui-accent)] rounded-3xl flex items-center justify-center pointer-events-none"
+                        >
+                            <span className="text-[var(--ui-accent)] font-medium bg-[var(--ui-bg-surface)] px-4 py-2 rounded-full shadow-lg">
+                                Drop image to upload
+                            </span>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <div className={`flex items-end gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-3xl bg-[var(--ui-bg-surface)]/70 hover:bg-[var(--ui-bg-surface)]/80 border border-[var(--ui-border)] focus-within:border-[var(--ui-accent)]/50 focus-within:bg-[var(--ui-bg-surface)] transition-all duration-300 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.25)] group/input ${isDragging ? 'opacity-0' : ''}`}>
                     
                     {/* Integrated Action Bar */}
                     <div className="shrink-0 pl-0.5 pb-0.5">
@@ -238,8 +292,8 @@ export default function ChatInput({
                         />
                     </div>
 
-                    {/* Text Field */}
-                    <div className="flex-1 min-w-0 py-1.5 sm:py-2">
+                    {/* Text Field & Mobile Toolbar */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-center py-1.5 sm:py-2">
                         <textarea
                             ref={textareaRef} 
                             value={message}   
@@ -251,6 +305,22 @@ export default function ChatInput({
                             rows={1}
                             className="w-full bg-transparent text-[15px] sm:text-[16px] leading-tight pt-1 text-white placeholder-white/40 focus:outline-none resize-none overflow-y-auto max-h-[160px] px-1 scrollbar-hide selection:bg-[var(--ui-accent)]/30"     
                         />
+                        
+                        {/* Mobile Markdown Toolbar */}
+                        <AnimatePresence>
+                            {features.markdown && message.length > 0 && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden sm:hidden"
+                                >
+                                    <div className="pt-2 flex justify-center">
+                                        <MarkdownToolbar onWrapSelection={wrapSelection} />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     {/* Send Control */}

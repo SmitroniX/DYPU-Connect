@@ -56,7 +56,7 @@ export default function ChatHeader({ otherUserId, otherName, otherImage, onAvata
                             <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-zinc-500 border-[2.5px] border-[var(--ui-bg-surface)] rounded-full"></div>
                         )}
                     </div>
-                    <div className="flex flex-col overflow-hidden hidden sm:flex justify-center">
+                    <div className="flex flex-col overflow-hidden justify-center">
                         <span className="font-bold text-[#fafafa] text-[16px] leading-tight truncate">
                             {otherName}
                         </span>
@@ -67,13 +67,6 @@ export default function ChatHeader({ otherUserId, otherName, otherImage, onAvata
                 </motion.div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
-                <motion.button 
-                    whileHover={{ scale: 0.98 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="p-2.5 text-[#a1a1aa] hover:text-[var(--ui-accent)] rounded-full hover:bg-[var(--ui-bg-hover)] transition-colors hidden sm:flex"
-                >
-                    <Phone className="w-5 h-5" />
-                </motion.button>
                 {children}
                 <motion.button 
                     whileHover={{ scale: 0.98 }}

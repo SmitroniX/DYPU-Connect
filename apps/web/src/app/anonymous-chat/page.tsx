@@ -12,6 +12,7 @@ import { useAuth } from '@/components/AuthProvider';
 import ChatInput, { type ChatInputPayload } from '@/components/ChatInput';
 import { MessageHoverToolbar, MessageReactions } from '@/components/MessageReactions';
 import { EyeOff } from 'lucide-react';
+import { Virtuoso } from 'react-virtuoso';
 import { formatDistanceToNow } from 'date-fns';
 import { generateAnonymousName } from '@/lib/utils';
 import { sanitiseInput, filterProfanity } from '@/lib/security';
@@ -34,7 +35,6 @@ export default function AnonymousChatPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const { user } = useAuth();
     const { userProfile } = useStore();
-    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Track this session's anonymous identity. To keep it consistent across a session.
     const [sessionIdentity, setSessionIdentity] = useState('');
@@ -52,16 +52,11 @@ export default function AnonymousChatPage() {
         }
     }, [sessionId]);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
     useEffect(() => {
         const now = new Date();
         const q = query(
             collection(db, 'anonymous_public_chat'),
-            where('expiresAt', '>', FirestoreTimestamp.fromDate(now)),
-            orderBy('expiresAt', 'asc'),
+            orderBy('timestamp', 'asc'),
             limit(100)
         );
 
@@ -72,9 +67,13 @@ export default function AnonymousChatPage() {
                     id: doc.id,
                     ...doc.data()
                 })) as Message[];
-                data.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
-                setMessages(data);
-                scrollToBottom();
+                
+                const filtered = data.filter(msg => {
+                    const expiresAt = msg.expiresAt?.toDate?.();
+                    return !expiresAt || expiresAt > now;
+                });
+                
+                setMessages(filtered);
             },
             (error) => {
                 console.error('Anonymous chat listener error:', error);
@@ -85,10 +84,6 @@ export default function AnonymousChatPage() {
     }, []);
 
 
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
 
     const handleSend = useCallback(async (payload: ChatInputPayload) => {
         const cleanMessage = sanitiseInput(payload.text);
@@ -147,76 +142,85 @@ export default function AnonymousChatPage() {
                 </ChannelHeader>
 
                 {/* Messages stream */}
-                <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
-                    {messages.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center">
-                            <div className="w-16 h-16 rounded-full bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
-                                <EyeOff className="h-8 w-8 text-[var(--ui-text-muted)]" />
-                            </div>
-                            <h3 className="text-xl font-bold text-[var(--ui-text)]">Welcome to #shadow-realm!</h3>
-                            <p className="text-sm text-[var(--ui-text-muted)] mt-1">Silence in the shadows. Speak up. 👁️</p>
-                        </div>
-                    ) : (
-                        messages.map((msg, i) => {
-                            const isMine = msg.sessionId === sessionId || (!!msg.senderId && msg.senderId === user?.uid);
-                            const prev = i > 0 ? messages[i - 1] : null;
-                            const showHeader = !prev || prev.anonymousName !== msg.anonymousName;
-                            const ts = msg.timestamp?.toDate?.();
+                <Virtuoso
+                    data={messages}
+                    initialTopMostItemIndex={Math.max(0, messages.length - 1)}
+                    followOutput="auto"
+                    className="flex-1 overflow-x-hidden px-4"
+                    itemContent={(i, msg) => {
+                        const isMine = msg.sessionId === sessionId || (!!msg.senderId && msg.senderId === user?.uid);
+                        const prev = i > 0 ? messages[i - 1] : null;
+                        const showHeader = !prev || prev.anonymousName !== msg.anonymousName;
+                        const ts = msg.timestamp?.toDate?.();
 
-                            return (
-                                <div key={msg.id} className={`group relative flex w-full px-2 py-1 transition-colors hover:bg-[var(--ui-bg-hover)]/30 rounded-xl ${showHeader ? 'mt-4' : 'mt-0.5'}`}>
-                                    <MessageHoverToolbar onReact={(emoji) => handleReact(msg.id, emoji)} />
+                        return (
+                            <div key={msg.id} className={`group relative flex w-full px-2 py-1 transition-colors hover:bg-[var(--ui-bg-hover)]/30 rounded-xl ${showHeader ? 'mt-4' : 'mt-0.5'}`}>
+                                <MessageHoverToolbar onReact={(emoji) => handleReact(msg.id, emoji)} />
 
-                                    <div className="flex gap-4 w-full">
-                                        <div className="w-10 shrink-0 flex items-start pt-1">
-                                            {showHeader ? (
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${isMine ? 'bg-[var(--ui-accent-dim)] text-[var(--ui-accent)]' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)]'}`}>
-                                                    {msg.anonymousName.charAt(0)}
-                                                </div>
-                                            ) : (
-                                                <span className="text-[10px] text-[var(--ui-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity w-full text-center pt-1 font-medium">
-                                                    {ts ? ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0 pt-0.5 pb-1">
-                                            {showHeader && (
-                                                <div className="flex items-baseline gap-2 mb-0.5">
-                                                    <span className={`font-semibold text-[15px] ${isMine ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text)]'}`}>
-                                                        {msg.anonymousName}
-                                                        {isMine && <span className="text-xs text-[var(--ui-text-muted)] ml-1">(you)</span>}
-                                                    </span>
-                                                    <span className="text-xs text-[var(--ui-text-muted)] font-medium">
-                                                        {ts ? formatDistanceToNow(ts as Date, { addSuffix: true }) : 'Sending...'}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            {msg.gifUrl && (
-                                                <img src={msg.gifUrl} alt="GIF" className="max-w-[80%] sm:max-w-[340px] rounded-xl mt-1.5 mb-1 object-cover shadow-sm" />
-                                            )}
-                                            {msg.imageUrl && (
-                                                <img src={msg.imageUrl} alt="Photo" className="max-w-[80%] sm:max-w-[340px] rounded-xl mt-1.5 mb-1 object-cover border border-[var(--ui-border)]/50 shadow-sm" />
-                                            )}
-                                            {msg.text && (
-                                                <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
-                                                    {renderMarkdown(filterProfanity(msg.text))}
-                                                </p>
-                                            )}
-                                            <div className="mt-1">
-                                                <MessageReactions
-                                                    reactions={msg.reactions ?? {}}
-                                                    currentUserId={user?.uid ?? ''}
-                                                    onToggle={(emoji) => handleReact(msg.id, emoji)}
-                                                />
+                                <div className="flex gap-4 w-full">
+                                    <div className="w-10 shrink-0 flex items-start pt-1">
+                                        {showHeader ? (
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${isMine ? 'bg-[var(--ui-accent-dim)] text-[var(--ui-accent)]' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)]'}`}>
+                                                {msg.anonymousName.charAt(0)}
                                             </div>
+                                        ) : (
+                                            <span className="text-[10px] text-[var(--ui-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity w-full text-center pt-1 font-medium">
+                                                {ts ? ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0 pt-0.5 pb-1">
+                                        {showHeader && (
+                                            <div className="flex items-baseline gap-2 mb-0.5">
+                                                <span className={`font-semibold text-[15px] ${isMine ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text)]'}`}>
+                                                    {msg.anonymousName}
+                                                    {isMine && <span className="text-xs text-[var(--ui-text-muted)] ml-1">(you)</span>}
+                                                </span>
+                                                <span className="text-xs text-[var(--ui-text-muted)] font-medium">
+                                                    {ts ? formatDistanceToNow(ts as Date, { addSuffix: true }) : 'Sending...'}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {msg.gifUrl && (
+                                            <img src={msg.gifUrl} alt="GIF" className="max-w-[80%] sm:max-w-[340px] rounded-xl mt-1.5 mb-1 object-cover shadow-sm" />
+                                        )}
+                                        {msg.imageUrl && (
+                                            <img src={msg.imageUrl} alt="Photo" className="max-w-[80%] sm:max-w-[340px] rounded-xl mt-1.5 mb-1 object-cover border border-[var(--ui-border)]/50 shadow-sm" />
+                                        )}
+                                        {msg.text && (
+                                            <p className="text-[15px] text-[var(--ui-text-secondary)] leading-relaxed break-words whitespace-pre-wrap">
+                                                {renderMarkdown(filterProfanity(msg.text))}
+                                            </p>
+                                        )}
+                                        <div className="mt-1">
+                                            <MessageReactions
+                                                reactions={msg.reactions ?? {}}
+                                                currentUserId={user?.uid ?? ''}
+                                                onToggle={(emoji) => handleReact(msg.id, emoji)}
+                                            />
                                         </div>
                                     </div>
                                 </div>
-                            );
-                        })
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
+                            </div>
+                        );
+                    }}
+                    components={{
+                        Header: () => (
+                            <>
+                                {messages.length === 0 && (
+                                    <div className="flex flex-col items-center justify-center h-full text-center py-20">
+                                        <div className="w-16 h-16 rounded-full bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4">
+                                            <EyeOff className="h-8 w-8 text-[var(--ui-text-muted)]" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-[var(--ui-text)]">Welcome to #shadow-realm!</h3>
+                                        <p className="text-sm text-[var(--ui-text-muted)] mt-1">Silence in the shadows. Speak up. 👁️</p>
+                                    </div>
+                                )}
+                            </>
+                        ),
+                        Footer: () => <div className="h-4" />
+                    }}
+                />
 
                 {/* Chat input — no image upload in anonymous mode */}
                 <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20">

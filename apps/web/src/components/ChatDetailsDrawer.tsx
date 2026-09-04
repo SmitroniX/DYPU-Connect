@@ -2,6 +2,9 @@
 
 import { X, Search, Image as ImageIcon, Bell, BellOff, Ban, Trash2, MoreVertical } from 'lucide-react';
 import { Message } from '@/lib/validation/schemas';
+import { doc, updateDoc, arrayUnion, writeBatch, collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import toast from 'react-hot-toast';
 
 interface ChatDetailsDrawerProps {
     isOpen: boolean;
@@ -12,6 +15,10 @@ interface ChatDetailsDrawerProps {
     onSearchClick?: () => void;
     isMuted?: boolean;
     onToggleMute?: () => void;
+    chatId?: string;
+    user?: any;
+    userProfile?: any;
+    otherUserId?: string;
 }
 
 export default function ChatDetailsDrawer({
@@ -22,9 +29,66 @@ export default function ChatDetailsDrawer({
     messages,
     onSearchClick,
     isMuted = false,
-    onToggleMute
+    onToggleMute,
+    chatId,
+    user,
+    userProfile,
+    otherUserId
 }: ChatDetailsDrawerProps) {
     if (!isOpen) return null;
+
+    const handleBlockUser = async () => {
+        if (!user || !otherUserId) return;
+        if (!confirm(`Are you sure you want to block ${otherName}?`)) return;
+        
+        try {
+            await updateDoc(doc(db, 'users', user.uid), {
+                blockedUsers: arrayUnion(otherUserId)
+            });
+            toast.success('User blocked successfully');
+        } catch (error) {
+            toast.error('Failed to block user');
+        }
+    };
+
+    const handleClearChat = async () => {
+        if (!chatId) return;
+        if (!confirm('Are you sure you want to clear this chat? This will delete all messages for both participants and cannot be undone.')) return;
+        
+        try {
+            const messagesRef = collection(db, 'private_chats', chatId, 'messages');
+            const snapshot = await getDocs(messagesRef);
+            
+            const batches = [];
+            let currentBatch = writeBatch(db);
+            let operationCount = 0;
+            
+            snapshot.docs.forEach((docSnap) => {
+                currentBatch.delete(docSnap.ref);
+                operationCount++;
+                
+                if (operationCount === 500) {
+                    batches.push(currentBatch.commit());
+                    currentBatch = writeBatch(db);
+                    operationCount = 0;
+                }
+            });
+            
+            if (operationCount > 0) {
+                batches.push(currentBatch.commit());
+            }
+            
+            await Promise.all(batches);
+            
+            await updateDoc(doc(db, 'private_chats', chatId), {
+                lastMessage: 'Chat cleared'
+            });
+            
+            toast.success('Chat cleared successfully');
+        } catch (error) {
+            toast.error('Failed to clear chat');
+        }
+    };
 
     // Extract all media messages
     const mediaMessages = messages.filter(m => m.imageUrl || m.gifUrl);
@@ -129,11 +193,11 @@ export default function ChatDetailsDrawer({
 
                     {/* Danger Zone */}
                     <div className="pt-4 border-t border-[var(--ui-border)]/30 space-y-1">
-                        <button className="w-full flex items-center gap-3 px-3 py-2.5 text-[var(--ui-danger)] hover:bg-[var(--ui-danger)]/10 rounded-lg transition-colors">
+                        <button onClick={handleBlockUser} className="w-full flex items-center gap-3 px-3 py-2.5 text-[var(--ui-danger)] hover:bg-[var(--ui-danger)]/10 rounded-lg transition-colors">
                             <Ban className="w-5 h-5" />
                             <span className="text-sm font-medium">Block User</span>
                         </button>
-                        <button className="w-full flex items-center gap-3 px-3 py-2.5 text-[var(--ui-danger)] hover:bg-[var(--ui-danger)]/10 rounded-lg transition-colors">
+                        <button onClick={handleClearChat} className="w-full flex items-center gap-3 px-3 py-2.5 text-[var(--ui-danger)] hover:bg-[var(--ui-danger)]/10 rounded-lg transition-colors">
                             <Trash2 className="w-5 h-5" />
                             <span className="text-sm font-medium">Clear Chat</span>
                         </button>

@@ -26,7 +26,7 @@ export default function AttachmentPreview({
     if (!hasMedia && !replyToMessage) return null;
 
     return (
-        <div className="absolute bottom-full left-4 mb-2 flex flex-col gap-2 z-10 w-fit max-w-[calc(100%-2rem)]">
+        <div className="flex flex-col gap-2 z-10 w-fit max-w-full mb-2">
             {/* Reply Preview */}
             {replyToMessage && (
                 <motion.div

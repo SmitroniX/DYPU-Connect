@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
     type CallSession,
     type CallData,
@@ -20,10 +20,13 @@ import {
     Monitor,
     MonitorOff,
     X,
-    Maximize2
+    Maximize2,
+    PictureInPicture2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface VideoCallProps {
     chatId: string;
@@ -43,6 +46,8 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
     const [screenSharing, setScreenSharing] = useState(false);
     const [elapsed, setElapsed] = useState(0);
     const [incomingCall, setIncomingCall] = useState<{ callId: string; data: CallData } | null>(null);
+    const [pip, setPip] = useState(false);
+    const [callSummary, setCallSummary] = useState<{ duration: number; type: 'audio' | 'video' } | null>(null);
 
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -66,17 +71,25 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
         return () => unsub();
     }, [chatId, myUid, otherUserName]);
 
-    const handleEndCall = async () => {
+    const handleEndCall = useCallback(async () => {
         if (session) {
             await endCall(session);
             setSession(null);
+        }
+        if (callState === 'active') {
+            setCallSummary({ duration: elapsed, type: callType });
+            setTimeout(() => setCallSummary(null), 3000);
+        }
+        if (document.pictureInPictureElement) {
+            try { await document.exitPictureInPicture(); } catch {}
         }
         setCallState('idle');
         setMuted(false);
         setCameraOff(false);
         setScreenSharing(false);
         setElapsed(0);
-    };
+        setPip(false);
+    }, [session, callState, elapsed, callType]);
 
     // Attach streams to video elements
     useEffect(() => {
@@ -99,7 +112,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
         return () => {
             session.pc.removeEventListener('connectionstatechange', handleConnectionChange);
         };
-    }, [session]); // handleEndCall omitted from deps to avoid infinite loop as it's not memoized yet, but realistically eslint might complain so I will add useCallback.
+    }, [session, handleEndCall]);
 
     // Elapsed timer
     useEffect(() => {
@@ -145,7 +158,14 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
         }
     };
 
-    const rejectIncomingCall = () => {
+    const rejectIncomingCall = async () => {
+        if (incomingCall) {
+            try {
+                await updateDoc(doc(db, 'calls', incomingCall.callId), { status: 'ended' });
+            } catch {
+                // Ignore if call doc already deleted
+            }
+        }
         setIncomingCall(null);
     };
 
@@ -167,6 +187,21 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
         if (!session) return;
         const result = await toggleScreenShare(session, !screenSharing);
         setScreenSharing(result !== null);
+    };
+
+    const togglePip = async () => {
+        if (!remoteVideoRef.current) return;
+        try {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+                setPip(false);
+            } else {
+                await remoteVideoRef.current.requestPictureInPicture();
+                setPip(true);
+            }
+        } catch {
+            toast.error('Picture-in-Picture not supported');
+        }
     };
 
     return (
@@ -215,6 +250,23 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                                 </motion.button>
                             </div>
                         </div>
+                    </motion.div>
+                )}
+
+                {callSummary && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] px-6 py-4 rounded-2xl shadow-2xl flex flex-col items-center gap-2"
+                    >
+                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mb-1">
+                            {callSummary.type === 'video' ? <Video className="w-5 h-5 text-emerald-500" /> : <Phone className="w-5 h-5 text-emerald-500" />}
+                        </div>
+                        <h3 className="text-white font-bold text-lg">Call ended</h3>
+                        <p className="text-[var(--ui-text-muted)] text-sm font-medium">
+                            Duration: {formatTime(callSummary.duration)}
+                        </p>
                     </motion.div>
                 )}
 
@@ -305,7 +357,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
 
                         {/* Control Bar */}
                         <div className="h-32 flex items-center justify-center relative z-20">
-                            <div className="flex items-center gap-6 px-10 py-5 bg-[var(--ui-bg-surface)] backdrop-blur-2xl border border-[var(--ui-border)] rounded-[40px] shadow-2xl">
+                            <div className="flex items-center gap-3 sm:gap-6 px-6 py-4 sm:px-10 sm:py-5 bg-[var(--ui-bg-surface)] backdrop-blur-2xl border border-[var(--ui-border)] rounded-[40px] shadow-2xl">
                                 <ControlBtn 
                                     active={!muted} 
                                     onClick={toggleMute} 
@@ -332,14 +384,24 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                                     label={screenSharing ? 'Stop Sharing' : 'Share Screen'}
                                 />
 
+                                {callType === 'video' && (
+                                    <ControlBtn 
+                                        active={pip} 
+                                        onClick={togglePip} 
+                                        icon={PictureInPicture2}
+                                        accent={pip}
+                                        label={pip ? 'Exit PiP' : 'Enter PiP'}
+                                    />
+                                )}
+
                                 <motion.button
                                     whileHover={{ scale: 1.1, rotate: -90 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={handleEndCall}
-                                    className="h-14 w-14 rounded-2xl bg-red-500 flex items-center justify-center text-white shadow-xl shadow-red-500/20 hover:bg-red-400 transition-colors"
+                                    className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-red-500 flex items-center justify-center text-white shadow-xl shadow-red-500/20 hover:bg-red-400 transition-colors"
                                     title="End Call"
                                 >
-                                    <PhoneOff className="h-6 w-6 fill-white/10" />
+                                    <PhoneOff className="h-5 w-5 sm:h-6 sm:w-6 fill-white/10" />
                                 </motion.button>
                             </div>
                         </div>
@@ -366,7 +428,7 @@ function ControlBtn({ active, onClick, icon: Icon, danger, accent, label }: Cont
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClick}
-                className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-300 border ${
+                className={`h-12 w-12 sm:h-14 sm:w-14 rounded-2xl flex items-center justify-center transition-all duration-300 border ${
                     danger 
                         ? 'bg-red-500/10 border-red-500/20 text-red-500' 
                         : accent && active
@@ -377,7 +439,7 @@ function ControlBtn({ active, onClick, icon: Icon, danger, accent, label }: Cont
                 }`}
                 title={label}
             >
-                <Icon className={`h-6 w-6 ${active && !danger && !accent ? 'fill-white/10' : ''}`} />
+                <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${active && !danger && !accent ? 'fill-white/10' : ''}`} />
             </motion.button>
         </div>
     );
@@ -401,14 +463,6 @@ function CallButtons({ onStartCall, disabled }: { onStartCall: (type: 'audio' | 
                 title="Video Call"
             >
                 <Video className="h-4.5 w-4.5" />
-            </button>
-            <button
-                disabled={disabled}
-                onClick={() => onStartCall('video')}
-                className="p-2 rounded-lg text-[var(--ui-text-muted)] hover:text-purple-400 hover:bg-purple-500/10 disabled:opacity-30 transition-all duration-300"
-                title="Share Screen"
-            >
-                <Monitor className="h-4.5 w-4.5" />
             </button>
         </div>
     );
