@@ -9,15 +9,16 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
-    // Use Firestore-based role check
+    // Use Firestore-based role check safely
     function isAdmin() {
       return signedIn() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'admin';
     }
 
     function participant(chatId) {
       return signedIn() &&
-        request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
+        request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.get('participants', []);
     }
 
     function isGroupMember(groupId) {
@@ -120,8 +121,8 @@ service cloud.firestore {
 
     match /private_chats/{chatId} {
       allow create: if signedIn() && request.auth.uid in request.resource.data.participants;
-      allow read: if (signedIn() && request.auth.uid in resource.data.participants) || isAdmin();
-      allow update: if signedIn() && request.auth.uid in resource.data.participants;
+      allow read: if (signedIn() && request.auth.uid in resource.data.get('participants', [])) || isAdmin();
+      allow update: if signedIn() && request.auth.uid in resource.data.get('participants', []);
       allow delete: if isAdmin();
     }
 
@@ -132,7 +133,7 @@ service cloud.firestore {
          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])) ||
          (resource.data.senderId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'isEdited', 'isDeleted']))
       );
-      allow delete: if isAdmin() || (participant(chatId) && resource.data.senderId == request.auth.uid);
+      allow delete: if isAdmin() || participant(chatId);
     }
 
     match /calls/{callId} {
