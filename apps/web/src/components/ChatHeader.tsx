@@ -2,7 +2,7 @@
 
 import { useUserPresence } from '@/hooks/usePresence';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowLeft, Phone, MoreVertical } from 'lucide-react';
+import { ArrowLeft, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 

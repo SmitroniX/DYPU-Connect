@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import ModuleGuard from '@/components/ModuleGuard';
 import ChannelHeader from '@/components/ChannelHeader';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, setDoc, doc, updateDoc, Timestamp as FirestoreTimestamp, where } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, setDoc, doc, updateDoc, Timestamp as FirestoreTimestamp } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';

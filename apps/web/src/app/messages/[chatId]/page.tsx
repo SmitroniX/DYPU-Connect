@@ -482,7 +482,6 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                 onToggleMute={handleToggleMute}
                 chatId={chatId}
                 user={user}
-                userProfile={userProfile}
                 otherUserId={otherUserId}
             />
 

@@ -17,7 +17,6 @@ interface ChatDetailsDrawerProps {
     onToggleMute?: () => void;
     chatId?: string;
     user?: any;
-    userProfile?: any;
     otherUserId?: string;
 }
 
@@ -32,7 +31,6 @@ export default function ChatDetailsDrawer({
     onToggleMute,
     chatId,
     user,
-    userProfile,
     otherUserId
 }: ChatDetailsDrawerProps) {
     if (!isOpen) return null;
