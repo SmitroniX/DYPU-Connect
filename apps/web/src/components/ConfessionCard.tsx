@@ -12,6 +12,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 import { filterProfanity } from '@/lib/security';
+import { shareToAndroid, isAndroidApp } from '@/lib/android';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -26,13 +27,22 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
     
     // State
     const [likesCount, setLikesCount] = useState(confession.likesCount || 0);
-    const [commentsCount] = useState(confession.commentsCount || 0);
+    const [commentsCount, setCommentsCount] = useState(confession.commentsCount || 0);
+
+    useEffect(() => {
+        setLikesCount(confession.likesCount || 0);
+    }, [confession.likesCount]);
+
+    useEffect(() => {
+        setCommentsCount(confession.commentsCount || 0);
+    }, [confession.commentsCount]);
     const [isLiked, setIsLiked] = useState(false);
     const [likeLoading, setLikeLoading] = useState(false);
     
     // UI state
     const [showMoreMenu, setShowMoreMenu] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
+    const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
     
     const mood = getMood(confession.mood);
     const gradient = confession.mood ? mood.gradient : cardGradient(confession.id);
@@ -102,18 +112,26 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
         const filtered = filterProfanity(confession.text);
         const text = `"${filtered.slice(0, 100)}${filtered.length > 100 ? '…' : ''}" — Read this confession on DYPU Connect!`;
         
+        if (isAndroidApp()) {
+            shareToAndroid(`${text}
+
+${url}`, 'DYPU Connect Confession');
+            return;
+        }
+
         if (navigator.share) {
             try { 
                 await navigator.share({ title: 'DYPU Connect Confession', text, url });
                 return;
             } catch (error) { 
-                // Fallback to copy if cancelled or failed
                 console.log(error);
             }
         }
         
         try {
-            await navigator.clipboard.writeText(`${text}\n\n${url}`);
+            await navigator.clipboard.writeText(`${text}
+
+${url}`);
             toast.success('Link and text copied to clipboard!');
         } catch {
             toast.error('Failed to copy link');
@@ -165,11 +183,7 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
             cardRef.current.style.transform = originalTransform;
             const dataUrl = canvas.toDataURL('image/png', 1.0);
             
-            // If on Android Webview, maybe we can trigger native share, but download works
-            const link = document.createElement('a');
-            link.download = `Confession_${confession.id}.png`;
-            link.href = dataUrl;
-            link.click();
+            setSnapshotUrl(dataUrl);
             
             toast.success('Snapshot ready!', { id: 'screenshot' });
         } catch {
@@ -322,6 +336,43 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
                 </div>
             </div>
             
+            </article>
+    );
+
+    
+    
+    const reportModal = (
+        <>
+            {/* Snapshot Modal */}
+            {snapshotUrl && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-[fade-in_0.2s_ease-out]" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSnapshotUrl(null); }}>
+                    <div className="w-full max-w-sm flex flex-col items-center gap-4 animate-[scale-in_0.2s_ease-out]" onClick={e => e.stopPropagation()}>
+                        <img src={snapshotUrl} alt="Confession Snapshot" className="w-full rounded-2xl shadow-2xl border border-[var(--ui-border)]" />
+                        <div className="flex gap-2 w-full">
+                            <button 
+                                onClick={(e) => { 
+                                    e.preventDefault(); 
+                                    const link = document.createElement('a');
+                                    link.download = `Confession_${confession.id}.png`;
+                                    link.href = snapshotUrl;
+                                    link.click();
+                                }}
+                                className="flex-1 py-3 rounded-xl bg-[var(--ui-accent)] text-white font-semibold shadow-lg hover:opacity-90 active:scale-95 transition-all"
+                            >
+                                Download Image
+                            </button>
+                            <button 
+                                onClick={(e) => { e.preventDefault(); setSnapshotUrl(null); }}
+                                className="px-4 py-3 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] text-[var(--ui-text)] font-semibold hover:bg-[var(--ui-bg-hover)] active:scale-95 transition-all"
+                            >
+                                Close
+                            </button>
+                        </div>
+                        <p className="text-[10px] text-white/50 text-center">Tip: Long-press the image to share or save directly to your gallery.</p>
+                    </div>
+                </div>
+            )}
+            
             {/* Report Modal */}
             {showReportModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowReportModal(false); }}>
@@ -352,16 +403,26 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
                     </div>
                 </div>
             )}
-        </article>
+        
+        </>
     );
 
     if (linkToDetail) {
         return (
-            <Link href={`/confessions/${confession.id}`} className="block">
-                {CardContent}
-            </Link>
+            <>
+                <Link href={`/confessions/${confession.id}`} className="block">
+                    {CardContent}
+                </Link>
+                {reportModal}
+            </>
         );
     }
 
-    return CardContent;
+    return (
+        <>
+            {CardContent}
+            {reportModal}
+        </>
+    );
+
 }
