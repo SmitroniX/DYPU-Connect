@@ -216,6 +216,10 @@ class MainActivity : AppCompatActivity() {
                     url.contains("github.com/login/oauth")) {
                     return false
                 }
+
+                if (url.startsWith("data:") || url.startsWith("blob:")) {
+                    return false
+                }
                 
                 try {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
@@ -400,6 +404,68 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra(Intent.EXTRA_SUBJECT, title)
             intent.putExtra(Intent.EXTRA_TEXT, text)
             startActivity(Intent.createChooser(intent, "Share via"))
+        }
+
+        @JavascriptInterface
+        fun shareImage(base64Data: String, title: String) {
+            runOnUiThread {
+                try {
+                    val pureBase64 = if (base64Data.contains(",")) base64Data.substringAfter(",") else base64Data
+                    val decodedBytes = android.util.Base64.decode(pureBase64, android.util.Base64.DEFAULT)
+                    val cachePath = File(cacheDir, "images").apply { mkdirs() }
+                    val file = File(cachePath, "confession_snap.png")
+                    file.outputStream().use { it.write(decodedBytes) }
+
+                    val contentUri = FileProvider.getUriForFile(this@MainActivity, "${packageName}.fileprovider", file)
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "image/png"
+                        putExtra(Intent.EXTRA_STREAM, contentUri)
+                        putExtra(Intent.EXTRA_TEXT, title)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    startActivity(Intent.createChooser(shareIntent, "Share Snapshot"))
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to share image", e)
+                    Toast.makeText(this@MainActivity, "Failed to share image", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun saveImage(base64Data: String, fileName: String) {
+            runOnUiThread {
+                try {
+                    val pureBase64 = if (base64Data.contains(",")) base64Data.substringAfter(",") else base64Data
+                    val decodedBytes = android.util.Base64.decode(pureBase64, android.util.Base64.DEFAULT)
+                    val bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+
+                    val contentValues = android.content.ContentValues().apply {
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                        put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/DYPU-Connect")
+                            put(MediaStore.MediaColumns.IS_PENDING, 1)
+                        }
+                    }
+
+                    val resolver = contentResolver
+                    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                    if (uri != null) {
+                        resolver.openOutputStream(uri)?.use { out ->
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                        }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            contentValues.clear()
+                            contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                            resolver.update(uri, contentValues, null, null)
+                        }
+                        Toast.makeText(this@MainActivity, "Saved to Pictures!", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to save image", e)
+                    Toast.makeText(this@MainActivity, "Failed to save image", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
 
         @JavascriptInterface

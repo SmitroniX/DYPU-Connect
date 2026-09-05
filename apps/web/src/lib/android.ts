@@ -25,6 +25,8 @@ interface AndroidInterface {
   showToast(message: string): void;
   vibrate(duration: number): void;
   share(text: string, title: string): void;
+  shareImage?(base64Data: string, title: string): void;
+  saveImage?(base64Data: string, fileName: string): void;
   getAppVersion(): string;
   getFCMToken(): void;
   signInWithGoogle(): void;
@@ -132,4 +134,26 @@ export const requestFCMToken = () => {
  */
 export const getAppVersion = (): string | null => {
   return window.AndroidApp ? window.AndroidApp.getAppVersion() : null;
+};
+
+/**
+ * Shares an image file via native Android share sheet
+ */
+export const shareImageToAndroid = (base64Data: string, title: string = 'Share Snapshot'): boolean => {
+  if (window.AndroidApp?.shareImage) {
+    window.AndroidApp.shareImage(base64Data, title);
+    return true;
+  }
+  return false;
+};
+
+/**
+ * Saves an image to device storage via native Android API
+ */
+export const saveImageToAndroid = (base64Data: string, fileName: string = 'confession.png'): boolean => {
+  if (window.AndroidApp?.saveImage) {
+    window.AndroidApp.saveImage(base64Data, fileName);
+    return true;
+  }
+  return false;
 };

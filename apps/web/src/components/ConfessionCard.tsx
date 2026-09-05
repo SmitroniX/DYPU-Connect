@@ -7,12 +7,12 @@ import { doc, getDoc, setDoc, deleteDoc, updateDoc, increment, serverTimestamp, 
 import { useAuth } from '@/components/AuthProvider';
 import {
     Heart, MessageCircle, Ghost, Clock, Quote,
-    Share2, Camera, MoreVertical, Flag
+    Share2, Camera, MoreVertical, Flag, Download, X
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 import { filterProfanity } from '@/lib/security';
-import { shareToAndroid, isAndroidApp } from '@/lib/android';
+import { shareToAndroid, isAndroidApp, shareImageToAndroid, saveImageToAndroid } from '@/lib/android';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -146,49 +146,82 @@ ${url}`);
         try {
             toast.loading('Creating snapshot...', { id: 'screenshot' });
             
-            const { default: html2canvas } = await import('html2canvas');
+            const { toPng } = await import('html-to-image');
             
-            // Temporary styles for capture
-            const originalTransform = cardRef.current.style.transform;
-            cardRef.current.style.transform = 'none';
-
-            const canvas = await html2canvas(cardRef.current, {
-                backgroundColor: getComputedStyle(document.body).getPropertyValue('--ui-bg-base').trim() || '#121212',
-                scale: 3, // High quality
-                logging: false,
-                useCORS: true,
-                allowTaint: true,
-                onclone: (clonedDoc) => {
-                    const clonedCard = clonedDoc.querySelector('article');
-                    if (clonedCard) {
-                        clonedCard.style.transform = 'none';
-                        clonedCard.style.transition = 'none';
-                        clonedCard.style.boxShadow = 'none';
-                        clonedCard.style.border = '1px solid rgba(255, 255, 255, 0.1)';
-                        clonedCard.style.borderRadius = '16px';
-                        
-                        const actionBar = clonedCard.querySelector('[data-html2canvas-ignore]');
-                        if (actionBar) (actionBar as HTMLElement).style.display = 'none';
-                        const menuBar = clonedCard.querySelector('.more-menu-container');
-                        if (menuBar) (menuBar as HTMLElement).style.display = 'none';
-                        
-                        // Add branding to snapshot
-                        const branding = clonedDoc.createElement('div');
-                        branding.innerHTML = '<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; gap: 8px;"><span style="color: #fff; font-weight: bold; font-size: 14px;">✦ DYPU Connect</span></div>';
-                        clonedCard.appendChild(branding);
+            const dataUrl = await toPng(cardRef.current, {
+                pixelRatio: 2,
+                cacheBust: true,
+                filter: (node) => {
+                    if (node instanceof HTMLElement) {
+                        if (
+                            node.hasAttribute('data-html2canvas-ignore') || 
+                            node.classList.contains('more-menu-container')
+                        ) {
+                            return false;
+                        }
                     }
-                }
+                    return true;
+                },
             });
-
-            cardRef.current.style.transform = originalTransform;
-            const dataUrl = canvas.toDataURL('image/png', 1.0);
             
             setSnapshotUrl(dataUrl);
-            
             toast.success('Snapshot ready!', { id: 'screenshot' });
-        } catch {
+        } catch (err) {
+            console.error('Snapshot error:', err);
             toast.error('Failed to create snapshot.', { id: 'screenshot' });
         }
+    };
+
+    const handleSaveSnapshot = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!snapshotUrl) return;
+
+        const filename = `Confession_${confession.id}.png`;
+        if (isAndroidApp() && saveImageToAndroid(snapshotUrl, filename)) {
+            toast.success('Saved to Pictures/DYPU-Connect!');
+            return;
+        }
+
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = snapshotUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Download started!');
+    };
+
+    const handleShareSnapshot = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!snapshotUrl) return;
+
+        if (isAndroidApp() && shareImageToAndroid(snapshotUrl, 'Confession from DYPU Connect')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(snapshotUrl);
+            const blob = await res.blob();
+            const file = new File([blob], `Confession_${confession.id}.png`, { type: 'image/png' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'DYPU Connect Confession',
+                    text: 'Shared from DYPU Connect',
+                });
+                return;
+            }
+        } catch (err: any) {
+            if (err?.name !== 'AbortError') {
+                console.error('Share error:', err);
+            }
+            return;
+        }
+
+        // Fallback to save if share not available
+        handleSaveSnapshot(e);
     };
 
     const handleReport = async (reason: string) => {
@@ -288,7 +321,7 @@ ${url}`);
                     </div>
                 </div>
 
-                <div className="h-px bg-[var(--ui-divider)] my-5" />
+                <div className="h-px bg-[var(--ui-divider)] my-5" data-html2canvas-ignore />
 
                 {/* Actions */}
                 <div className="flex items-center justify-between" data-html2canvas-ignore>
@@ -347,28 +380,31 @@ ${url}`);
             {snapshotUrl && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-[fade-in_0.2s_ease-out]" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSnapshotUrl(null); }}>
                     <div className="w-full max-w-sm flex flex-col items-center gap-4 animate-[scale-in_0.2s_ease-out]" onClick={e => e.stopPropagation()}>
-                        <img src={snapshotUrl} alt="Confession Snapshot" className="w-full rounded-2xl shadow-2xl border border-[var(--ui-border)]" />
-                        <div className="flex gap-2 w-full">
-                            <button 
-                                onClick={(e) => { 
-                                    e.preventDefault(); 
-                                    const link = document.createElement('a');
-                                    link.download = `Confession_${confession.id}.png`;
-                                    link.href = snapshotUrl;
-                                    link.click();
-                                }}
-                                className="flex-1 py-3 rounded-xl bg-[var(--ui-accent)] text-white font-semibold shadow-lg hover:opacity-90 active:scale-95 transition-all"
+                        <div className="relative w-full">
+                            <img src={snapshotUrl} alt="Confession Snapshot" className="w-full rounded-3xl shadow-2xl border border-[var(--ui-border)]" />
+                            <button
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSnapshotUrl(null); }}
+                                className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors cursor-pointer"
+                                title="Close"
                             >
-                                Download Image
-                            </button>
-                            <button 
-                                onClick={(e) => { e.preventDefault(); setSnapshotUrl(null); }}
-                                className="px-4 py-3 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] text-[var(--ui-text)] font-semibold hover:bg-[var(--ui-bg-hover)] active:scale-95 transition-all"
-                            >
-                                Close
+                                <X className="h-4 w-4" />
                             </button>
                         </div>
-                        <p className="text-[10px] text-white/50 text-center">Tip: Long-press the image to share or save directly to your gallery.</p>
+                        <div className="flex gap-2 w-full">
+                            <button 
+                                onClick={handleSaveSnapshot}
+                                className="flex-1 py-3 px-4 rounded-xl bg-[var(--ui-accent)] text-white font-semibold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                            >
+                                <Download className="h-4 w-4" /> Save
+                            </button>
+                            <button 
+                                onClick={handleShareSnapshot}
+                                className="flex-1 py-3 px-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] text-[var(--ui-text)] font-semibold hover:bg-[var(--ui-bg-hover)] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                            >
+                                <Share2 className="h-4 w-4" /> Share
+                            </button>
+                        </div>
+                        <p className="text-[11px] text-white/60 text-center">Tap Save to store in gallery, or Share to send directly.</p>
                     </div>
                 </div>
             )}

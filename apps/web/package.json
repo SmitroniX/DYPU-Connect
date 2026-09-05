@@ -24,6 +24,7 @@
     "date-fns": "^4.1.0",
     "firebase": "^12.9.0",
     "framer-motion": "^12.37.0",
+    "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
