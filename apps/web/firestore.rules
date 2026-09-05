@@ -37,12 +37,12 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create: if owner(userId)
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.role == "user" // Users cannot self-promote to admin on create
+        && (request.resource.data.role == "user" || (request.resource.data.role == "admin" && request.auth.token.email == "smitronix08@gmail.com")) // Whitelist admin
         && request.resource.data.status == "active";
       allow update: if (
         owner(userId)
         && request.resource.data.userId == resource.data.userId
-        && request.resource.data.role == resource.data.role // Cannot change own role
+        && (request.resource.data.role == resource.data.role || request.auth.token.email == "smitronix08@gmail.com") // Whitelist admin
         && request.resource.data.status == resource.data.status
       ) || isAdmin();
       allow delete: if isAdmin();
