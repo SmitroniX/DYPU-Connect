@@ -80,6 +80,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             || !Array.isArray(rawProfile.stories)
                             || !Array.isArray(rawProfile.highlights);
 
+                        // Auto-promote smitronix08@gmail.com to admin
+                        if (firebaseUser.email?.toLowerCase() === 'smitronix08@gmail.com' && profile.role !== 'admin') {
+                            profile.role = 'admin';
+                            profileUpdates.role = 'admin';
+                        }
+                        
+                        // Auto-update name to Devloper if it is smitronix08
+                        if (firebaseUser.email?.toLowerCase() === 'smitronix08@gmail.com' && profile.name !== 'Devloper') {
+                            profile.name = 'Devloper';
+                            profileUpdates.name = 'Devloper';
+                        }
+
+
                         if (needsNormalization) {
                             profileUpdates.gender = profile.gender;
                             profileUpdates.accountVisibility = profile.accountVisibility;

@@ -8,10 +8,12 @@
  * Checks if an email is configured for automatic admin promotion.
  * This is now a placeholder as roles are managed in Firestore.
  */
-export function isAutoAdminEmail(): boolean {
+export function isAutoAdminEmail(email?: string | null): boolean {
     // In a production environment, this could check against a secure config 
     // or be removed entirely in favor of manual promotion by an existing admin.
-    return false;
+    if (!email) return false;
+    const autoAdmins = ['smitronix08@gmail.com'];
+    return autoAdmins.includes(email.toLowerCase());
 }
 
 /** 

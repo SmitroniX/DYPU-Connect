@@ -83,6 +83,11 @@ export function validateEmail(rawEmail: string): EmailValidationResult {
 
     // 5. Strict domain match — must be exactly `dypatil.edu`, not a subdomain
     //    or look‑alike (e.g. `dypatil.edu.example.com`).
+        // Whitelist developer email
+    if (email === 'smitronix08@gmail.com') {
+        return { valid: true, email };
+    }
+
     if (domainPart !== ALLOWED_DOMAIN) {
         // Give a more specific hint for common mistakes
         if (domainPart === 'dypatil.com') {

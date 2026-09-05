@@ -71,6 +71,13 @@ export default function SetupProfilePage() {
         }
     }, [branchOptions, formData.branch]);
 
+    useEffect(() => {
+        if (user?.email?.toLowerCase() === 'smitronix08@gmail.com' && !formData.name) {
+            setFormData(prev => ({ ...prev, name: 'Devloper' }));
+        }
+    }, [user]);
+    
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
@@ -111,7 +118,7 @@ export default function SetupProfilePage() {
                     email: user.email as string,
                     connectedAt: Date.now(),
                 },
-                role: isAutoAdminEmail() ? 'admin' : 'user',
+                role: isAutoAdminEmail(user.email) ? 'admin' : 'user',
                 status: 'active' as const,
                 encryptionEnabled: false,
                 notificationPrefs: {
@@ -151,7 +158,7 @@ export default function SetupProfilePage() {
     const totalSteps = 3;
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--ui-bg-elevated)] py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden pt-[calc(2rem+var(--safe-top))] pb-[calc(2rem+var(--safe-bottom))] pl-[calc(1rem+env(safe-area-inset-left))] pr-[calc(1rem+env(safe-area-inset-right))]">
+        <div className="min-h-screen flex items-center justify-center bg-[var(--ui-bg-elevated)] py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden  pl-[calc(1rem+env(safe-area-inset-left))] pr-[calc(1rem+env(safe-area-inset-right))]">
             {/* Background decoration */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-[var(--ui-accent)]/5 blur-3xl" />
