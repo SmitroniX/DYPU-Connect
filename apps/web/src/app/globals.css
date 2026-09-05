@@ -18,8 +18,8 @@
 html {
   --android-safe-area-top: 0px;
   --android-safe-area-bottom: 0px;
-  --safe-top: max(env(safe-area-inset-top), var(--android-safe-area-top));
-  --safe-bottom: max(env(safe-area-inset-bottom), var(--android-safe-area-bottom));
+  --safe-top: max(env(safe-area-inset-top, 0px), var(--android-safe-area-top, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--android-safe-area-bottom, 0px));
 }
 
 :root {

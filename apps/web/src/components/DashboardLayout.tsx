@@ -157,7 +157,7 @@ function MobileBottomNav() {
     return (
         <nav 
             className="lg:hidden fixed left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-[380px] bg-[var(--ui-bg-base)]/80 backdrop-blur-3xl rounded-[2rem] border border-[var(--ui-border)] shadow-[0_16px_40px_-8px_rgba(0,0,0,0.5)] overflow-hidden"
-            style={{ bottom: 'calc(1.5rem + var(--safe-bottom))' }}
+            style={{ bottom: 'calc(1rem + var(--safe-bottom))' }}
         >
             {/* Subtle top glare */}
             <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--ui-border)] to-transparent" />
