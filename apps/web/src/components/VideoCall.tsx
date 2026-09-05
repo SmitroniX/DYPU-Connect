@@ -1,4 +1,5 @@
 'use client';
+import { createPortal } from 'react-dom';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
@@ -38,6 +39,8 @@ interface VideoCallProps {
 type CallState = 'idle' | 'calling' | 'ringing' | 'active';
 
 export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }: VideoCallProps) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
     const [callState, setCallState] = useState<CallState>('idle');
     const [callType, setCallType] = useState<'audio' | 'video'>('video');
     const [session, setSession] = useState<CallSession | null>(null);
@@ -208,6 +211,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
         <>
             <CallButtons onStartCall={startCall} disabled={callState !== 'idle'} />
 
+            {mounted ? createPortal(
             <AnimatePresence>
                 {incomingCall && callState === 'idle' && (
                     <motion.div 
@@ -278,7 +282,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                         className="fixed inset-0 z-50 bg-[#09090b] flex flex-col overflow-hidden"
                     >
                         {/* Status Bar */}
-                        <div className="absolute top-0 left-0 w-full z-20 flex items-center justify-between px-8 py-6 bg-gradient-to-b from-black/60 to-transparent">
+                        <div className="absolute top-0 left-0 w-full z-20 flex items-center justify-between px-8 pb-6 bg-gradient-to-b from-black/60 to-transparent" style={{ paddingTop: 'max(var(--safe-top), 24px)' }}>
                             <div className="flex items-center gap-4">
                                 <div className="h-12 w-12 rounded-2xl bg-[var(--ui-bg-hover)] backdrop-blur-xl border border-[var(--ui-border)] flex items-center justify-center overflow-hidden">
                                     <img 
@@ -356,7 +360,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                         </div>
 
                         {/* Control Bar */}
-                        <div className="h-32 flex items-center justify-center relative z-20">
+                        <div className="h-32 flex items-center justify-center relative z-20" style={{ paddingBottom: 'var(--safe-bottom)', height: 'calc(8rem + var(--safe-bottom))' }}>
                             <div className="flex items-center gap-3 sm:gap-6 px-6 py-4 sm:px-10 sm:py-5 bg-[var(--ui-bg-surface)] backdrop-blur-2xl border border-[var(--ui-border)] rounded-[40px] shadow-2xl">
                                 <ControlBtn 
                                     active={!muted} 
@@ -407,7 +411,9 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                         </div>
                     </motion.div>
                 )}
-            </AnimatePresence>
+            </AnimatePresence>,
+            document.body
+        ) : null}
         </>
     );
 }
