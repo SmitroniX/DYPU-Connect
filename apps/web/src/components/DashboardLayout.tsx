@@ -155,9 +155,12 @@ function MobileBottomNav() {
     ];
 
     return (
-        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-[380px] bg-[var(--ui-bg-base)]/80 backdrop-blur-3xl rounded-[2rem] border border-[var(--ui-border)] shadow-[0_16px_40px_-8px_rgba(0,0,0,0.5)] overflow-hidden">
+        <nav 
+            className="lg:hidden fixed left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-[380px] bg-[var(--ui-bg-base)]/80 backdrop-blur-3xl rounded-[2rem] border border-[var(--ui-border)] shadow-[0_16px_40px_-8px_rgba(0,0,0,0.5)] overflow-hidden"
+            style={{ bottom: 'calc(1.5rem + var(--safe-bottom))' }}
+        >
             {/* Subtle top glare */}
-            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--ui-border)] to-transparent" />
             
             <div className="flex items-center justify-between h-[72px] px-2 sm:px-4">
                 {navItems.map((item) => {
@@ -355,14 +358,18 @@ export default function DashboardLayout({
             <div className="flex h-screen-dynamic bg-transparent text-[var(--ui-text)] overflow-hidden">
                 
                 {/* Desktop sidebar */}
-                <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-[260px] lg:flex-col pt-[var(--safe-top)] pb-[var(--safe-bottom)]">
+                <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-[260px] lg:flex-col"
+                    style={{ paddingTop: 'var(--safe-top)', paddingBottom: 'var(--safe-bottom)' }}>
                     <Sidebar />
                 </div>
 
                 {/* Main content area */}
                 <div className="flex-1 flex flex-col lg:pl-[260px] h-full overflow-hidden">
                     {/* Header bar (consistent across platforms) */}
-                    <header className={clsx("items-center justify-between min-h-[calc(4rem+var(--safe-top))] pt-[var(--safe-top)] bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-[var(--ui-border)] px-6 shrink-0 relative z-[70]", isSpecificChat ? 'hidden lg:flex' : 'flex') }>
+                    <header 
+                        className={clsx("items-center justify-between bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-[var(--ui-border)] px-6 shrink-0 relative z-[70]", isSpecificChat ? 'hidden lg:flex' : 'flex')}
+                        style={{ minHeight: 'calc(4.5rem + var(--safe-top))', paddingTop: 'var(--safe-top)' }}
+                    >
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setSidebarOpen(true)}
@@ -452,7 +459,10 @@ export default function DashboardLayout({
                                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                                 className="absolute inset-y-0 left-0 w-[280px] bg-[var(--ui-bg-base)] shadow-2xl flex flex-col"
                             >
-                                <div className="flex items-center justify-between px-6 pb-4 pt-[max(var(--safe-top),16px)] border-b border-[var(--ui-border)]">
+                                <div 
+                                    className="flex items-center justify-between px-6 pb-4 border-b border-[var(--ui-border)]"
+                                    style={{ paddingTop: 'max(var(--safe-top), 16px)' }}
+                                >
                                     <span className="font-bold text-[var(--ui-text)]">Menu</span>
                                     <button onClick={() => setSidebarOpen(false)} aria-label="Close menu" className="p-2 -mr-2 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]">
                                         <X className="h-5 w-5" />

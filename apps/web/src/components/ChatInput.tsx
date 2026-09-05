@@ -214,7 +214,8 @@ export default function ChatInput({
 
     return (
         <div 
-            className="px-3 pb-[max(var(--safe-bottom),16px)] sm:px-4 sm:pb-6 shrink-0 relative pt-2 sm:pt-4 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent z-30"
+            className="px-3 sm:px-4 sm:pb-6 shrink-0 relative pt-2 sm:pt-4 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent z-30"
+            style={{ paddingBottom: 'max(var(--safe-bottom), 16px)' }}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
