@@ -279,10 +279,10 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-[#09090b] flex flex-col overflow-hidden"
+                        className="fixed inset-0 z-50 bg-[var(--ui-bg-base)] flex flex-col overflow-hidden"
                     >
                         {/* Status Bar */}
-                        <div className="absolute top-0 left-0 w-full z-20 flex items-center justify-between px-8 pb-6 bg-gradient-to-b from-black/60 to-transparent" style={{ paddingTop: 'max(var(--safe-top), 24px)' }}>
+                        <div className="absolute top-0 left-0 w-full z-20 flex items-center justify-between px-8 pb-6 bg-gradient-to-b from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent" style={{ paddingTop: 'max(var(--safe-top), 24px)' }}>
                             <div className="flex items-center gap-4">
                                 <div className="h-12 w-12 rounded-2xl bg-[var(--ui-bg-hover)] backdrop-blur-xl border border-[var(--ui-border)] flex items-center justify-center overflow-hidden">
                                     <img 
@@ -310,7 +310,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                         </div>
 
                         {/* Main Stage */}
-                        <div className="flex-1 relative bg-black flex items-center justify-center">
+                        <div className="flex-1 relative bg-[var(--ui-bg-base)] flex items-center justify-center">
                             <video
                                 ref={remoteVideoRef}
                                 autoPlay
@@ -336,7 +336,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                             <motion.div 
                                 drag
                                 dragConstraints={{ left: -200, right: 200, top: -200, bottom: 200 }}
-                                className="absolute bottom-32 right-8 w-40 sm:w-64 aspect-video rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] bg-[var(--ui-bg-surface)] group"
+                                className="absolute bottom-32 right-8 w-40 sm:w-64 aspect-video rounded-2xl overflow-hidden ring-1 ring-[var(--ui-border)] shadow-2xl bg-[var(--ui-bg-surface)] group"
                             >
                                 <video
                                     ref={localVideoRef}
@@ -352,7 +352,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                                     </div>
                                 )}
                                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <div className="p-1.5 rounded-lg bg-black/40 backdrop-blur-md">
+                                    <div className="p-1.5 rounded-lg bg-[var(--ui-bg-surface)]/80 backdrop-blur-md border border-[var(--ui-border)]">
                                         <Maximize2 className="w-3 h-3 text-[var(--ui-text)]" />
                                     </div>
                                 </div>
