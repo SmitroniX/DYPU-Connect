@@ -149,7 +149,7 @@ ${url}`);
             const { toPng } = await import('html-to-image');
             
             const dataUrl = await toPng(cardRef.current, {
-                pixelRatio: 2,
+                pixelRatio: 1.5,
                 cacheBust: true,
                 filter: (node) => {
                     if (node instanceof HTMLElement) {
@@ -172,24 +172,65 @@ ${url}`);
         }
     };
 
-    const handleSaveSnapshot = (e: React.MouseEvent) => {
+    const handleSaveSnapshot = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         if (!snapshotUrl) return;
 
         const filename = `Confession_${confession.id}.png`;
+
+        // 1. Native Android bridge method (when available on APK)
         if (isAndroidApp() && saveImageToAndroid(snapshotUrl, filename)) {
-            toast.success('Saved to Pictures/DYPU-Connect!');
             return;
         }
 
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = snapshotUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success('Download started!');
+        // 2. Android WebView without native saveImage (prevents data: URL crash)
+        if (isAndroidApp()) {
+            if (shareImageToAndroid(snapshotUrl, 'Confession Snapshot')) {
+                return;
+            }
+            try {
+                const res = await fetch(snapshotUrl);
+                const blob = await res.blob();
+                const file = new File([blob], filename, { type: 'image/png' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'DYPU Connect Confession',
+                    });
+                    return;
+                }
+            } catch (err: any) {
+                if (err?.name !== 'AbortError') {
+                    console.error('Android share fallback error:', err);
+                }
+            }
+            toast('Long-press the image to save directly to your gallery!', { icon: '👆', duration: 4500 });
+            return;
+        }
+
+        // 3. Web browser / Desktop download via safe Blob URL
+        try {
+            const res = await fetch(snapshotUrl);
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = blobUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+            toast.success('Download started!');
+        } catch {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = snapshotUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast.success('Download started!');
+        }
     };
 
     const handleShareSnapshot = async (e: React.MouseEvent) => {
@@ -197,10 +238,12 @@ ${url}`);
         e.stopPropagation();
         if (!snapshotUrl) return;
 
+        // 1. Native Android bridge share
         if (isAndroidApp() && shareImageToAndroid(snapshotUrl, 'Confession from DYPU Connect')) {
             return;
         }
 
+        // 2. WebShare API with File
         try {
             const res = await fetch(snapshotUrl);
             const blob = await res.blob();
@@ -220,7 +263,13 @@ ${url}`);
             return;
         }
 
-        // Fallback to save if share not available
+        // 3. If in Android without WebShare, prompt to long press
+        if (isAndroidApp()) {
+            toast('Long-press the image to share or save!', { icon: '👆', duration: 4000 });
+            return;
+        }
+
+        // 4. Desktop fallback to save
         handleSaveSnapshot(e);
     };
 
@@ -378,33 +427,44 @@ ${url}`);
         <>
             {/* Snapshot Modal */}
             {snapshotUrl && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-[fade-in_0.2s_ease-out]" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSnapshotUrl(null); }}>
-                    <div className="w-full max-w-sm flex flex-col items-center gap-4 animate-[scale-in_0.2s_ease-out]" onClick={e => e.stopPropagation()}>
-                        <div className="relative w-full">
-                            <img src={snapshotUrl} alt="Confession Snapshot" className="w-full rounded-3xl shadow-2xl border border-[var(--ui-border)]" />
+                <div 
+                    className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md animate-[fade-in_0.2s_ease-out] overflow-y-auto"
+                    style={{ paddingTop: 'max(var(--safe-top), 16px)', paddingBottom: 'max(var(--safe-bottom), 16px)' }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSnapshotUrl(null); }}
+                >
+                    <div 
+                        className="w-full max-w-sm my-auto flex flex-col items-center gap-3 animate-[scale-in_0.2s_ease-out]" 
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="relative w-full flex justify-center">
+                            <img 
+                                src={snapshotUrl} 
+                                alt="Confession Snapshot" 
+                                className="max-h-[62vh] w-auto max-w-full rounded-2xl shadow-2xl border border-[var(--ui-border)] object-contain" 
+                            />
                             <button
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSnapshotUrl(null); }}
-                                className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors cursor-pointer"
+                                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white hover:bg-black/90 transition-colors cursor-pointer shadow-md"
                                 title="Close"
                             >
                                 <X className="h-4 w-4" />
                             </button>
                         </div>
-                        <div className="flex gap-2 w-full">
+                        <div className="flex gap-2 w-full pt-1">
                             <button 
                                 onClick={handleSaveSnapshot}
-                                className="flex-1 py-3 px-4 rounded-xl bg-[var(--ui-accent)] text-white font-semibold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                                className="flex-1 py-2.5 px-4 rounded-xl bg-[var(--ui-accent)] text-white font-semibold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
                             >
                                 <Download className="h-4 w-4" /> Save
                             </button>
                             <button 
                                 onClick={handleShareSnapshot}
-                                className="flex-1 py-3 px-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] text-[var(--ui-text)] font-semibold hover:bg-[var(--ui-bg-hover)] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                                className="flex-1 py-2.5 px-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] text-[var(--ui-text)] font-semibold hover:bg-[var(--ui-bg-hover)] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
                             >
                                 <Share2 className="h-4 w-4" /> Share
                             </button>
                         </div>
-                        <p className="text-[11px] text-white/60 text-center">Tap Save to store in gallery, or Share to send directly.</p>
+                        <p className="text-[11px] text-white/60 text-center">Tap Save to store, or Share to send directly.</p>
                     </div>
                 </div>
             )}
