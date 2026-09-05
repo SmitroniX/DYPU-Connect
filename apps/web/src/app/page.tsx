@@ -5,7 +5,7 @@ import { useStore } from '@/store/useStore';
 import { 
     MessageSquare, Users, MessageCircle, 
     Mail, User, Settings, Sparkles,
-    ChevronRight
+    ArrowUpRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, Variants } from 'framer-motion';
@@ -22,13 +22,13 @@ const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
-        transition: { staggerChildren: 0.05 }
+        transition: { staggerChildren: 0.1 }
     }
 };
 
 const itemVariants: Variants = {
-  hidden: { y: 15, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.4 } }
+  hidden: { y: 20, opacity: 0, scale: 0.95 },
+  visible: { y: 0, opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.25, 1, 0.5, 1] } }
 };
 
 export default function DashboardPage() {
@@ -42,9 +42,8 @@ export default function DashboardPage() {
         icon: MessageSquare, 
         href: '/confessions', 
         tag: 'Trending', 
-        color: 'text-amber-500',
-        bgHover: 'hover:bg-amber-500/5',
-        borderHover: 'hover:border-amber-500/30'
+        color: 'text-amber-400',
+        glow: 'shadow-[0_0_20px_rgba(251,191,36,0.15)]'
     },
     { 
         id: 'public',
@@ -53,9 +52,8 @@ export default function DashboardPage() {
         icon: Users, 
         href: '/public-chat', 
         tag: 'Live', 
-        color: 'text-blue-500',
-        bgHover: 'hover:bg-blue-500/5',
-        borderHover: 'hover:border-blue-500/30'
+        color: 'text-blue-400',
+        glow: 'shadow-[0_0_20px_rgba(96,165,250,0.15)]'
     },
     { 
         id: 'anon',
@@ -64,9 +62,8 @@ export default function DashboardPage() {
         icon: MessageCircle, 
         href: '/anonymous-chat', 
         tag: 'Secure', 
-        color: 'text-emerald-500',
-        bgHover: 'hover:bg-emerald-500/5',
-        borderHover: 'hover:border-emerald-500/30'
+        color: 'text-emerald-400',
+        glow: 'shadow-[0_0_20px_rgba(52,211,153,0.15)]'
     },
   ];
 
@@ -79,77 +76,82 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-10 min-h-screen">
+      {/* Liquid Glass Background Orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] mix-blend-screen animate-[pulse_10s_infinite_alternate]" />
+        <div className="absolute top-1/3 -left-20 w-80 h-80 bg-purple-500/15 rounded-full blur-[100px] mix-blend-screen animate-[pulse_12s_infinite_alternate-reverse]" />
+        <div className="absolute bottom-10 right-1/4 w-72 h-72 bg-emerald-500/15 rounded-full blur-[80px] mix-blend-screen animate-[pulse_8s_infinite_alternate]" />
+      </div>
+
+      <div className="max-w-4xl mx-auto p-4 sm:p-8 min-h-[calc(100vh-4rem)] flex flex-col justify-center pb-20">
           
         <motion.div 
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-10"
+            className="space-y-8"
         >
             {/* Header Section */}
-            <motion.div variants={itemVariants} className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] text-[11px] font-medium text-[var(--ui-text-muted)] uppercase tracking-widest">
-                    <Sparkles className="h-3 w-3 text-[var(--ui-accent)]" />
-                    Overview
+            <motion.div variants={itemVariants} className="liquid-glass p-8 sm:p-10 text-center sm:text-left relative">
+                <div className="absolute top-0 right-0 p-8 opacity-20 hidden sm:block">
+                    <Sparkles className="w-24 h-24 text-white rotate-12" />
                 </div>
                 
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-[var(--ui-text)] tracking-tight">
+                <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow-md">
                     {getTimeGreeting()}, <br className="sm:hidden" />
-                    <span className="text-[var(--ui-accent)]">{userProfile?.name?.split(' ')[0]}</span>.
+                    <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">{userProfile?.name?.split(' ')[0]}</span>.
                 </h1>
                 
-                <div className="flex flex-wrap items-center gap-3 pt-2">
+                <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3 mt-6">
                     {userProfile?.field && (
-                        <div className="px-4 py-1.5 rounded-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] text-xs font-semibold text-[var(--ui-text-secondary)]">
+                        <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold uppercase tracking-widest text-white backdrop-blur-md shadow-inner">
                             {userProfile.field}
                         </div>
                     )}
                     {userProfile?.year && (
-                        <div className="px-4 py-1.5 rounded-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] text-xs font-semibold text-[var(--ui-text-secondary)]">
+                        <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold uppercase tracking-widest text-white backdrop-blur-md shadow-inner">
                             {userProfile.year}
                         </div>
                     )}
                     {userProfile?.division && (
-                        <div className="px-4 py-1.5 rounded-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] text-xs font-semibold text-[var(--ui-text-secondary)]">
-                            Div {userProfile.division} {userProfile.branch && <span className="text-[var(--ui-text-muted)] font-normal ml-1">• {userProfile.branch}</span>}
+                        <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold uppercase tracking-widest text-white backdrop-blur-md shadow-inner">
+                            Div {userProfile.division}
                         </div>
                     )}
                 </div>
             </motion.div>
 
-            {/* Channels List */}
-            <motion.div variants={itemVariants} className="space-y-4">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--ui-text-muted)] pl-1">
-                    Active Spaces
-                </h2>
-                <div className="flex flex-col gap-3">
+            {/* Main Spaces */}
+            <motion.div variants={itemVariants}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                     {channels.map((ch) => (
                         <Link 
                             key={ch.id} 
                             href={ch.href}
-                            className={`group flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] transition-all duration-300 ${ch.bgHover} ${ch.borderHover} shadow-sm hover:shadow-md cursor-pointer`}
+                            className={`liquid-glass-interactive p-6 flex flex-col items-start gap-4 group ${ch.glow}`}
                         >
-                            <div className="flex items-center gap-4 sm:gap-6">
-                                <div className={`flex items-center justify-center h-12 w-12 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] group-hover:scale-110 transition-transform duration-300 ${ch.color}`}>
-                                    <ch.icon className="h-5 w-5" />
+                            <div className="w-full flex justify-between items-start">
+                                <div className={`flex items-center justify-center h-14 w-14 rounded-2xl bg-white/10 border border-white/20 shadow-inner group-hover:scale-110 transition-transform duration-500 ${ch.color}`}>
+                                    <ch.icon className="h-7 w-7" />
                                 </div>
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="text-base sm:text-lg font-bold text-[var(--ui-text)] group-hover:text-[var(--ui-text)] transition-colors">
-                                            {ch.name}
-                                        </h3>
-                                        <span className={`text-[9px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] ${ch.color}`}>
-                                            {ch.tag}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-[var(--ui-text-muted)] group-hover:text-[var(--ui-text-secondary)] transition-colors line-clamp-1">
-                                        {ch.description}
-                                    </p>
+                                <div className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10 opacity-50 group-hover:opacity-100 group-hover:bg-white/10 transition-all duration-300">
+                                    <ArrowUpRight className="h-4 w-4 text-white" />
                                 </div>
                             </div>
-                            <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                <ChevronRight className="h-5 w-5 text-[var(--ui-text-secondary)]" />
+                            
+                            <div className="mt-2">
+                                <h3 className="text-xl font-bold text-white mb-1">
+                                    {ch.name}
+                                </h3>
+                                <p className="text-sm text-white/60 group-hover:text-white/80 transition-colors line-clamp-2">
+                                    {ch.description}
+                                </p>
+                            </div>
+                            
+                            <div className="mt-auto pt-4">
+                                <span className={`text-[10px] uppercase tracking-widest font-black px-3 py-1 rounded-full bg-white/10 border border-white/20 ${ch.color}`}>
+                                    {ch.tag}
+                                </span>
                             </div>
                         </Link>
                     ))}
@@ -157,19 +159,18 @@ export default function DashboardPage() {
             </motion.div>
 
             {/* Quick Links */}
-            <motion.div variants={itemVariants} className="space-y-4">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--ui-text-muted)] pl-1">
-                    Quick Actions
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <motion.div variants={itemVariants}>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {quickLinks.map((link) => (
                         <Link 
                             key={link.name} 
                             href={link.href}
-                            className="group flex flex-col items-center justify-center p-6 rounded-2xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] hover:bg-[var(--ui-bg-elevated)] hover:border-[var(--ui-accent)]/30 transition-all duration-300 shadow-sm"
+                            className="liquid-glass-interactive p-5 flex items-center justify-center gap-3 group"
                         >
-                            <link.icon className="h-6 w-6 mb-3 text-[var(--ui-text-muted)] group-hover:text-[var(--ui-accent)] transition-colors" />
-                            <span className="text-sm font-semibold text-[var(--ui-text-secondary)] group-hover:text-[var(--ui-text)] transition-colors">
+                            <div className="p-2 rounded-lg bg-white/5 border border-white/10 group-hover:bg-white/20 group-hover:border-white/30 transition-colors">
+                                <link.icon className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
+                            </div>
+                            <span className="text-sm font-bold text-white/70 group-hover:text-white transition-colors">
                                 {link.name}
                             </span>
                         </Link>
