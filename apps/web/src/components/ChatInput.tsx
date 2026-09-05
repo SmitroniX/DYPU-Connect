@@ -304,7 +304,7 @@ export default function ChatInput({
                             disabled={disabled}
                             maxLength={maxLength}
                             rows={1}
-                            className="w-full bg-transparent text-[15px] sm:text-[16px] leading-tight pt-1 text-white placeholder-white/40 focus:outline-none resize-none overflow-y-auto max-h-[160px] px-1 scrollbar-hide selection:bg-[var(--ui-accent)]/30"     
+                            className="w-full bg-transparent text-[15px] sm:text-[16px] leading-tight pt-1 text-[var(--ui-text)] placeholder-[var(--ui-text-muted)] focus:outline-none resize-none overflow-y-auto max-h-[160px] px-1 scrollbar-hide selection:bg-[var(--ui-accent)]/30"     
                         />
                         
                         {/* Mobile Markdown Toolbar */}

@@ -31,7 +31,7 @@ export default function SendButton({
     return (
         <div className="flex flex-col items-center justify-end pb-1 pr-1 shrink-0 gap-1.5 min-w-[44px]">
             {showCharCount && (
-                <span className={`text-[9px] font-bold w-full text-center tracking-tighter ${overLimit ? 'text-red-500' : 'text-white/40'}`}>
+                <span className={`text-[9px] font-bold w-full text-center tracking-tighter ${overLimit ? 'text-red-500' : 'text-[var(--ui-text-muted)]'}`}>
                     {messageLength}
                 </span>
             )}
@@ -43,8 +43,8 @@ export default function SendButton({
                 disabled={!canSend || overLimit}
                 className={`h-11 w-11 flex items-center justify-center rounded-2xl transition-all duration-500 shadow-2xl relative group/btn ${
                     canSend && !overLimit
-                        ? 'bg-white text-black shadow-white/10 cursor-pointer'
-                        : 'bg-[var(--ui-bg-active)] text-white/20 cursor-not-allowed border border-[var(--ui-border)]'
+                        ? 'bg-[var(--ui-text)] text-[var(--ui-bg-base)] shadow-[var(--ui-text)]/10 cursor-pointer'
+                        : 'bg-[var(--ui-bg-active)] text-[var(--ui-text)]/20 cursor-not-allowed border border-[var(--ui-border)]'
                 }`}
                 title="Send message"
             >
@@ -58,7 +58,7 @@ export default function SendButton({
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none rounded-2xl overflow-hidden">
                         <svg className="w-[44px] h-[44px] transform -rotate-90 absolute" viewBox="0 0 44 44">
                             <circle
-                                className="text-white/10 transition-all duration-300"
+                                className="text-[var(--ui-text)]/10 transition-all duration-300"
                                 strokeWidth="2"
                                 stroke="currentColor"
                                 fill="transparent"
