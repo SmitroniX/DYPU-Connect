@@ -76,7 +76,7 @@ export default function PrivateChatOversightPage() {
     const fetchUsers = async () => {
         setLoadingUsers(true);
         try {
-            const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(50));
+            const q = query(collection(db, 'users'), orderBy('name', 'asc'), limit(50));
             const snapshot = await getDocs(q);
             const data = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserData));
             setUsers(data);
@@ -157,7 +157,7 @@ export default function PrivateChatOversightPage() {
         setLoadingMessages(true);
 
         const q = query(
-            collection(db, 'private_messages', selectedChat.id, 'messages'),
+            collection(db, 'private_chats', selectedChat.id, 'messages'),
             orderBy('timestamp', 'asc'),
             limit(150)
         );
@@ -204,7 +204,7 @@ export default function PrivateChatOversightPage() {
         if (!confirm('Are you sure you want to permanently delete this message? This action bypasses user control.')) return;
         
         try {
-            await deleteDoc(doc(db, 'private_messages', selectedChat.id, 'messages', messageId));
+            await deleteDoc(doc(db, 'private_chats', selectedChat.id, 'messages', messageId));
             toast.success('Message purged from existence.');
         } catch (error) {
             console.error('Failed to delete message:', error);

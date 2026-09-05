@@ -45,7 +45,7 @@ export default function AdminUsersPage() {
         setLoading(true);
         try {
             const data = await cacheGet<UserData[]>('admin_users', async () => {
-                const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(500));
+                const q = query(collection(db, 'users'), orderBy('name', 'asc'), limit(500));
                 const snapshot = await getDocs(q);
                 return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as UserData[];
             }, { ttl: 60_000, swr: 300_000 });
