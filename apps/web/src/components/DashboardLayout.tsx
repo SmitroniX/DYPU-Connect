@@ -155,8 +155,11 @@ function MobileBottomNav() {
     ];
 
     return (
-        <nav className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[360px] bg-[var(--ui-bg-surface)]/70 backdrop-blur-3xl rounded-full border border-[var(--ui-border)] shadow-[0_8px_32px_0_rgba(0,0,0,0.25)]">
-            <div className="flex items-center justify-between h-[64px] px-3 sm:px-5">
+        <nav className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-[380px] bg-[var(--ui-bg-base)]/80 backdrop-blur-3xl rounded-[2rem] border border-[var(--ui-border)] shadow-[0_16px_40px_-8px_rgba(0,0,0,0.5)] overflow-hidden">
+            {/* Subtle top glare */}
+            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+            
+            <div className="flex items-center justify-between h-[72px] px-2 sm:px-4">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
                     return (
@@ -164,30 +167,29 @@ function MobileBottomNav() {
                             key={item.name} 
                             href={item.href}
                             className={clsx(
-                                "relative flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all duration-300",
-                                isActive ? "text-[var(--ui-accent)]" : "text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]"
+                                "relative flex flex-col items-center justify-center flex-1 h-full gap-1.5 transition-all duration-300",
+                                isActive ? "text-white" : "text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]"
                             )}
                         >
-                            <div className="relative flex items-center justify-center px-4 py-1.5 rounded-full z-10 transition-all duration-300">
+                            <div className="relative flex items-center justify-center px-5 py-2 rounded-2xl z-10 transition-all duration-300">
                                 {isActive && (
                                     <motion.div
-                                        layoutId="nav-pill"
-                                        className="absolute inset-0 rounded-full bg-[var(--ui-accent)]/15 -z-10"
+                                        layoutId="nav-pill-mobile"
+                                        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30 -z-10"
                                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                     />
                                 )}
                                 <item.icon 
                                     className={clsx(
-                                        "w-[22px] h-[22px] transition-all duration-300 relative z-10",
-                                        isActive && "scale-110"
+                                        "w-[22px] h-[22px] transition-transform duration-300 relative z-10",
+                                        isActive ? "scale-110 drop-shadow-sm" : ""
                                     )} 
-                                    fill={isActive ? 'currentColor' : 'none'}
                                     strokeWidth={isActive ? 2.5 : 2}
                                 />
                             </div>
                             <span className={clsx(
-                                "text-[10px] tracking-wide transition-all duration-300",
-                                isActive ? "font-bold" : "font-medium"
+                                "text-[10px] tracking-widest uppercase transition-all duration-300",
+                                isActive ? "font-black" : "font-bold"
                             )}>
                                 {item.name}
                             </span>
