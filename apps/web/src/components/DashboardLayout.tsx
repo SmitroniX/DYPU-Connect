@@ -171,10 +171,10 @@ function MobileBottomNav() {
                             href={item.href}
                             className={clsx(
                                 "relative flex flex-col items-center justify-center flex-1 h-full gap-1.5 transition-all duration-300",
-                                isActive ? "text-white" : "text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]"
+                                isActive ? "text-[var(--ui-text)]" : "text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]"
                             )}
                         >
-                            <div className="relative flex items-center justify-center px-5 py-2 rounded-2xl z-10 transition-all duration-300">
+                            <div className={clsx("relative flex items-center justify-center px-5 py-2 rounded-2xl z-10 transition-all duration-300", isActive ? "text-white" : "")}>
                                 {isActive && (
                                     <motion.div
                                         layoutId="nav-pill-mobile"

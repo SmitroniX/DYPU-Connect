@@ -15,7 +15,7 @@ export default function PageHeader({ title, description, icon, children }: PageH
     return (
         <div 
             className="page-header sticky top-0 z-30 px-4 pb-4 sm:px-8 bg-[var(--ui-bg-base)]/60 backdrop-blur-2xl border-b border-[var(--ui-divider)]/50"
-            style={{ paddingTop: 'max(var(--safe-top), 16px)' }}
+            style={{ paddingTop: '16px' }}
         >
             {/* Subtle top glare */}
             <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--ui-border)] to-transparent" />
