@@ -207,7 +207,15 @@ class MainActivity : AppCompatActivity() {
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url = request?.url?.toString() ?: return false
-                if (url.startsWith(BASE_URL)) return false
+                
+                // Keep app domain, Firebase auth domain, and Google OAuth inside the WebView
+                if (url.startsWith(BASE_URL) || 
+                    url.contains("firebaseapp.com") || 
+                    url.contains("web.app") ||
+                    url.contains("accounts.google.com") ||
+                    url.contains("github.com/login/oauth")) {
+                    return false
+                }
                 
                 try {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
@@ -215,8 +223,8 @@ class MainActivity : AppCompatActivity() {
                     return true
                 } catch (e: Exception) {
                     Log.e(TAG, "Cannot handle URL: $url")
+                    return false
                 }
-                return false
             }
         }
 
@@ -338,12 +346,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleIntent(intent: Intent?) {
-        val url = intent?.getStringExtra("target_url") ?: return
+        var url = intent?.getStringExtra("target_url")
+        if (url == null && intent?.action == Intent.ACTION_VIEW) {
+            url = intent.dataString
+        }
+        if (url == null) return
+        
         var finalUrl = url
         if (finalUrl.startsWith("/")) {
             finalUrl = BASE_URL + finalUrl
         }
-        webView.loadUrl(finalUrl)
+        
+        // Don't reload if we're already on the same page
+        if (webView.url != finalUrl) {
+            webView.loadUrl(finalUrl)
+        }
     }
 
     override fun onResume() {
