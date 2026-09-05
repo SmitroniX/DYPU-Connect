@@ -227,7 +227,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                             </div>
 
                             <div className="space-y-1">
-                                <h3 className="text-xl font-bold text-white">Incoming {incomingCall.data.type}</h3>
+                                <h3 className="text-xl font-bold text-[var(--ui-text)]">Incoming {incomingCall.data.type}</h3>
                                 <p className="text-[var(--ui-text-secondary)] font-medium">{otherUserName}</p>
                             </div>
 
@@ -244,7 +244,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={rejectIncomingCall}
-                                    className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[var(--ui-bg-elevated)] py-4 text-sm font-bold text-white border border-[var(--ui-border)] hover:bg-zinc-700 transition-colors"
+                                    className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[var(--ui-bg-elevated)] py-4 text-sm font-bold text-[var(--ui-text)] border border-[var(--ui-border)] hover:bg-zinc-700 transition-colors"
                                 >
                                     <X className="h-4 w-4" /> Decline
                                 </motion.button>
@@ -263,7 +263,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                         <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mb-1">
                             {callSummary.type === 'video' ? <Video className="w-5 h-5 text-emerald-500" /> : <Phone className="w-5 h-5 text-emerald-500" />}
                         </div>
-                        <h3 className="text-white font-bold text-lg">Call ended</h3>
+                        <h3 className="text-[var(--ui-text)] font-bold text-lg">Call ended</h3>
                         <p className="text-[var(--ui-text-muted)] text-sm font-medium">
                             Duration: {formatTime(callSummary.duration)}
                         </p>
@@ -288,7 +288,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                                     />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-bold text-white tracking-tight">{otherUserName}</h2>
+                                    <h2 className="text-lg font-bold text-[var(--ui-text)] tracking-tight">{otherUserName}</h2>
                                     <div className="flex items-center gap-2">
                                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                         <p className="text-sm font-medium text-emerald-500/90">
@@ -299,7 +299,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                             </div>
                             
                             <div className="flex items-center gap-3">
-                                <div className="px-3 py-1.5 rounded-full bg-[var(--ui-bg-hover)] border border-[var(--ui-border)] backdrop-blur-md text-[10px] font-bold text-white/60 uppercase tracking-widest">
+                                <div className="px-3 py-1.5 rounded-full bg-[var(--ui-bg-hover)] border border-[var(--ui-border)] backdrop-blur-md text-[10px] font-bold text-[var(--ui-text)]/60 uppercase tracking-widest">
                                     Encrypted
                                 </div>
                             </div>
@@ -324,7 +324,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                                             </div>
                                         </div>
                                     </div>
-                                    <p className="text-xl font-medium text-white/80 tracking-wide">Calling {otherUserName}...</p>
+                                    <p className="text-xl font-medium text-[var(--ui-text)]/80 tracking-wide">Calling {otherUserName}...</p>
                                 </div>
                             )}
 
@@ -343,13 +343,13 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
                                 />
                                 {cameraOff && (
                                     <div className="absolute inset-0 bg-[var(--ui-bg-surface)] flex flex-col items-center justify-center gap-2">
-                                        <VideoOff className="h-8 w-8 text-white/20" />
-                                        <span className="text-[10px] font-bold text-white/20 uppercase tracking-tighter">Camera Off</span>
+                                        <VideoOff className="h-8 w-8 text-[var(--ui-text)]/20" />
+                                        <span className="text-[10px] font-bold text-[var(--ui-text)]/20 uppercase tracking-tighter">Camera Off</span>
                                     </div>
                                 )}
                                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <div className="p-1.5 rounded-lg bg-black/40 backdrop-blur-md">
-                                        <Maximize2 className="w-3 h-3 text-white" />
+                                        <Maximize2 className="w-3 h-3 text-[var(--ui-text)]" />
                                     </div>
                                 </div>
                             </motion.div>
@@ -434,8 +434,8 @@ function ControlBtn({ active, onClick, icon: Icon, danger, accent, label }: Cont
                         : accent && active
                             ? 'bg-[var(--ui-accent)] border-[var(--ui-accent)] text-[var(--ui-accent-text)] shadow-lg shadow-[var(--ui-accent)]/20'
                             : active 
-                                ? 'bg-[var(--ui-bg-hover)] border-[var(--ui-border)] text-white hover:bg-[var(--ui-bg-active)]' 
-                                : 'bg-[var(--ui-bg-hover)] border-[var(--ui-border)] text-white/40'
+                                ? 'bg-[var(--ui-bg-hover)] border-[var(--ui-border)] text-[var(--ui-text)] hover:bg-[var(--ui-bg-active)]' 
+                                : 'bg-[var(--ui-bg-hover)] border-[var(--ui-border)] text-[var(--ui-text)]/40'
                 }`}
                 title={label}
             >

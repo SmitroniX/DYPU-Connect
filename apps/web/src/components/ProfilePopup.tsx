@@ -121,7 +121,7 @@ export default function ProfilePopup({ userId, anchorRect, onClose }: ProfilePop
                                 </div>
                                 
                                 <div className="mb-4">
-                                    <h3 className="text-base font-bold text-white tracking-tight">{profile.name}</h3>
+                                    <h3 className="text-base font-bold text-[var(--ui-text)] tracking-tight">{profile.name}</h3>
                                     <p className="text-xs text-[var(--ui-text-muted)] truncate">{profile.email}</p>
                                 </div>
 

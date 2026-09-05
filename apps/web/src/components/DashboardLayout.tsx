@@ -28,9 +28,9 @@ interface ActiveAnnouncement {
 }
 
 const PRIORITY_STYLES = {
-    info: { bg: 'bg-blue-500/10 border-blue-500/20', icon: Info, iconColor: 'text-blue-400', text: 'text-blue-300' },
-    warning: { bg: 'bg-amber-500/10 border-amber-500/20', icon: AlertCircle, iconColor: 'text-amber-400', text: 'text-amber-300' },
-    critical: { bg: 'bg-red-500/10 border-red-500/20', icon: Zap, iconColor: 'text-red-400', text: 'text-red-300' },
+    info: { bg: 'bg-blue-500/10 border-blue-500/20', icon: Info, iconColor: 'text-blue-600 dark:text-blue-400', text: 'text-blue-800 dark:text-blue-300' },
+    warning: { bg: 'bg-amber-500/10 border-amber-500/20', icon: AlertCircle, iconColor: 'text-amber-600 dark:text-amber-400', text: 'text-amber-800 dark:text-amber-300' },
+    critical: { bg: 'bg-red-500/10 border-red-500/20', icon: Zap, iconColor: 'text-red-600 dark:text-red-400', text: 'text-red-800 dark:text-red-300' },
 };
 
 function AnnouncementBanner() {

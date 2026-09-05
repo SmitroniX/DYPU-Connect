@@ -232,7 +232,7 @@ export default function GlobalSearch() {
                                                     </div>
                                                 )}
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="text-sm font-medium text-[var(--ui-text)] truncate group-hover:text-white transition-colors">
+                                                    <div className="text-sm font-medium text-[var(--ui-text)] truncate group-hover:text-\[var(--ui-text)\] transition-colors">
                                                         {user.name}
                                                     </div>
                                                     {user.field && (
@@ -279,7 +279,7 @@ export default function GlobalSearch() {
                                                     </div>
                                                 )}
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="text-sm font-medium text-[var(--ui-text)] truncate group-hover:text-white transition-colors">
+                                                    <div className="text-sm font-medium text-[var(--ui-text)] truncate group-hover:text-\[var(--ui-text)\] transition-colors">
                                                         {group.name}
                                                     </div>
                                                     {group.type && (

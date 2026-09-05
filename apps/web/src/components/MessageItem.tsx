@@ -104,7 +104,7 @@ const MessageItem = memo(({
                             relative px-3 py-2 sm:px-3.5 sm:py-2.5 flex flex-col min-w-[60px] backdrop-blur-sm transition-transform active:scale-[0.99]
                             ${isMine 
                                 ? 'bg-[var(--ui-accent)]/80 backdrop-blur-xl text-white rounded-[22px] rounded-br-[6px] border border-[var(--ui-accent)]/30 shadow-md shadow-[var(--ui-accent)]/10' 
-                                : 'bg-[var(--ui-bg-surface)]/80 backdrop-blur-xl text-[#fafafa] rounded-[22px] rounded-bl-[6px] border border-[var(--ui-border)] shadow-md shadow-black/10'}
+                                : 'bg-[var(--ui-bg-surface)]/80 backdrop-blur-xl text-[var(--ui-text)] rounded-[22px] rounded-bl-[6px] border border-[var(--ui-border)] shadow-md shadow-black/10'}
                         `}
                     >
                         {/* Reply snippet inside the bubble */}
@@ -157,7 +157,7 @@ const MessageItem = memo(({
                             <div className="flex flex-col w-full min-w-[180px] sm:min-w-[200px] mt-1 z-20 relative">
                                 <input
                                     autoFocus
-                                    className={`bg-transparent border-b ${isMine ? 'border-white/40 text-white' : 'border-[#3f3f46] text-[#fafafa]'} focus:outline-none pb-1 text-sm`}
+                                    className={`bg-transparent border-b ${isMine ? 'border-white/40 text-white' : 'border-[var(--ui-border)] text-[var(--ui-text)]'} focus:outline-none pb-1 text-sm`}
                                     value={editValue}
                                     onChange={(e) => setEditValue?.(e.target.value)}
                                     onKeyDown={(e) => {
@@ -165,12 +165,12 @@ const MessageItem = memo(({
                                         if (e.key === 'Escape') onCancelEdit?.();
                                     }}
                                 />
-                                <div className={`text-[9px] mt-1.5 font-medium ${isMine ? 'text-white/70' : 'text-[#71717a]'}`}>
+                                <div className={`text-[9px] mt-1.5 font-medium ${isMine ? 'text-white/70' : 'text-[var(--ui-text-muted)]'}`}>
                                     Esc to cancel, Enter to save
                                 </div>
                             </div>
                         ) : msg.text && (
-                            <div className={`text-[14px] sm:text-[15px] leading-[1.4] break-words whitespace-pre-wrap ${isMine ? 'text-white' : 'text-[#fafafa]'} ${msg.text.length < 20 ? 'pr-10' : 'pb-3'} ${msg.isDeleted ? 'italic opacity-60' : ''}`}>
+                            <div className={`text-[14px] sm:text-[15px] leading-[1.4] break-words whitespace-pre-wrap ${isMine ? 'text-white' : 'text-[var(--ui-text)]'} ${msg.text.length < 20 ? 'pr-10' : 'pb-3'} ${msg.isDeleted ? 'italic opacity-60' : ''}`}>
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
@@ -179,7 +179,7 @@ const MessageItem = memo(({
                                         strong: (props) => <strong className="font-semibold" {...props} />,
                                         em: (props) => <em className="italic" {...props} />,
                                         code: (props) => <code className={`px-1 rounded text-[12px] sm:text-[13px] font-mono ${isMine ? 'bg-white/20 text-white' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)]'}`} {...props} />,
-                                        pre: (props) => <pre className={`p-2 sm:p-3 my-2 rounded-lg ${isMine ? 'bg-black/20 text-white/90' : 'bg-[#1e1e1e] text-[#d4d4d4]'} overflow-x-auto text-[12px] sm:text-[13px] font-mono shadow-inner border border-[var(--ui-border)] scrollbar-hide`} {...props} />,
+                                        pre: (props) => <pre className={`p-2 sm:p-3 my-2 rounded-lg ${isMine ? 'bg-black/20 text-white/90' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text)]'} overflow-x-auto text-[12px] sm:text-[13px] font-mono shadow-inner border border-[var(--ui-border)] scrollbar-hide`} {...props} />,
                                         blockquote: (props) => <blockquote className={`border-l-3 pl-3 my-2 italic ${isMine ? 'border-[var(--ui-border)]0 bg-[var(--ui-bg-active)] text-white/90' : 'border-[var(--ui-accent)]/50 bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)]'} py-1 pr-2 rounded-r`} {...props} />,
                                         ul: (props) => <ul className="list-disc pl-4 my-1" {...props} />,
                                         ol: (props) => <ol className="list-decimal pl-4 my-1" {...props} />,
@@ -193,7 +193,7 @@ const MessageItem = memo(({
                         )}
 
                         {/* Timestamp & Read Receipt */}
-                        <div className={`absolute bottom-1 right-2 flex items-center gap-0.5 text-[8px] sm:text-[9px] font-medium tracking-wide ${isMine ? 'text-white/80' : 'text-[#71717a]'}`}>
+                        <div className={`absolute bottom-1 right-2 flex items-center gap-0.5 text-[8px] sm:text-[9px] font-medium tracking-wide ${isMine ? 'text-white/80' : 'text-[var(--ui-text-muted)]'}`}>
                             <span>{ts ? format(ts, 'HH:mm') : '...'}</span>
                             {isMine && (
                                 <svg className={`w-[12px] h-[12px] sm:w-[14px] sm:h-[14px] ml-0.5 transition-colors ${isRead ? 'text-blue-300' : 'opacity-80'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">

@@ -100,7 +100,7 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left', trigge
                         <h3 className="text-xs font-bold text-white uppercase tracking-widest opacity-60">GIPHY Express</h3>
                         <button
                             type="button"
-                            className="p-1.5 rounded-full text-[var(--ui-text-muted)] hover:text-white hover:bg-[var(--ui-bg-hover)] transition-colors"
+                            className="p-1.5 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
                             onClick={() => setOpen(false)}
                         >
                             <X className="w-4 h-4" />
@@ -113,7 +113,7 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left', trigge
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Search GIFs..."
-                            className="w-full bg-[var(--ui-bg-hover)] border border-[var(--ui-border)] rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-[var(--ui-accent)]/50 transition-colors placeholder:text-[var(--ui-text-muted)]"
+                            className="w-full bg-[var(--ui-bg-hover)] border border-[var(--ui-border)] rounded-xl py-2.5 pl-10 pr-4 text-sm text-[var(--ui-text)] focus:outline-none focus:border-[var(--ui-accent)]/50 transition-colors placeholder:text-[var(--ui-text-muted)]"
                         />
                     </div>
 

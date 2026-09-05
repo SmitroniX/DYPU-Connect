@@ -41,12 +41,12 @@ const TYPE_ICONS: Record<NotificationType, React.ElementType> = {
 };
 
 const TYPE_COLORS: Record<NotificationType, string> = {
-    message: 'text-blue-400 bg-blue-500/15',
-    mention: 'text-amber-400 bg-amber-500/15',
+    message: 'text-blue-600 bg-blue-500/10 dark:text-blue-400 dark:bg-blue-500/15',
+    mention: 'text-amber-600 bg-amber-500/10 dark:text-amber-400 dark:bg-amber-500/15',
     announcement: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]',
     system: 'text-[var(--ui-text-muted)] bg-[var(--ui-bg-elevated)]',
-    group_invite: 'text-emerald-400 bg-emerald-500/15',
-    confession_reply: 'text-purple-400 bg-purple-500/15',
+    group_invite: 'text-emerald-600 bg-emerald-500/10 dark:text-emerald-400 dark:bg-emerald-500/15',
+    confession_reply: 'text-purple-600 bg-purple-500/10 dark:text-purple-400 dark:bg-purple-500/15',
 };
 
 /* ── Time grouping ── */
