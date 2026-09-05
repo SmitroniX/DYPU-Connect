@@ -57,6 +57,26 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: number; 
     );
 }
 
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ color?: string; name?: string; value?: number }>; label?: string; }) {
+    if (active && payload && payload.length) {
+        return (
+            <div className="surface p-3 ring-1 ring-[var(--ui-border)] shadow-xl rounded-lg min-w-[150px]">
+                <p className="text-sm font-bold text-[var(--ui-text)] mb-2">{label}</p>
+                {payload.map((entry: { color?: string; name?: string; value?: number }, index: number) => (
+                    <div key={index} className="flex items-center justify-between gap-4 text-xs">
+                        <span className="flex items-center gap-1.5 text-[var(--ui-text-muted)]">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                            {entry.name}
+                        </span>
+                        <span className="font-semibold text-[var(--ui-text)]">{entry.value}</span>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+    return null;
+}
+
 export default function AdminAnalyticsPage() {
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -175,26 +195,6 @@ export default function AdminAnalyticsPage() {
     useEffect(() => {
         fetchAnalytics(false, dateRange);
     }, [fetchAnalytics, dateRange]);
-
-    const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ color?: string; name?: string; value?: number }>; label?: string; }) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="surface p-3 ring-1 ring-[var(--ui-border)] shadow-xl rounded-lg min-w-[150px]">
-                    <p className="text-sm font-bold text-[var(--ui-text)] mb-2">{label}</p>
-                    {payload.map((entry: { color?: string; name?: string; value?: number }, index: number) => (
-                        <div key={index} className="flex items-center justify-between gap-4 text-xs">
-                            <span className="flex items-center gap-1.5 text-[var(--ui-text-muted)]">
-                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                {entry.name}
-                            </span>
-                            <span className="font-semibold text-[var(--ui-text)]">{entry.value}</span>
-                        </div>
-                    ))}
-                </div>
-            );
-        }
-        return null;
-    };
 
     return (
         <div className="max-w-6xl mx-auto pb-12 font-sans animate-[fade-in-up_0.4s_ease-out]">

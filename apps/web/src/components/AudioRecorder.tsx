@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, cloneElement, ReactElement } from 'react';
+import { useState, useRef, useEffect, useCallback, ReactElement } from 'react';
 import { Mic, Square, Loader2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useStore } from '@/store/useStore';
@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 interface AudioRecorderProps {
     onAudioUploaded: (audioUrl: string) => void;
     disabled?: boolean;
-    trigger?: ReactElement<any>;
+    trigger?: ReactElement<Record<string, unknown>>;
 }
 
 export default function AudioRecorder({ onAudioUploaded, disabled, trigger }: AudioRecorderProps) {
@@ -138,15 +138,16 @@ export default function AudioRecorder({ onAudioUploaded, disabled, trigger }: Au
         </button>
     );
 
-    const triggerElement = trigger 
-        ? cloneElement(trigger, { 
-            onClick: (e: any) => {
-                trigger.props.onClick?.(e);
-                if (!disabled) startRecording();
-            },
-            disabled: disabled
-          }) 
-        : cloneElement(defaultTrigger, { onClick: startRecording });
+    const handleCustomTrigger = (e: React.MouseEvent) => {
+        (trigger?.props as { onClick?: (e: React.MouseEvent) => void })?.onClick?.(e);
+        if (!disabled) void startRecording();
+    };
+
+    const triggerElement = trigger ? (
+        <div onClick={handleCustomTrigger} className="inline-flex cursor-pointer">
+            {trigger}
+        </div>
+    ) : defaultTrigger;
 
     if (isProcessing) {
         return (

@@ -676,6 +676,11 @@ function AutoBackupSection() {
     const [backingUp, setBackingUp] = useState(false);
     const [enabled, setEnabled] = useState(userProfile?.autoBackup?.enabled ?? false);
     const [interval, setBackupInterval] = useState<AutoBackupInterval>(userProfile?.autoBackup?.interval ?? '24h');
+    const [now, setNow] = useState<number | null>(null);
+
+    useEffect(() => {
+        setNow(Date.now());
+    }, []);
 
     const lastBackupAt = userProfile?.autoBackup?.lastBackupAt;
     const lastBackupFile = userProfile?.autoBackup?.lastBackupFile;
@@ -825,7 +830,7 @@ function AutoBackupSection() {
                         <div className="flex items-center gap-2 text-xs pl-5">
                             <Clock className="h-3 w-3 text-[var(--ui-text-muted)]" />
                             <span className="text-[var(--ui-text-muted)]">
-                                Next backup: {nextBackupMs > Date.now()
+                                Next backup: {now && nextBackupMs > now
                                     ? formatDistanceToNowStrict(new Date(nextBackupMs), { addSuffix: true })
                                     : 'Due now (will run automatically)'}
                             </span>

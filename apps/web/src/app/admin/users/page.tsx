@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, getDocs, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
 import { Ban, CheckCircle, Search, Shield, UserCheck, Users } from 'lucide-react';
@@ -39,9 +39,7 @@ export default function AdminUsersPage() {
     const { user } = useAuth();
     const canManageRoles = isUserAdmin(userProfile);
 
-    useEffect(() => { fetchUsers(); }, []);
-
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         setLoading(true);
         try {
             const data = await cacheGet<UserData[]>('admin_users', async () => {
@@ -55,7 +53,9 @@ export default function AdminUsersPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => { void fetchUsers(); }, [fetchUsers]);
 
     const toggleUserStatus = async (userId: string, currentStatus: string) => {
         const newStatus = currentStatus === 'active' ? 'banned' : 'active';

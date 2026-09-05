@@ -1,12 +1,29 @@
-import { z } from 'zod';
-import { 
-    groupSchema, 
-    groupTypeSchema, 
-    groupHierarchyInfoSchema, 
-    messageSchema 
-} from '@/lib/validation/schemas';
+import type { Timestamp } from 'firebase/firestore';
 
-export type Group = z.infer<typeof groupSchema>;
-export type GroupType = z.infer<typeof groupTypeSchema>;
-export type GroupHierarchyInfo = z.infer<typeof groupHierarchyInfoSchema>;
-export type GroupMessage = z.infer<typeof messageSchema>;
+export type GroupType = 'field' | 'year' | 'division' | 'custom';
+
+export interface GroupHierarchyInfo {
+    field?: string;
+    year?: string;
+    division?: string;
+}
+
+export interface Group {
+    id: string;
+    name: string;
+    description?: string;
+    avatarUrl?: string;
+    type: GroupType;
+    hierarchyInfo?: GroupHierarchyInfo;
+    memberIds: string[];
+    adminIds?: string[];
+    createdAt?: Timestamp | null;
+    updatedAt?: Timestamp | null;
+    lastMessage?: string;
+    unreadCount?: Record<string, number>;
+    icon?: string;
+    isPrivate?: boolean;
+    adminId?: string;
+}
+
+export type { Message as GroupMessage } from '@/lib/validation/schemas';

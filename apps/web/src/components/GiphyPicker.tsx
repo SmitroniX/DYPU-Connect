@@ -9,7 +9,7 @@ interface GiphyPickerProps {
     onSelect: (gif: GiphyGif) => void;
     disabled?: boolean;
     align?: 'left' | 'right';
-    trigger?: ReactElement<any>;
+    trigger?: ReactElement<Record<string, unknown>>;
 }
 
 export default function GiphyPicker({ onSelect, disabled, align = 'left', trigger }: GiphyPickerProps) {
@@ -82,8 +82,8 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left', trigge
 
     const triggerElement = trigger 
         ? cloneElement(trigger, { 
-            onClick: (e: any) => {
-                trigger.props.onClick?.(e);
+            onClick: (e: React.MouseEvent) => {
+                (trigger.props as { onClick?: (e: React.MouseEvent) => void }).onClick?.(e);
                 if (!disabled && giphyEnabled) setOpen(!open);
             },
             disabled: disabled || !giphyEnabled

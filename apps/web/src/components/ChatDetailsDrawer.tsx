@@ -16,7 +16,7 @@ interface ChatDetailsDrawerProps {
     isMuted?: boolean;
     onToggleMute?: () => void;
     chatId?: string;
-    user?: any;
+    user?: { uid: string } | null;
     otherUserId?: string;
 }
 
@@ -44,7 +44,7 @@ export default function ChatDetailsDrawer({
                 blockedUsers: arrayUnion(otherUserId)
             });
             toast.success('User blocked successfully');
-        } catch (error) {
+        } catch {
             toast.error('Failed to block user');
         }
     };
@@ -83,7 +83,7 @@ export default function ChatDetailsDrawer({
             });
             
             toast.success('Chat cleared successfully');
-        } catch (error) {
+        } catch {
             toast.error('Failed to clear chat');
         }
     };

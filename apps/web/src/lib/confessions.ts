@@ -1,9 +1,11 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export interface Confession {
     id: string;
     text: string;
     anonymousName: string;
     mood?: string;
-    createdAt: any;
+    createdAt: Timestamp | { toDate: () => Date } | null;
     likesCount: number;
     commentsCount?: number;
 }

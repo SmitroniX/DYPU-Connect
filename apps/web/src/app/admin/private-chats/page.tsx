@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, getDocs, limit, where, deleteDoc, doc } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
@@ -62,18 +62,7 @@ export default function PrivateChatOversightPage() {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Initial User Load
-    useEffect(() => {
-        if (!userProfile || userProfile.role !== 'admin') return;
-        fetchUsers();
-    }, [userProfile]);
-
-    // Scroll to bottom when messages change
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
-
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         setLoadingUsers(true);
         try {
             const q = query(collection(db, 'users'), orderBy('name', 'asc'), limit(50));
@@ -86,7 +75,18 @@ export default function PrivateChatOversightPage() {
         } finally {
             setLoadingUsers(false);
         }
-    };
+    }, []);
+
+    // Initial User Load
+    useEffect(() => {
+        if (!userProfile || userProfile.role !== 'admin') return;
+        void fetchUsers();
+    }, [userProfile, fetchUsers]);
+
+    // Scroll to bottom when messages change
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();

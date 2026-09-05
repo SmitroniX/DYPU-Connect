@@ -7,7 +7,10 @@ const eslintConfig = defineConfig([
   ...nextTs,
   {
     rules: {
-      "@next/next/no-img-element": "off"
+      "@next/next/no-img-element": "off",
+      "react-hooks/set-state-in-effect": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }]
     }
   },
   // Override default ignores of eslint-config-next.
@@ -17,6 +20,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "src/generated/**",
+    "public/**",
   ]),
 ]);
 

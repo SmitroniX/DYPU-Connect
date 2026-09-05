@@ -26,16 +26,9 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
     const { user } = useAuth();
     
     // State
-    const [likesCount, setLikesCount] = useState(confession.likesCount || 0);
-    const [commentsCount, setCommentsCount] = useState(confession.commentsCount || 0);
-
-    useEffect(() => {
-        setLikesCount(confession.likesCount || 0);
-    }, [confession.likesCount]);
-
-    useEffect(() => {
-        setCommentsCount(confession.commentsCount || 0);
-    }, [confession.commentsCount]);
+    const [optimisticDelta, setOptimisticDelta] = useState(0);
+    const likesCount = Math.max(0, (confession.likesCount || 0) + optimisticDelta);
+    const commentsCount = confession.commentsCount || 0;
     const [isLiked, setIsLiked] = useState(false);
     const [likeLoading, setLikeLoading] = useState(false);
     
@@ -81,10 +74,10 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
         
         // Optimistic update
         const previousIsLiked = isLiked;
-        const previousCount = likesCount;
+        const delta = previousIsLiked ? -1 : 1;
         
         setIsLiked(!previousIsLiked);
-        setLikesCount(prev => prev + (previousIsLiked ? -1 : 1));
+        setOptimisticDelta(prev => prev + delta);
         
         try {
             if (previousIsLiked) {
@@ -97,7 +90,7 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
         } catch {
             // Revert on error
             setIsLiked(previousIsLiked);
-            setLikesCount(previousCount);
+            setOptimisticDelta(prev => prev - delta);
             toast.error('Failed to update like status');
         } finally {
             setLikeLoading(false);
@@ -200,8 +193,8 @@ ${url}`);
                     });
                     return;
                 }
-            } catch (err: any) {
-                if (err?.name !== 'AbortError') {
+            } catch (err: unknown) {
+                if (err instanceof Error && err.name !== 'AbortError') {
                     console.error('Android share fallback error:', err);
                 }
             }
@@ -256,8 +249,8 @@ ${url}`);
                 });
                 return;
             }
-        } catch (err: any) {
-            if (err?.name !== 'AbortError') {
+        } catch (err: unknown) {
+            if (err instanceof Error && err.name !== 'AbortError') {
                 console.error('Share error:', err);
             }
             return;

@@ -1,7 +1,7 @@
 'use client';
 import { createPortal } from 'react-dom';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useSyncExternalStore } from 'react';
 import {
     type CallSession,
     type CallData,
@@ -39,8 +39,7 @@ interface VideoCallProps {
 type CallState = 'idle' | 'calling' | 'ringing' | 'active';
 
 export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }: VideoCallProps) {
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => { setMounted(true); }, []);
+    const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
     const [callState, setCallState] = useState<CallState>('idle');
     const [callType, setCallType] = useState<'audio' | 'video'>('video');
     const [session, setSession] = useState<CallSession | null>(null);
@@ -120,8 +119,10 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
     // Elapsed timer
     useEffect(() => {
         if (callState === 'active') {
-            setElapsed(0);
-            timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
+            const start = Date.now();
+            timerRef.current = setInterval(() => {
+                setElapsed(Math.floor((Date.now() - start) / 1000));
+            }, 1000);
         } else {
             if (timerRef.current) clearInterval(timerRef.current);
         }
@@ -421,7 +422,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
 interface ControlBtnProps {
     active: boolean;
     onClick: () => void;
-    icon: any;
+    icon: React.ComponentType<{ className?: string }>;
     danger?: boolean;
     accent?: boolean;
     label: string;

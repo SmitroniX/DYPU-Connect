@@ -14,11 +14,13 @@ export function generateAnonymousName(): string {
  * Messages from the same sender within 5 minutes are grouped —
  * only the first message in a group shows avatar + name.
  */
+export type TimestampInput = { toDate?: () => Date } | Date | null | undefined;
+
 export function shouldShowHeader(
     currentSenderId: string,
     previousSenderId: string | undefined,
-    currentTimestamp: any,
-    previousTimestamp: any,
+    currentTimestamp: TimestampInput,
+    previousTimestamp: TimestampInput,
     thresholdMs = 5 * 60 * 1000
 ): boolean {
     if (!previousSenderId) return true;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/store/useStore';
 import { collection, query, where, limit, getDocs } from 'firebase/firestore';
@@ -23,10 +23,12 @@ export default function GlobalSearch() {
     useEffect(() => {
         let timer: NodeJS.Timeout;
         if (searchModalOpen) {
-            setSearchQuery('');
-            setUserResults([]);
-            setGroupResults([]);
-            timer = setTimeout(() => inputRef.current?.focus(), 50);
+            timer = setTimeout(() => {
+                setSearchQuery('');
+                setUserResults([]);
+                setGroupResults([]);
+                inputRef.current?.focus();
+            }, 0);
         }
         return () => clearTimeout(timer);
     }, [searchModalOpen]);
@@ -45,24 +47,9 @@ export default function GlobalSearch() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [searchModalOpen, setSearchModalOpen]);
 
-    useEffect(() => {
-        const searchTimer = setTimeout(() => {
-            if (searchQuery.trim().length >= 2) {
-                performSearch(searchQuery.trim());
-            } else {
-                setUserResults([]);
-                setGroupResults([]);
-            }
-        }, 300); // debounce
-
-        return () => clearTimeout(searchTimer);
-    }, [searchQuery]);
-
-    const performSearch = async (q: string) => {
+    const performSearch = useCallback(async (q: string) => {
         setIsSearching(true);
         try {
-            // Case sensitive prefix search (Firestore limitation, but good enough for simple starts)
-            
             // Users Query
             const usersRef = collection(db, 'users');
             const usersQ = query(
@@ -96,7 +83,20 @@ export default function GlobalSearch() {
         } finally {
             setIsSearching(false);
         }
-    };
+    }, [currentUser?.uid]);
+
+    useEffect(() => {
+        const searchTimer = setTimeout(() => {
+            if (searchQuery.trim().length >= 2) {
+                performSearch(searchQuery.trim());
+            } else {
+                setUserResults([]);
+                setGroupResults([]);
+            }
+        }, 300); // debounce
+
+        return () => clearTimeout(searchTimer);
+    }, [searchQuery, performSearch]);
 
     const handleUserClick = (userId: string) => {
         setSearchModalOpen(false);
@@ -258,7 +258,7 @@ export default function GlobalSearch() {
                                         <div className="px-3 py-1 text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wider">
                                             Groups
                                         </div>
-                                        {groupResults.map((group: any) => (
+                                        {groupResults.map((group) => (
                                             <motion.div
                                                 layout
                                                 key={group.id}

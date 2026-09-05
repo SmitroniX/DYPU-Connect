@@ -44,7 +44,7 @@ export default function GlobalError({
                 <div className="space-y-2">
                     <h1 className="text-3xl font-bold text-[var(--ui-text)] tracking-tight">Something went wrong</h1>
                     <p className="text-[var(--ui-text-muted)] leading-relaxed">
-                        An unexpected error occurred. Our team has been notified and we're working on a fix.
+                        An unexpected error occurred. Our team has been notified and we&apos;re working on a fix.
                     </p>
                 </div>
 

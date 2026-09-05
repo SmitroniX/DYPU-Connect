@@ -29,6 +29,67 @@ interface GroupNode {
     children: Record<string, GroupNode>;
 }
 
+interface TreeNodeProps {
+    node: GroupNode;
+    expandedNodes: Set<string>;
+    selectedGroup: GroupNode | null;
+    onToggle: (id: string) => void;
+    onSelect: (node: GroupNode) => void;
+}
+
+function TreeNode({ node, expandedNodes, selectedGroup, onToggle, onSelect }: TreeNodeProps) {
+    const isExpanded = expandedNodes.has(node.id);
+    const hasChildren = Object.keys(node.children).length > 0;
+    const isSelected = selectedGroup?.id === node.id;
+
+    return (
+        <div className={`ml-${node.level * 4} mt-1`}>
+            <div 
+                className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                    isSelected ? 'bg-[var(--ui-accent)]/10 ring-1 ring-[var(--ui-accent)]/30' : 'hover:bg-[var(--ui-bg-hover)]'
+                }`}
+                onClick={() => onSelect(node)}
+            >
+                {hasChildren ? (
+                    <button onClick={(e) => { e.stopPropagation(); onToggle(node.id); }} className="p-0.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]">
+                        {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </button>
+                ) : (
+                    <div className="w-5" /> // Spacer
+                )}
+                
+                <div className="flex h-6 w-6 items-center justify-center rounded bg-[var(--ui-accent-dim)] shrink-0">
+                    {node.type === 'field' && <BookOpen className="h-3 w-3 text-[var(--ui-accent)]" />}
+                    {node.type === 'year' && <GraduationCap className="h-3 w-3 text-[var(--ui-accent)]" />}
+                    {node.type === 'division' && <Building className="h-3 w-3 text-[var(--ui-accent)]" />}
+                </div>
+                
+                <span className={`text-sm font-medium ${isSelected ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text)]'}`}>
+                    {node.name}
+                </span>
+                <span className="text-xs text-[var(--ui-text-muted)] ml-auto bg-[var(--ui-bg-elevated)] px-2 py-0.5 rounded-full">
+                    {node.members.length} member{node.members.length !== 1 && 's'}
+                </span>
+            </div>
+
+            {isExpanded && hasChildren && (
+                <div className="border-l border-[var(--ui-border)] ml-3 pl-3 mt-1">
+                    {Object.values(node.children).map((child) => (
+                        <TreeNode
+                            key={child.id}
+                            node={child}
+                            expandedNodes={expandedNodes}
+                            selectedGroup={selectedGroup}
+                            onToggle={onToggle}
+                            onSelect={onSelect}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function AdminGroupsPage() {
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
@@ -93,13 +154,12 @@ export default function AdminGroupsPage() {
             root[fieldId].children[yearId].children[divId].members.push(user);
         });
 
-        // Initially expand all fields
-        const initialExpanded = new Set<string>();
-        Object.keys(root).forEach(k => initialExpanded.add(k));
-        setExpandedNodes(initialExpanded);
-
         return root;
     }, [users]);
+
+    useEffect(() => {
+        setExpandedNodes(new Set(Object.keys(hierarchy)));
+    }, [hierarchy]);
 
     const toggleNode = (id: string) => {
         const newExpanded = new Set(expandedNodes);
@@ -117,50 +177,6 @@ export default function AdminGroupsPage() {
         toast.error('Chat clearing logic will be implemented here (Requires Cloud Function to delete subcollection).');
         // Due to Firestore limits on the client, deleting a large subcollection (like group_messages)
         // should typically be done via a Cloud Function or batch writes.
-    };
-
-    const renderNode = (node: GroupNode) => {
-        const isExpanded = expandedNodes.has(node.id);
-        const hasChildren = Object.keys(node.children).length > 0;
-        const isSelected = selectedGroup?.id === node.id;
-
-        return (
-            <div key={node.id} className={`ml-${node.level * 4} mt-1`}>
-                <div 
-                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
-                        isSelected ? 'bg-[var(--ui-accent)]/10 ring-1 ring-[var(--ui-accent)]/30' : 'hover:bg-[var(--ui-bg-hover)]'
-                    }`}
-                    onClick={() => setSelectedGroup(node)}
-                >
-                    {hasChildren ? (
-                        <button onClick={(e) => { e.stopPropagation(); toggleNode(node.id); }} className="p-0.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]">
-                            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                        </button>
-                    ) : (
-                        <div className="w-5" /> // Spacer
-                    )}
-                    
-                    <div className="flex h-6 w-6 items-center justify-center rounded bg-[var(--ui-accent-dim)] shrink-0">
-                        {node.type === 'field' && <BookOpen className="h-3 w-3 text-[var(--ui-accent)]" />}
-                        {node.type === 'year' && <GraduationCap className="h-3 w-3 text-[var(--ui-accent)]" />}
-                        {node.type === 'division' && <Building className="h-3 w-3 text-[var(--ui-accent)]" />}
-                    </div>
-                    
-                    <span className={`text-sm font-medium ${isSelected ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-text)]'}`}>
-                        {node.name}
-                    </span>
-                    <span className="text-xs text-[var(--ui-text-muted)] ml-auto bg-[var(--ui-bg-elevated)] px-2 py-0.5 rounded-full">
-                        {node.members.length} member{node.members.length !== 1 && 's'}
-                    </span>
-                </div>
-
-                {isExpanded && hasChildren && (
-                    <div className="border-l border-[var(--ui-border)] ml-3 pl-3 mt-1">
-                        {Object.values(node.children).map(renderNode)}
-                    </div>
-                )}
-            </div>
-        );
     };
 
     return (
@@ -194,7 +210,16 @@ export default function AdminGroupsPage() {
                         ) : Object.keys(hierarchy).length === 0 ? (
                             <p className="text-sm text-[var(--ui-text-muted)] text-center py-10">No users or groups found.</p>
                         ) : (
-                            Object.values(hierarchy).map(renderNode)
+                            Object.values(hierarchy).map((node) => (
+                                <TreeNode
+                                    key={node.id}
+                                    node={node}
+                                    expandedNodes={expandedNodes}
+                                    selectedGroup={selectedGroup}
+                                    onToggle={toggleNode}
+                                    onSelect={setSelectedGroup}
+                                />
+                            ))
                         )}
                     </div>
                 </div>

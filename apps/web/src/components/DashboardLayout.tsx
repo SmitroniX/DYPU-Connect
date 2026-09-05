@@ -88,17 +88,14 @@ function AnnouncementBanner() {
 
 function PushPromptBanner() {
     const { currentUser: user } = useStore();
-    const [visible, setVisible] = useState(false);
-    
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-        if (!('Notification' in window)) return;
-        
+    const [visible, setVisible] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        if (!('Notification' in window)) return false;
         if (Notification.permission === 'default') {
-            const dismissed = localStorage.getItem('pushPromptDismissed');
-            if (dismissed !== 'true') setVisible(true);
+            return localStorage.getItem('pushPromptDismissed') !== 'true';
         }
-    }, []);
+        return false;
+    });
 
     const handleEnable = async () => {
         if (!user) return;

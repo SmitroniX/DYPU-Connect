@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, getDocs, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
@@ -31,9 +31,7 @@ export default function AdminConfessionsPage() {
     const { user } = useAuth();
     const { userProfile } = useStore();
 
-    useEffect(() => { fetchLogs(); }, []);
-
-    const fetchLogs = async () => {
+    const fetchLogs = useCallback(async () => {
         setLoading(true);
         try {
             const combined = await cacheGet<(PrivateConfession & { text: string })[]>(
@@ -64,7 +62,9 @@ export default function AdminConfessionsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => { void fetchLogs(); }, [fetchLogs]);
 
     const handleDelete = async (log: PrivateConfession & { text: string }) => {
         if (!confirm(`Delete this confession by ${log.realName || log.email || 'Unknown'}?\n\nThis removes both the public confession and the private tracking record.`)) return;

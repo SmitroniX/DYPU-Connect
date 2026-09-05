@@ -49,7 +49,7 @@ const MessageItem = memo(({
     const [imageLoaded, setImageLoaded] = useState(false);
     const [mobileToolbarOpen, setMobileToolbarOpen] = useState(false);
     
-    const ts = msg.timestamp instanceof Date ? msg.timestamp : (msg.timestamp as any)?.toDate?.();
+    const ts = msg.timestamp instanceof Date ? msg.timestamp : (msg.timestamp as { toDate?: () => Date })?.toDate?.();
     const senderName = msg.senderName || 'User';
     const senderImage = msg.senderImage || '';
 

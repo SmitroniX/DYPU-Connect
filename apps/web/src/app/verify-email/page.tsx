@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { Loader2, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
@@ -22,29 +22,7 @@ export default function VerifyEmailPage() {
         }
     }, [user, router]);
 
-    useEffect(() => {
-        if (isVerifying.current || user) return;
-        
-        // This is a browser environment check to prevent SSR issues
-        if (typeof window === 'undefined') return;
-
-        const url = window.location.href;
-        let email = window.localStorage.getItem('emailForSignIn');
-
-        // Check if this is a valid sign-in link
-        // Firebase isSignInWithEmailLink could be used here but we'll do the actual verification in AuthProvider
-
-        if (!email) {
-            // User opened the link on a different device/browser.
-            // We need to ask them for their email to complete sign-in.
-            setStatus('needs_email');
-            return;
-        }
-
-        executeVerification(email, url);
-    }, [user]);
-
-    const executeVerification = async (emailToVerify: string, url: string) => {
+    const executeVerification = useCallback(async (emailToVerify: string, url: string) => {
         isVerifying.current = true;
         setStatus('verifying');
         
@@ -59,7 +37,25 @@ export default function VerifyEmailPage() {
         } finally {
             isVerifying.current = false;
         }
-    };
+    }, [verifyLoginLink]);
+
+    useEffect(() => {
+        if (isVerifying.current || user) return;
+        
+        // This is a browser environment check to prevent SSR issues
+        if (typeof window === 'undefined') return;
+
+        const url = window.location.href;
+        const email = window.localStorage.getItem('emailForSignIn');
+
+        // Check if this is a valid sign-in link
+        if (!email) {
+            const timer = setTimeout(() => setStatus('needs_email'), 0);
+            return () => clearTimeout(timer);
+        }
+
+        executeVerification(email, url);
+    }, [user, executeVerification]);
 
     const handleEmailSubmit = (e: React.FormEvent) => {
         e.preventDefault();

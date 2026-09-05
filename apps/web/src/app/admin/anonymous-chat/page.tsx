@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, getDocs, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
@@ -31,9 +31,7 @@ export default function AdminAnonChatPage() {
     const { user } = useAuth();
     const { userProfile } = useStore();
 
-    useEffect(() => { fetchLogs(); }, []);
-
-    const fetchLogs = async () => {
+    const fetchLogs = useCallback(async () => {
         setLoading(true);
         try {
             const data = await cacheGet<AnonChatLog[]>(
@@ -54,7 +52,9 @@ export default function AdminAnonChatPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => { void fetchLogs(); }, [fetchLogs]);
 
     const handleDelete = async (log: AnonChatLog) => {
         if (!confirm(`Delete this anonymous message by ${log.email || 'Unknown'}?\n\nThis will remove both the public message and the private tracking record.`)) return;
