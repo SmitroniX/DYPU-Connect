@@ -1,11 +1,14 @@
 'use client';
 
 import DashboardLayout from '@/components/DashboardLayout';
-import PageHeader from '@/components/PageHeader';
 import { useStore } from '@/store/useStore';
-import { Home, MessageSquare, Users, MessageCircle, Mail, User, Settings, ArrowRight, Sparkles } from 'lucide-react';
+import { 
+    MessageSquare, Users, MessageCircle, 
+    Mail, User, Settings, Sparkles,
+    ChevronRight
+} from 'lucide-react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 
 function getTimeGreeting() {
   const h = new Date().getHours();
@@ -15,148 +18,167 @@ function getTimeGreeting() {
   return 'Good night';
 }
 
-const containerVariants = {
+const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
-        transition: { staggerChildren: 0.1 }
+        transition: { staggerChildren: 0.05 }
     }
 };
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+const itemVariants: Variants = {
+  hidden: { y: 15, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { duration: 0.4 } }
 };
 
 export default function DashboardPage() {
   const { userProfile } = useStore();
 
+  const channels = [
+    { 
+        id: 'confessions',
+        name: 'Confessions', 
+        description: 'Share your campus secrets anonymously', 
+        icon: MessageSquare, 
+        href: '/confessions', 
+        tag: 'Trending', 
+        color: 'text-amber-500',
+        bgHover: 'hover:bg-amber-500/5',
+        borderHover: 'hover:border-amber-500/30'
+    },
+    { 
+        id: 'public',
+        name: 'Public Chat', 
+        description: 'Join the campus-wide real-time discussion', 
+        icon: Users, 
+        href: '/public-chat', 
+        tag: 'Live', 
+        color: 'text-blue-500',
+        bgHover: 'hover:bg-blue-500/5',
+        borderHover: 'hover:border-blue-500/30'
+    },
+    { 
+        id: 'anon',
+        name: 'Anonymous Chat', 
+        description: 'Speak freely in the shadows', 
+        icon: MessageCircle, 
+        href: '/anonymous-chat', 
+        tag: 'Secure', 
+        color: 'text-emerald-500',
+        bgHover: 'hover:bg-emerald-500/5',
+        borderHover: 'hover:border-emerald-500/30'
+    },
+  ];
+
+  const quickLinks = [
+    { name: 'Inbox', icon: Mail, href: '/messages' },
+    { name: 'Groups', icon: Users, href: '/groups' },
+    { name: 'Profile', icon: User, href: '/profile' },
+    { name: 'Settings', icon: Settings, href: '/settings' },
+  ];
+
   return (
     <DashboardLayout>
-      <PageHeader title="Overview" description="Campus at a glance" icon={<Home className="h-4.5 w-4.5" />} />
-
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="p-4 sm:p-6 max-w-5xl mx-auto"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 auto-rows-fr">
+      <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-10 min-h-screen">
           
-          {/* Welcome Banner - Span full width on mobile, 2 columns on desktop */}
-          <motion.div variants={itemVariants} className="md:col-span-2 relative overflow-hidden rounded-[32px] p-8 bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-900/20 group flex flex-col justify-between min-h-[220px]">
-            <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity duration-700">
-              <Sparkles className="w-32 h-32 text-white rotate-12" />
-            </div>
-            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-            
-            <div className="relative z-10 flex-1">
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
-                {getTimeGreeting()},
-                <br />
-                {userProfile?.name?.split(' ')[0]}!
-              </h2>
-              <p className="text-blue-100 font-medium max-w-sm">
-                Ready to connect with your campus? Check out the latest discussions or share a confession.
-              </p>
-            </div>
+        <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-10"
+        >
+            {/* Header Section */}
+            <motion.div variants={itemVariants} className="space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] text-[11px] font-medium text-[var(--ui-text-muted)] uppercase tracking-widest">
+                    <Sparkles className="h-3 w-3 text-[var(--ui-accent)]" />
+                    Overview
+                </div>
+                
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-[var(--ui-text)] tracking-tight">
+                    {getTimeGreeting()}, <br className="sm:hidden" />
+                    <span className="text-[var(--ui-accent)]">{userProfile?.name?.split(' ')[0]}</span>.
+                </h1>
+                
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                    {userProfile?.field && (
+                        <div className="px-4 py-1.5 rounded-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] text-xs font-semibold text-[var(--ui-text-secondary)]">
+                            {userProfile.field}
+                        </div>
+                    )}
+                    {userProfile?.year && (
+                        <div className="px-4 py-1.5 rounded-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] text-xs font-semibold text-[var(--ui-text-secondary)]">
+                            {userProfile.year}
+                        </div>
+                    )}
+                    {userProfile?.division && (
+                        <div className="px-4 py-1.5 rounded-lg bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] text-xs font-semibold text-[var(--ui-text-secondary)]">
+                            Div {userProfile.division} {userProfile.branch && <span className="text-[var(--ui-text-muted)] font-normal ml-1">• {userProfile.branch}</span>}
+                        </div>
+                    )}
+                </div>
+            </motion.div>
 
-            <div className="relative z-10 mt-6 flex flex-wrap gap-2">
-                {userProfile?.field && (
-                    <span className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider text-white border border-white/30">
-                        {userProfile.field}
-                    </span>
-                )}
-                {userProfile?.year && (
-                    <span className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider text-white border border-white/30">
-                        {userProfile.year}
-                    </span>
-                )}
-                {userProfile?.division && (
-                    <span className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider text-white border border-white/30">
-                        Div {userProfile.division}
-                    </span>
-                )}
-            </div>
-          </motion.div>
+            {/* Channels List */}
+            <motion.div variants={itemVariants} className="space-y-4">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--ui-text-muted)] pl-1">
+                    Active Spaces
+                </h2>
+                <div className="flex flex-col gap-3">
+                    {channels.map((ch) => (
+                        <Link 
+                            key={ch.id} 
+                            href={ch.href}
+                            className={`group flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] transition-all duration-300 ${ch.bgHover} ${ch.borderHover} shadow-sm hover:shadow-md cursor-pointer`}
+                        >
+                            <div className="flex items-center gap-4 sm:gap-6">
+                                <div className={`flex items-center justify-center h-12 w-12 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] group-hover:scale-110 transition-transform duration-300 ${ch.color}`}>
+                                    <ch.icon className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="text-base sm:text-lg font-bold text-[var(--ui-text)] group-hover:text-[var(--ui-text)] transition-colors">
+                                            {ch.name}
+                                        </h3>
+                                        <span className={`text-[9px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] ${ch.color}`}>
+                                            {ch.tag}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-[var(--ui-text-muted)] group-hover:text-[var(--ui-text-secondary)] transition-colors line-clamp-1">
+                                        {ch.description}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                <ChevronRight className="h-5 w-5 text-[var(--ui-text-secondary)]" />
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </motion.div>
 
-          {/* Featured: Confessions (Square card) */}
-          <motion.div variants={itemVariants}>
-            <Link href="/confessions" className="block h-full relative overflow-hidden rounded-[32px] p-8 bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-xl shadow-orange-900/20 group hover:-translate-y-1 transition-transform duration-300">
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 rounded-full blur-2xl group-hover:bg-white/30 transition-colors" />
-              <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 border border-white/30">
-                <MessageSquare className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold tracking-tight mb-2">Confessions</h3>
-              <p className="text-orange-100 text-sm font-medium">Share your campus secrets completely anonymously.</p>
-              
-              <div className="absolute bottom-6 right-6 h-10 w-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center -rotate-45 group-hover:rotate-0 transition-transform duration-500 border border-white/30">
-                <ArrowRight className="h-5 w-5 text-white" />
-              </div>
-            </Link>
-          </motion.div>
+            {/* Quick Links */}
+            <motion.div variants={itemVariants} className="space-y-4">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--ui-text-muted)] pl-1">
+                    Quick Actions
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {quickLinks.map((link) => (
+                        <Link 
+                            key={link.name} 
+                            href={link.href}
+                            className="group flex flex-col items-center justify-center p-6 rounded-2xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] hover:bg-[var(--ui-bg-elevated)] hover:border-[var(--ui-accent)]/30 transition-all duration-300 shadow-sm"
+                        >
+                            <link.icon className="h-6 w-6 mb-3 text-[var(--ui-text-muted)] group-hover:text-[var(--ui-accent)] transition-colors" />
+                            <span className="text-sm font-semibold text-[var(--ui-text-secondary)] group-hover:text-[var(--ui-text)] transition-colors">
+                                {link.name}
+                            </span>
+                        </Link>
+                    ))}
+                </div>
+            </motion.div>
 
-          {/* Featured: Public Chat */}
-          <motion.div variants={itemVariants}>
-            <Link href="/public-chat" className="block h-full relative overflow-hidden rounded-[32px] p-8 bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white shadow-xl shadow-purple-900/20 group hover:-translate-y-1 transition-transform duration-300">
-              <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 border border-white/30">
-                <Users className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold tracking-tight mb-2">Public Chat</h3>
-              <p className="text-purple-100 text-sm font-medium">Join the campus-wide real-time discussion.</p>
-              <div className="absolute bottom-6 right-6 h-10 w-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center -rotate-45 group-hover:rotate-0 transition-transform duration-500 border border-white/30">
-                <ArrowRight className="h-5 w-5 text-white" />
-              </div>
-            </Link>
-          </motion.div>
-
-          {/* Featured: Anonymous Chat */}
-          <motion.div variants={itemVariants}>
-            <Link href="/anonymous-chat" className="block h-full relative overflow-hidden rounded-[32px] p-8 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-xl shadow-emerald-900/20 group hover:-translate-y-1 transition-transform duration-300">
-              <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 border border-white/30">
-                <MessageCircle className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold tracking-tight mb-2">Anon Chat</h3>
-              <p className="text-emerald-100 text-sm font-medium">Speak freely in the shadows with auto-generated names.</p>
-              <div className="absolute bottom-6 right-6 h-10 w-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center -rotate-45 group-hover:rotate-0 transition-transform duration-500 border border-white/30">
-                <ArrowRight className="h-5 w-5 text-white" />
-              </div>
-            </Link>
-          </motion.div>
-
-          {/* Quick Action Grid */}
-          <motion.div variants={itemVariants} className="md:col-span-1 grid grid-cols-2 gap-4">
-            <Link href="/messages" className="flex flex-col items-center justify-center p-6 rounded-[32px] glass-panel bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] hover:bg-[var(--ui-bg-elevated)] transition-colors shadow-sm group">
-              <div className="h-12 w-12 rounded-full bg-[var(--ui-accent-dim)] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <Mail className="h-5 w-5 text-[var(--ui-accent)]" />
-              </div>
-              <span className="text-sm font-bold text-[var(--ui-text)]">Inbox</span>
-            </Link>
-            
-            <Link href="/groups" className="flex flex-col items-center justify-center p-6 rounded-[32px] glass-panel bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] hover:bg-[var(--ui-bg-elevated)] transition-colors shadow-sm group">
-              <div className="h-12 w-12 rounded-full bg-[var(--ui-accent-dim)] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <Users className="h-5 w-5 text-[var(--ui-accent)]" />
-              </div>
-              <span className="text-sm font-bold text-[var(--ui-text)]">Groups</span>
-            </Link>
-
-            <Link href="/profile" className="flex flex-col items-center justify-center p-6 rounded-[32px] glass-panel bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] hover:bg-[var(--ui-bg-elevated)] transition-colors shadow-sm group">
-              <div className="h-12 w-12 rounded-full bg-[var(--ui-accent-dim)] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <User className="h-5 w-5 text-[var(--ui-accent)]" />
-              </div>
-              <span className="text-sm font-bold text-[var(--ui-text)]">Profile</span>
-            </Link>
-
-            <Link href="/settings" className="flex flex-col items-center justify-center p-6 rounded-[32px] glass-panel bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] hover:bg-[var(--ui-bg-elevated)] transition-colors shadow-sm group">
-              <div className="h-12 w-12 rounded-full bg-[var(--ui-accent-dim)] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <Settings className="h-5 w-5 text-[var(--ui-accent)]" />
-              </div>
-              <span className="text-sm font-bold text-[var(--ui-text)]">Settings</span>
-            </Link>
-          </motion.div>
-
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </DashboardLayout>
   );
 }
