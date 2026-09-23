@@ -4,6 +4,7 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getDatabase } from "firebase/database";
 import { getAnalytics, isSupported } from "firebase/analytics";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // ---------------------------------------------------------------------------
 // Build-safe Firebase initialisation
@@ -93,6 +94,26 @@ export const analytics =
               }
               return getAnalytics(getAppSafe());
           })
+        : null;
+
+// Firebase App Check defends backend services against unauthorized callers (e.g. scripts, Burp Suite)
+export const appCheck =
+    typeof window !== "undefined" && canInit && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+        ? (() => {
+              try {
+                  if (process.env.NODE_ENV !== "production") {
+                      // @ts-expect-error Firebase App Check debug token for localhost / dev
+                      self.FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.NEXT_PUBLIC_APP_CHECK_DEBUG_TOKEN ?? true;
+                  }
+                  return initializeAppCheck(getAppSafe(), {
+                      provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY),
+                      isTokenAutoRefreshEnabled: true,
+                  });
+              } catch (e) {
+                  console.warn("[Firebase] App Check initialization skipped:", e);
+                  return null;
+              }
+          })()
         : null;
 
 export default getAppSafe;

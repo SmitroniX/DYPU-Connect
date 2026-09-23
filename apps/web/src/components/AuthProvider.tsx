@@ -17,7 +17,7 @@ import { isAndroidApp, registerAndroidEventListener, triggerNativeGoogleSignIn }
 import { toast } from 'react-hot-toast';
 import { AppError, AppErrorCode, handleError, mapToAppError } from '@/lib/errors';
 import { type ElectronInterface } from '@/lib/desktop';
-import { validateEmail } from '@/lib/validation/authValidation';
+import { validateEmail, getRemainingCooldown, recordAuthLinkSent, checkAuthRateLimit } from '@/lib/validation/authValidation';
 
 declare global {
     interface Window {
@@ -203,6 +203,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         const email = validation.email;
 
+        // Anti-spam & Flooding Protection: Enforce persistent cooldown and burst rate limits
+        const remainingCooldown = getRemainingCooldown();
+        if (remainingCooldown > 0) {
+            throw new AppError(
+                AppErrorCode.AUTH_TOO_MANY_REQUESTS,
+                `Please wait ${remainingCooldown}s before requesting another sign-in link.`
+            );
+        }
+
+        const rateLimit = checkAuthRateLimit();
+        if (!rateLimit.allowed) {
+            throw new AppError(
+                AppErrorCode.AUTH_TOO_MANY_REQUESTS,
+                `Too many sign-in link requests. Please wait ${rateLimit.waitSeconds}s.`
+            );
+        }
+
         // For local dev, Firebase auth domain might not be set. Using localhost for Action Code Setting.
         const actionCodeSettings = {
             url: window.location.origin + '/verify-email',
@@ -212,6 +229,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             await sendSignInLinkToEmail(auth, email, actionCodeSettings);
             window.localStorage.setItem('emailForSignIn', email);
+            recordAuthLinkSent();
         } catch (error) {
             throw mapToAppError(error);
         }

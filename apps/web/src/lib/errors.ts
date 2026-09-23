@@ -13,6 +13,7 @@ export enum AppErrorCode {
     AUTH_EXPIRED_ACTION_CODE = 'auth/expired-action-code',
     AUTH_INVALID_ACTION_CODE = 'auth/invalid-action-code',
     AUTH_USER_DISABLED = 'auth/user-disabled',
+    AUTH_TOO_MANY_REQUESTS = 'auth/too-many-requests',
 
     // Firestore Errors
     FIRESTORE_PERMISSION_DENIED = 'firestore/permission-denied',
@@ -125,6 +126,12 @@ function mapFirebaseError(error: FirebaseError): AppError {
             return new AppError(
                 AppErrorCode.AUTH_USER_DISABLED,
                 'This account has been disabled by an administrator.',
+                error
+            );
+        case 'auth/too-many-requests':
+            return new AppError(
+                AppErrorCode.AUTH_TOO_MANY_REQUESTS,
+                'Too many sign-in attempts. Please wait a few moments before trying again.',
                 error
             );
         case 'permission-denied':

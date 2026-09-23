@@ -16,6 +16,78 @@ export const ALLOWED_DOMAIN = 'dypatil.edu';
 /** Resend cooldown in seconds. */
 export const RESEND_COOLDOWN_SECONDS = 60;
 
+/** Storage key for persisting magic link send timestamp */
+export const AUTH_COOLDOWN_STORAGE_KEY = 'dypu_auth_link_last_sent';
+export const AUTH_ATTEMPTS_STORAGE_KEY = 'dypu_auth_link_attempts';
+
+/** Maximum requests allowed within rate limit window (5 requests per 15 minutes) */
+export const MAX_AUTH_REQUESTS_PER_WINDOW = 5;
+export const AUTH_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+
+/**
+ * Returns remaining cooldown in seconds based on persistent client storage.
+ * Guards against page refreshes bypassing UI timers.
+ */
+export function getRemainingCooldown(seconds = RESEND_COOLDOWN_SECONDS): number {
+    if (typeof window === 'undefined') return 0;
+    try {
+        const lastSentStr = window.localStorage.getItem(AUTH_COOLDOWN_STORAGE_KEY);
+        if (!lastSentStr) return 0;
+        const lastSent = parseInt(lastSentStr, 10);
+        if (isNaN(lastSent)) return 0;
+        const elapsedSeconds = Math.floor((Date.now() - lastSent) / 1000);
+        const remaining = seconds - elapsedSeconds;
+        return remaining > 0 ? remaining : 0;
+    } catch {
+        return 0;
+    }
+}
+
+/**
+ * Records that an auth link was just sent.
+ */
+export function recordAuthLinkSent(): void {
+    if (typeof window === 'undefined') return;
+    try {
+        const now = Date.now();
+        window.localStorage.setItem(AUTH_COOLDOWN_STORAGE_KEY, now.toString());
+
+        const attemptsRaw = window.localStorage.getItem(AUTH_ATTEMPTS_STORAGE_KEY);
+        const attempts: number[] = attemptsRaw ? JSON.parse(attemptsRaw) : [];
+        const recentAttempts = attempts.filter((t) => now - t < AUTH_RATE_LIMIT_WINDOW_MS);
+        recentAttempts.push(now);
+        window.localStorage.setItem(AUTH_ATTEMPTS_STORAGE_KEY, JSON.stringify(recentAttempts));
+    } catch {
+        // Silently ignore storage failures
+    }
+}
+
+/**
+ * Checks whether client has exceeded the burst limit (max 5 requests per 15 minutes).
+ */
+export function checkAuthRateLimit(): { allowed: boolean; waitSeconds?: number } {
+    if (typeof window === 'undefined') return { allowed: true };
+    try {
+        const now = Date.now();
+        const attemptsRaw = window.localStorage.getItem(AUTH_ATTEMPTS_STORAGE_KEY);
+        if (!attemptsRaw) return { allowed: true };
+        const attempts: number[] = JSON.parse(attemptsRaw);
+        const recentAttempts = attempts.filter((t) => now - t < AUTH_RATE_LIMIT_WINDOW_MS);
+
+        if (recentAttempts.length >= MAX_AUTH_REQUESTS_PER_WINDOW) {
+            const oldestInWindow = recentAttempts[0];
+            const waitMs = AUTH_RATE_LIMIT_WINDOW_MS - (now - oldestInWindow);
+            return {
+                allowed: false,
+                waitSeconds: Math.max(1, Math.ceil(waitMs / 1000)),
+            };
+        }
+        return { allowed: true };
+    } catch {
+        return { allowed: true };
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Normalisation
 // ---------------------------------------------------------------------------

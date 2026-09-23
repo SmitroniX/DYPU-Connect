@@ -5,7 +5,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, Mail, ArrowRight, Loader2, RefreshCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { validateEmail, RESEND_COOLDOWN_SECONDS } from '@/lib/validation/authValidation';
+import { validateEmail, RESEND_COOLDOWN_SECONDS, getRemainingCooldown } from '@/lib/validation/authValidation';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -21,6 +21,17 @@ export default function LoginPage() {
             router.replace('/');
         }
     }, [authLoading, user, router]);
+
+    // Initialize cooldown on client mount from persistent storage
+    useEffect(() => {
+        const remaining = getRemainingCooldown();
+        if (remaining > 0) {
+            setCooldown(remaining);
+            setLinkSent(true);
+            const savedEmail = window.localStorage.getItem('emailForSignIn');
+            if (savedEmail) setEmail(savedEmail);
+        }
+    }, []);
 
     // Handle cooldown timer
     useEffect(() => {
