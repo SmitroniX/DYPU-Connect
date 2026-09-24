@@ -3,6 +3,7 @@ package com.dypu.connect
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.DownloadManager
+import android.app.PictureInPictureParams
 import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -16,8 +17,10 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.os.VibratorManager
 import android.provider.MediaStore
 import android.util.Log
+import android.util.Rational
 import android.view.View
 import android.webkit.*
 import android.widget.FrameLayout
@@ -33,6 +36,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -60,6 +64,10 @@ class MainActivity : AppCompatActivity() {
     private val TAG = "DYPUConnectNative"
     private var safeAreaTopDp = 0
     private var safeAreaBottomDp = 0
+    private var safeAreaLeftDp = 0
+    private var safeAreaRightDp = 0
+
+    private var pendingWebPermissionRequest: PermissionRequest? = null
 
     private val tokenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -91,6 +99,37 @@ class MainActivity : AppCompatActivity() {
         openFileChooser()
     }
 
+    private val notificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        Log.d(TAG, "Notification permission result: $isGranted")
+        emitToWeb("notification_permission_result", isGranted.toString())
+    }
+
+    private val callPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        val cameraGranted = permissions[Manifest.permission.CAMERA] ?: (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
+        val audioGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)
+        
+        Log.d(TAG, "Call permissions result: camera=$cameraGranted, audio=$audioGranted")
+        
+        pendingWebPermissionRequest?.let { request ->
+            val granted = mutableListOf<String>()
+            if (cameraGranted && request.resources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
+                granted.add(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+            }
+            if (audioGranted && request.resources.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) {
+                granted.add(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
+            }
+            
+            if (granted.isNotEmpty()) {
+                request.grant(granted.toTypedArray())
+            } else {
+                request.deny()
+            }
+            pendingWebPermissionRequest = null
+        }
+        
+        emitToWeb("call_permissions_result", (cameraGranted && audioGranted).toString())
+    }
+
     private val googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
@@ -115,6 +154,7 @@ class MainActivity : AppCompatActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         
+        // Edge-to-Edge display
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
 
@@ -124,16 +164,23 @@ class MainActivity : AppCompatActivity() {
         errorView = findViewById(R.id.errorView)
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
 
+        // CRITICAL FIX: Disable pull-to-refresh by default so downward swipes/scrolls never trigger unwanted reload
+        swipeRefresh.isEnabled = false
+        swipeRefresh.setColorSchemeResources(R.color.primary, R.color.accent)
+
         setupWebView()
         setupGoogleSignIn()
 
-        // Handle Safe Area Insets for Edge-to-Edge
+        // Handle Safe Area Insets for all device forms (portrait, landscape, cutouts, foldables, tablets)
         ViewCompat.setOnApplyWindowInsetsListener(webView) { _, insets ->
-            val top = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()).top
-            val bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()).bottom
+            val systemBars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
             val density = resources.displayMetrics.density
-            safeAreaTopDp = (top / density).toInt()
-            safeAreaBottomDp = (bottom / density).toInt()
+            safeAreaTopDp = (systemBars.top / density).toInt()
+            safeAreaBottomDp = (systemBars.bottom / density).toInt()
+            safeAreaLeftDp = (systemBars.left / density).toInt()
+            safeAreaRightDp = (systemBars.right / density).toInt()
             injectSafeAreaInsets()
             WindowInsetsCompat.CONSUMED
         }
@@ -154,14 +201,25 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        // Request notification permission gracefully on startup (Android 13+)
+        promptNotificationPermissionIfNeeded()
+
         // Initial Load
         webView.loadUrl(BASE_URL)
         handleIntent(intent)
     }
 
+    private fun promptNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
     private fun setupGoogleSignIn() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id)) // Requires google-services.json
+            .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
@@ -172,12 +230,17 @@ class MainActivity : AppCompatActivity() {
         val settings = webView.settings
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
-        settings.databaseEnabled = true
         settings.mediaPlaybackRequiresUserGesture = false
         settings.allowFileAccess = false
         settings.cacheMode = WebSettings.LOAD_DEFAULT
         settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+        
+        // Multi-device and tablet display optimization
+        settings.useWideViewPort = true
+        settings.loadWithOverviewMode = true
         settings.setSupportZoom(false)
+        settings.displayZoomControls = false
+        settings.builtInZoomControls = false
 
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
@@ -258,12 +321,40 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
 
+            // WebRTC Call Permissions (Camera & Microphone)
             override fun onPermissionRequest(request: PermissionRequest?) {
-                val origin = request?.origin?.toString() ?: ""
-                if (origin.startsWith(BASE_URL) || origin.startsWith("https://dypu-connect.netlify.app")) {
-                    request?.grant(request.resources)
+                if (request == null) return
+                val origin = request.origin?.toString() ?: ""
+                
+                // Validate origin
+                if (!origin.startsWith(BASE_URL) && 
+                    !origin.startsWith("https://dypu-connect.netlify.app") && 
+                    !origin.contains("dypu-connect")) {
+                    request.deny()
+                    return
+                }
+
+                val resources = request.resources
+                val needsCamera = resources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+                val needsAudio = resources.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
+
+                val hasCamera = ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                val hasAudio = ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+
+                val permissionsToRequest = mutableListOf<String>()
+                if (needsCamera && !hasCamera) permissionsToRequest.add(Manifest.permission.CAMERA)
+                if (needsAudio && !hasAudio) permissionsToRequest.add(Manifest.permission.RECORD_AUDIO)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                        permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT)
+                    }
+                }
+
+                if (permissionsToRequest.isEmpty()) {
+                    request.grant(resources)
                 } else {
-                    request?.deny()
+                    pendingWebPermissionRequest = request
+                    callPermissionLauncher.launch(permissionsToRequest.toTypedArray())
                 }
             }
 
@@ -295,7 +386,6 @@ class MainActivity : AppCompatActivity() {
             request.setMimeType(mimeType)
             val fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
             request.setTitle(fileName)
-            request.allowScanningByMediaScanner()
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
             val dm = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
@@ -319,15 +409,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val fileIntent = Intent(Intent.ACTION_GET_CONTENT)
-        fileIntent.addCategory(Intent.CATEGORY_OPENABLE)
-        fileIntent.type = "*/*"
-        fileIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-        fileIntent.putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "video/*", "audio/*", "application/pdf"))
+        val fileIntent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "video/*", "audio/*", "application/pdf"))
+        }
 
-        val chooserIntent = Intent.createChooser(fileIntent, "Select file")
-        if (intents.isNotEmpty()) {
-            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intents.toTypedArray())
+        val chooserIntent = Intent.createChooser(fileIntent, "Select file").apply {
+            if (intents.isNotEmpty()) {
+                putExtra(Intent.EXTRA_INITIAL_INTENTS, intents.toTypedArray())
+            }
         }
 
         fileChooserLauncher.launch(chooserIntent)
@@ -342,7 +434,9 @@ class MainActivity : AppCompatActivity() {
     private fun injectSafeAreaInsets() {
         webView.evaluateJavascript(
             "document.documentElement.style.setProperty('--android-safe-area-top', '${safeAreaTopDp}px');" +
-            "document.documentElement.style.setProperty('--android-safe-area-bottom', '${safeAreaBottomDp}px');",
+            "document.documentElement.style.setProperty('--android-safe-area-bottom', '${safeAreaBottomDp}px');" +
+            "document.documentElement.style.setProperty('--android-safe-area-left', '${safeAreaLeftDp}px');" +
+            "document.documentElement.style.setProperty('--android-safe-area-right', '${safeAreaRightDp}px');",
             null
         )
     }
@@ -371,7 +465,6 @@ class MainActivity : AppCompatActivity() {
             finalUrl = BASE_URL + finalUrl
         }
         
-        // Don't reload if we're already on the same page
         if (webView.url != finalUrl) {
             webView.loadUrl(finalUrl)
         }
@@ -391,29 +484,60 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(tokenReceiver)
     }
 
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        // If during a call or fullscreen, support PiP mode
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && customView != null) {
+            try {
+                val params = PictureInPictureParams.Builder()
+                    .setAspectRatio(Rational(16, 9))
+                    .build()
+                enterPictureInPictureMode(params)
+            } catch (e: Exception) {
+                Log.w(TAG, "PiP mode failed", e)
+            }
+        }
+    }
+
     inner class WebAppInterface {
         @JavascriptInterface
         fun showToast(message: String) {
-            Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+            runOnUiThread {
+                Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+            }
         }
 
         @JavascriptInterface
         fun vibrate(duration: Long) {
-            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
-            } else {
-                vibrator.vibrate(duration)
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+                    val vibrator = vibratorManager?.defaultVibrator ?: (getSystemService(Context.VIBRATOR_SERVICE) as Vibrator)
+                    vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    @Suppress("DEPRECATION")
+                    val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                    vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    @Suppress("DEPRECATION")
+                    val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                    vibrator.vibrate(duration)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Vibrate failed", e)
             }
         }
 
         @JavascriptInterface
         fun share(text: String, title: String) {
-            val intent = Intent(Intent.ACTION_SEND)
-            intent.type = "text/plain"
-            intent.putExtra(Intent.EXTRA_SUBJECT, title)
-            intent.putExtra(Intent.EXTRA_TEXT, text)
-            startActivity(Intent.createChooser(intent, "Share via"))
+            runOnUiThread {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, title)
+                    putExtra(Intent.EXTRA_TEXT, text)
+                }
+                startActivity(Intent.createChooser(intent, "Share via"))
+            }
         }
 
         @JavascriptInterface
@@ -505,6 +629,60 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun onWebReady() {
             runOnUiThread { emitToWeb("app_connected", "Native bridge is active") }
+        }
+
+        // Notification Permission APIs
+        @JavascriptInterface
+        fun requestNotificationPermission() {
+            runOnUiThread {
+                promptNotificationPermissionIfNeeded()
+            }
+        }
+
+        @JavascriptInterface
+        fun hasNotificationPermission(): Boolean {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
+        }
+
+        // Call Permission APIs
+        @JavascriptInterface
+        fun requestCallPermissions() {
+            runOnUiThread {
+                val perms = mutableListOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    perms.add(Manifest.permission.BLUETOOTH_CONNECT)
+                }
+                callPermissionLauncher.launch(perms.toTypedArray())
+            }
+        }
+
+        @JavascriptInterface
+        fun hasCallPermissions(): Boolean {
+            val hasCam = ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+            val hasMic = ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+            return hasCam && hasMic
+        }
+
+        // Pull to refresh control (disabled by default)
+        @JavascriptInterface
+        fun setPullToRefreshEnabled(enabled: Boolean) {
+            runOnUiThread {
+                swipeRefresh.isEnabled = enabled
+            }
+        }
+
+        // System Bar / Status Bar Theme Sync
+        @JavascriptInterface
+        fun setStatusBarTheme(isDark: Boolean) {
+            runOnUiThread {
+                val controller = WindowInsetsControllerCompat(window, window.decorView)
+                controller.isAppearanceLightStatusBars = !isDark
+                controller.isAppearanceLightNavigationBars = !isDark
+            }
         }
     }
 }

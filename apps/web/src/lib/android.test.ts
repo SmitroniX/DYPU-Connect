@@ -9,6 +9,12 @@ import {
   triggerNativeGoogleSignIn,
   requestFCMToken,
   getAppVersion,
+  requestAndroidNotificationPermission,
+  hasAndroidNotificationPermission,
+  requestAndroidCallPermissions,
+  hasAndroidCallPermissions,
+  setAndroidPullToRefresh,
+  syncAndroidStatusBarTheme,
 } from './android';
 
 describe('Android Bridge', () => {
@@ -222,6 +228,88 @@ describe('Android Bridge', () => {
 
     it('returns null if AndroidApp is missing', () => {
       expect(getAppVersion()).toBeNull();
+    });
+  });
+
+  describe('requestAndroidNotificationPermission', () => {
+    it('calls AndroidApp.requestNotificationPermission if available', () => {
+      const spy = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      window.AndroidApp = { requestNotificationPermission: spy } as any;
+      requestAndroidNotificationPermission();
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('does nothing if AndroidApp is missing', () => {
+      expect(() => requestAndroidNotificationPermission()).not.toThrow();
+    });
+  });
+
+  describe('hasAndroidNotificationPermission', () => {
+    it('returns result from AndroidApp.hasNotificationPermission if available', () => {
+      const spy = vi.fn().mockReturnValue(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      window.AndroidApp = { hasNotificationPermission: spy } as any;
+      expect(hasAndroidNotificationPermission()).toBe(true);
+    });
+
+    it('defaults to true if AndroidApp is missing', () => {
+      expect(hasAndroidNotificationPermission()).toBe(true);
+    });
+  });
+
+  describe('requestAndroidCallPermissions', () => {
+    it('calls AndroidApp.requestCallPermissions if available', () => {
+      const spy = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      window.AndroidApp = { requestCallPermissions: spy } as any;
+      requestAndroidCallPermissions();
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('does nothing if AndroidApp is missing', () => {
+      expect(() => requestAndroidCallPermissions()).not.toThrow();
+    });
+  });
+
+  describe('hasAndroidCallPermissions', () => {
+    it('returns result from AndroidApp.hasCallPermissions if available', () => {
+      const spy = vi.fn().mockReturnValue(false);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      window.AndroidApp = { hasCallPermissions: spy } as any;
+      expect(hasAndroidCallPermissions()).toBe(false);
+    });
+
+    it('defaults to true if AndroidApp is missing', () => {
+      expect(hasAndroidCallPermissions()).toBe(true);
+    });
+  });
+
+  describe('setAndroidPullToRefresh', () => {
+    it('calls AndroidApp.setPullToRefreshEnabled with argument', () => {
+      const spy = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      window.AndroidApp = { setPullToRefreshEnabled: spy } as any;
+      setAndroidPullToRefresh(false);
+      expect(spy).toHaveBeenCalledWith(false);
+    });
+
+    it('does nothing if AndroidApp is missing', () => {
+      expect(() => setAndroidPullToRefresh(true)).not.toThrow();
+    });
+  });
+
+  describe('syncAndroidStatusBarTheme', () => {
+    it('calls AndroidApp.setStatusBarTheme with argument', () => {
+      const spy = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      window.AndroidApp = { setStatusBarTheme: spy } as any;
+      syncAndroidStatusBarTheme(true);
+      expect(spy).toHaveBeenCalledWith(true);
+    });
+
+    it('does nothing if AndroidApp is missing', () => {
+      expect(() => syncAndroidStatusBarTheme(false)).not.toThrow();
     });
   });
 });

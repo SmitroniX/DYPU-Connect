@@ -31,6 +31,12 @@ interface AndroidInterface {
   getFCMToken(): void;
   signInWithGoogle(): void;
   onWebReady(): void;
+  requestNotificationPermission?(): void;
+  hasNotificationPermission?(): boolean;
+  requestCallPermissions?(): void;
+  hasCallPermissions?(): boolean;
+  setPullToRefreshEnabled?(enabled: boolean): void;
+  setStatusBarTheme?(isDark: boolean): void;
 }
 
 declare global {
@@ -157,3 +163,60 @@ export const saveImageToAndroid = (base64Data: string, fileName: string = 'confe
   }
   return false;
 };
+
+/**
+ * Requests native notification permission on Android 13+
+ */
+export const requestAndroidNotificationPermission = () => {
+  if (window.AndroidApp?.requestNotificationPermission) {
+    window.AndroidApp.requestNotificationPermission();
+  }
+};
+
+/**
+ * Checks if notification permission is granted on Android
+ */
+export const hasAndroidNotificationPermission = (): boolean => {
+  if (window.AndroidApp?.hasNotificationPermission) {
+    return window.AndroidApp.hasNotificationPermission();
+  }
+  return true;
+};
+
+/**
+ * Requests native camera and audio call permissions on Android
+ */
+export const requestAndroidCallPermissions = () => {
+  if (window.AndroidApp?.requestCallPermissions) {
+    window.AndroidApp.requestCallPermissions();
+  }
+};
+
+/**
+ * Checks if call permissions (camera & microphone) are granted on Android
+ */
+export const hasAndroidCallPermissions = (): boolean => {
+  if (window.AndroidApp?.hasCallPermissions) {
+    return window.AndroidApp.hasCallPermissions();
+  }
+  return true;
+};
+
+/**
+ * Enables or disables pull to refresh in native Android WebView
+ */
+export const setAndroidPullToRefresh = (enabled: boolean) => {
+  if (window.AndroidApp?.setPullToRefreshEnabled) {
+    window.AndroidApp.setPullToRefreshEnabled(enabled);
+  }
+};
+
+/**
+ * Syncs the web theme (dark / light) to Android status bar and navigation bar
+ */
+export const syncAndroidStatusBarTheme = (isDark: boolean) => {
+  if (window.AndroidApp?.setStatusBarTheme) {
+    window.AndroidApp.setStatusBarTheme(isDark);
+  }
+};
+

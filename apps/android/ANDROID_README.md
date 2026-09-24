@@ -11,15 +11,17 @@ This is a **WebView wrapper** (not a full native rebuild). It loads your deploye
 | Feature | How it works |
 |---------|-------------|
 | **Firebase Email Link Auth** | Deep links intercepted via intent-filter → loaded in WebView |
-| **WebRTC Video Calls** | Native camera/mic permissions granted to WebView |
-| **File Upload** | Native file picker + camera capture via `onShowFileChooser` |
+| **WebRTC Audio & Video Calls** | Native camera/mic/Bluetooth runtime permissions granted to WebView with graceful fallback |
+| **Push Notification Channels** | Android 13+ `POST_NOTIFICATIONS` runtime prompt with dedicated channels for Calls, Messages, and Confessions |
+| **File & Camera Upload** | Native file picker + camera capture via `onShowFileChooser` with scoped storage |
 | **Downloads** | Android `DownloadManager` handles file downloads |
-| **Pull-to-Refresh** | `SwipeRefreshLayout` wrapping WebView |
+| **Scroll Stability (No Unwanted Reload)** | Accidental swipe-down reload fixed (pull-to-refresh disabled by default) |
+| **All-Device Edge-to-Edge** | Insets for status bars, navigation bars, camera cutouts, foldables & tablets injected into CSS |
 | **Back Navigation** | Native back button → `webView.goBack()` → exit app |
-| **Fullscreen Video** | `onShowCustomView` / `onHideCustomView` |
-| **Splash Screen** | Android 12+ SplashScreen API with back-compat |
-| **Dark Theme** | Matches web app's `#0f0f0f` dark background |
-| **Offline Error** | Custom error screen with retry button |
+| **Fullscreen Video & PiP** | `onShowCustomView` / `onHideCustomView` with Picture-in-Picture support |
+| **Splash Screen & Theming** | Android 12+ SplashScreen API + dynamic status bar theme synchronization |
+| **Modern Offline Screen** | Redesigned dark glassmorphic error card with retry button |
+
 
 ---
 

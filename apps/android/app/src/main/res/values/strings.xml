@@ -6,5 +6,20 @@
     <string name="shortcut_messages">Messages</string>
     <string name="shortcut_messages_long">Open Direct Messages</string>
     <string name="default_web_client_id">110386935080-3guua02botb1hdcfgrgkdd3drqv20t76.apps.googleusercontent.com</string>
+    
+    <!-- Notification Channels -->
+    <string name="channel_messages_name">Messages &amp; Chats</string>
+    <string name="channel_messages_desc">Instant alerts for direct messages and group chats</string>
+    <string name="channel_calls_name">Audio &amp; Video Calls</string>
+    <string name="channel_calls_desc">High-priority ringtones and alerts for incoming campus calls</string>
+    <string name="channel_confessions_name">Campus &amp; Confessions</string>
+    <string name="channel_confessions_desc">Trending confessions and campus social activity</string>
+    <string name="channel_general_name">Campus Announcements</string>
+    <string name="channel_general_desc">Important university updates and alerts</string>
+
+    <!-- Error View -->
+    <string name="error_no_connection_title">No Internet Connection</string>
+    <string name="error_no_connection_subtitle">Please check your Wi-Fi or mobile data to reconnect to DYPU Connect.</string>
+    <string name="error_retry">Try Again</string>
 </resources>
 
