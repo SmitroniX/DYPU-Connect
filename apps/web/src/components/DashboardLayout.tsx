@@ -153,13 +153,13 @@ function MobileBottomNav() {
 
     return (
         <nav 
-            className="lg:hidden fixed left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-[380px] bg-[var(--ui-bg-base)]/80 backdrop-blur-3xl rounded-[2rem] border border-[var(--ui-border)] shadow-[0_16px_40px_-8px_rgba(0,0,0,0.5)] overflow-hidden"
-            style={{ bottom: 'calc(1rem + var(--safe-bottom))' }}
+            className="lg:hidden fixed left-1/2 -translate-x-1/2 z-[100] w-[88%] max-w-[340px] bg-[var(--ui-bg-surface)]/65 dark:bg-zinc-950/65 backdrop-blur-2xl backdrop-saturate-150 rounded-full border border-white/20 dark:border-white/10 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(255,255,255,0.2)] overflow-hidden"
+            style={{ bottom: 'calc(0.75rem + var(--safe-bottom))' }}
         >
-            {/* Subtle top glare */}
-            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--ui-border)] to-transparent" />
+            {/* Subtle top glare highlight */}
+            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/35 dark:via-white/20 to-transparent pointer-events-none" />
             
-            <div className="flex items-center justify-between h-[72px] px-2 sm:px-4">
+            <div className="flex items-center justify-between h-[56px] px-2 sm:px-3">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
                     return (
@@ -167,29 +167,29 @@ function MobileBottomNav() {
                             key={item.name} 
                             href={item.href}
                             className={clsx(
-                                "relative flex flex-col items-center justify-center flex-1 h-full gap-1.5 transition-all duration-300",
+                                "relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-all duration-300",
                                 isActive ? "text-[var(--ui-text)]" : "text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]"
                             )}
                         >
-                            <div className={clsx("relative flex items-center justify-center px-5 py-2 rounded-2xl z-10 transition-all duration-300", isActive ? "text-white" : "")}>
+                            <div className={clsx("relative flex items-center justify-center px-3.5 py-1 rounded-full z-10 transition-all duration-300", isActive ? "text-white" : "")}>
                                 {isActive && (
                                     <motion.div
                                         layoutId="nav-pill-mobile"
-                                        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30 -z-10"
-                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                        className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--ui-accent)] to-indigo-600 shadow-[0_4px_16px_rgba(59,130,246,0.4),inset_0_1px_1px_rgba(255,255,255,0.35)] border border-white/20 -z-10"
+                                        transition={{ type: "spring", stiffness: 450, damping: 32 }}
                                     />
                                 )}
                                 <item.icon 
                                     className={clsx(
-                                        "w-[22px] h-[22px] transition-transform duration-300 relative z-10",
-                                        isActive ? "scale-110 drop-shadow-sm" : ""
+                                        "w-[18px] h-[18px] transition-transform duration-300 relative z-10",
+                                        isActive ? "scale-105 drop-shadow-sm" : ""
                                     )} 
                                     strokeWidth={isActive ? 2.5 : 2}
                                 />
                             </div>
                             <span className={clsx(
-                                "text-[10px] tracking-widest uppercase transition-all duration-300",
-                                isActive ? "font-black" : "font-bold"
+                                "text-[9px] tracking-wider uppercase transition-all duration-300 leading-tight",
+                                isActive ? "font-bold text-[var(--ui-text)]" : "font-medium"
                             )}>
                                 {item.name}
                             </span>
@@ -419,7 +419,7 @@ export default function DashboardLayout({
                     {/* Content Main */}
                     <main className={clsx(
                         "flex-1 overflow-y-auto w-full relative scrollbar-hide",
-                        isSpecificChat ? "pb-0" : "pb-28 lg:pb-0"
+                        isSpecificChat ? "pb-0" : "pb-24 lg:pb-0"
                     )}>
                         <AnimatePresence mode="wait" initial={false}>
                             <motion.div
