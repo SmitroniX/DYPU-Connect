@@ -95,7 +95,7 @@ export default function GiphyPicker({ onSelect, disabled, align = 'left', trigge
             {triggerElement}
 
             {open && (
-                <div className={`absolute z-40 bottom-14 ${panelAlignment} w-[320px] rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-bg-surface)] backdrop-blur-xl shadow-2xl p-4 animate-[scale-in_0.2s_ease-out]`}>
+                <div className={`absolute z-40 bottom-14 ${panelAlignment} w-[calc(100vw-2rem)] sm:w-[320px] max-w-[320px] rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-bg-surface)] backdrop-blur-xl shadow-2xl p-4 animate-[scale-in_0.2s_ease-out]`}>
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-xs font-bold text-white uppercase tracking-widest opacity-60">GIPHY Express</h3>
                         <button

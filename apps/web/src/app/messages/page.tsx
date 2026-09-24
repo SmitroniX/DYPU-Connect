@@ -177,14 +177,14 @@ export default function InboxPage() {
                         </div>
                     )}
 
-                    <div className="p-4 space-y-3">
+                    <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
                         {chats.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-[calc(100vh-16rem)] text-center surface border border-[var(--ui-border)] mx-4 rounded-xl">
-                                <div className="w-20 h-20 rounded-full bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-6 shadow-sm border border-[var(--ui-border)]">
-                                    <MessageSquare className="h-10 w-10 text-[var(--ui-accent)] opacity-80" />
+                            <div className="flex flex-col items-center justify-center h-[calc(100vh-16rem)] text-center surface border border-[var(--ui-border)] mx-2 sm:mx-4 rounded-xl">
+                                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--ui-bg-elevated)] flex items-center justify-center mb-4 sm:mb-6 shadow-sm border border-[var(--ui-border)]">
+                                    <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-[var(--ui-accent)] opacity-80" />
                                 </div>
-                                <h3 className="text-xl font-bold text-[var(--ui-text)]">No messages yet</h3>
-                                <p className="text-sm text-[var(--ui-text-muted)] mt-2 max-w-[250px] leading-relaxed">
+                                <h3 className="text-lg sm:text-xl font-bold text-[var(--ui-text)]">No messages yet</h3>
+                                <p className="text-xs sm:text-sm text-[var(--ui-text-muted)] mt-2 max-w-[250px] leading-relaxed">
                                     Get started by creating a new chat and striking up a conversation.
                                 </p>
                             </div>
@@ -200,7 +200,7 @@ export default function InboxPage() {
                                     <Link
                                         key={chat.id}
                                         href={`/messages/${chat.id}`}
-                                        className="surface-interactive flex items-center gap-4 px-4 py-3.5 group cursor-pointer"
+                                        className="surface-interactive flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 sm:py-3.5 group cursor-pointer"
                                     >
                                         <div className="relative shrink-0">
                                             <img src={otherImage} alt={otherName} className="w-12 h-12 rounded-full object-cover object-center ring-2 ring-[var(--ui-bg-base)] group-hover:ring-[var(--ui-bg-hover)] transition-all" />

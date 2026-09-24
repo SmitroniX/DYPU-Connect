@@ -365,8 +365,8 @@ export default function DashboardLayout({
                 <div className="flex-1 flex flex-col lg:pl-[260px] h-full overflow-hidden">
                     {/* Header bar (consistent across platforms) */}
                     <header 
-                        className={clsx("items-center justify-between bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-[var(--ui-border)] px-6 shrink-0 relative z-[70]", isSpecificChat ? 'hidden lg:flex' : 'flex')}
-                        style={{ minHeight: 'calc(4.5rem + var(--safe-top))', paddingTop: 'var(--safe-top)' }}
+                        className={clsx("items-center justify-between bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-[var(--ui-border)] px-3 sm:px-6 shrink-0 relative z-[70]", isSpecificChat ? 'hidden lg:flex' : 'flex')}
+                        style={{ minHeight: 'calc(3.75rem + var(--safe-top))', paddingTop: 'var(--safe-top)' }}
                     >
                         <div className="flex items-center gap-3">
                             <button
@@ -455,7 +455,7 @@ export default function DashboardLayout({
                                 animate={{ x: 0 }}
                                 exit={{ x: '-100%' }}
                                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                                className="absolute inset-y-0 left-0 w-[280px] bg-[var(--ui-bg-base)] shadow-2xl flex flex-col"
+                                className="absolute inset-y-0 left-0 w-[min(280px,85vw)] bg-[var(--ui-bg-base)] shadow-2xl flex flex-col"
                             >
                                 <div 
                                     className="flex items-center justify-between px-6 pb-4 border-b border-[var(--ui-border)]"

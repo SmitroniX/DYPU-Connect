@@ -119,7 +119,7 @@ export default function GroupsPage() {
             <div className="h-full flex flex-col">
                 <ChannelHeader name="groups" description="Your auto-assigned campus groups" />
 
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-5xl mx-auto w-full">
+                <div className="flex-1 overflow-y-auto p-3 sm:p-6 max-w-5xl mx-auto w-full">
                     {!userProfile ? (
                         <div className="space-y-4">
                             <div className="mb-4">
@@ -164,7 +164,7 @@ export default function GroupsPage() {
                                                         {unread > 99 ? '99+' : unread}
                                                     </span>
                                                 )}
-                                                <span className="text-[10px] font-medium text-[var(--ui-text-muted)] bg-[var(--ui-bg-elevated)] px-2 py-0.5 rounded-full">
+                                                <span className="text-[10px] font-medium text-[var(--ui-text-muted)] bg-[var(--ui-bg-elevated)] px-2 py-0.5 rounded-full hidden sm:inline-block">
                                                     {group.type}
                                                 </span>
                                                 <ArrowRight className="h-4 w-4 text-[var(--ui-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />

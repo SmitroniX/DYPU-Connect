@@ -147,7 +147,7 @@ export default function ConfessionsPage() {
                 />
 
                 <div className="flex-1 overflow-y-auto">
-                    <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+                    <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
                         {/* E2EE Notice */}
                         <div className="flex justify-center mb-6">

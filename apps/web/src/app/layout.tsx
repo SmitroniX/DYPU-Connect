@@ -18,10 +18,13 @@ const inter = Inter({
 export const viewport: Viewport = {
     width: "device-width",
     initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
+    maximumScale: 5,
+    userScalable: true,
     viewportFit: "cover",
-    themeColor: "#0f0f0f",
+    themeColor: [
+        { media: "(prefers-color-scheme: light)", color: "#FAFAFA" },
+        { media: "(prefers-color-scheme: dark)", color: "#09090B" },
+    ],
 };
 
 export const metadata: Metadata = {

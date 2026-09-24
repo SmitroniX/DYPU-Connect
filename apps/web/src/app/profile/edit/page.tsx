@@ -473,8 +473,8 @@ export default function AccountsCenterPage() {
 
                 {/* Sticky Save Bar — Floats above everything when changes exist */}
                 <div className={`
-                    absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] sm:w-auto min-w-[320px] max-w-lg
-                    bg-[var(--ui-bg-surface)]/95 backdrop-blur-2xl border border-[var(--ui-border)] shadow-[0_10px_40px_rgba(0,0,0,0.5)] rounded-2xl p-4
+                    absolute bottom-6 left-1/2 -translate-x-1/2 w-[92%] sm:w-auto min-w-0 sm:min-w-[320px] max-w-lg
+                    bg-[var(--ui-bg-surface)]/95 backdrop-blur-2xl border border-[var(--ui-border)] shadow-[0_10px_40px_rgba(0,0,0,0.5)] rounded-2xl p-3 sm:p-4
                     flex items-center justify-between gap-4 z-50
                     transition-all duration-500 ease-out
                     ${hasChanges ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}

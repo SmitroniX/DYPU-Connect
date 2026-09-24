@@ -292,11 +292,11 @@ ${url}`);
     const CardContent = (
         <article
             ref={cardRef}
-            className={`group relative rounded-3xl border ${borderColor} bg-[var(--ui-bg-surface)] overflow-hidden transition-all duration-300 hover:border-[var(--ui-accent)]/40 hover:shadow-xl hover:shadow-[var(--ui-accent)]/10 hover:-translate-y-0.5`}
+            className={`group relative rounded-2xl sm:rounded-3xl border ${borderColor} bg-[var(--ui-bg-surface)] overflow-hidden transition-all duration-300 hover:border-[var(--ui-accent)]/40 hover:shadow-xl hover:shadow-[var(--ui-accent)]/10 hover:-translate-y-0.5`}
         >
             <div className={`absolute inset-0 bg-gradient-to-br ${gradient} pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity`} />
 
-            <div className="relative p-6 sm:p-7 flex flex-col h-full">
+            <div className="relative p-4 sm:p-6 sm:p-7 flex flex-col h-full">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-2">

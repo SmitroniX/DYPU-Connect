@@ -60,16 +60,16 @@ export default function DashboardPage() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="p-4 sm:p-6 max-w-4xl mx-auto space-y-10"
+        className="p-3 sm:p-6 max-w-4xl mx-auto space-y-6 sm:space-y-10"
       >
         {/* Welcome */}
-        <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2rem] p-8 sm:p-10 bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] shadow-lg group transition-all duration-500 hover:shadow-xl">
+        <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 md:p-10 bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] shadow-lg group transition-all duration-500 hover:shadow-xl">
           <div className="absolute inset-0 bg-gradient-to-br from-[var(--ui-accent)]/5 to-transparent opacity-50" />
           <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity duration-700">
-            <Sparkles className="w-28 h-28 text-[var(--ui-accent)] rotate-12" />
+            <Sparkles className="w-20 h-20 sm:w-28 sm:h-28 text-[var(--ui-accent)] rotate-12" />
           </div>
           <div className="relative z-10">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--ui-text)] tracking-tight mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[var(--ui-text)] tracking-tight mb-3 sm:mb-4">
               {getTimeGreeting()}, <span className="text-[var(--ui-accent)] drop-shadow-sm">{userProfile?.name?.split(' ')[0]}</span>!
             </h2>
             <div className="flex flex-wrap items-center gap-2.5">
@@ -102,11 +102,11 @@ export default function DashboardPage() {
               <motion.div key={ch.name} variants={itemVariants}>
                 <Link
                   href={ch.href}
-                  className="relative flex items-center gap-5 px-6 py-5 group rounded-[1.5rem] bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] hover:border-[var(--ui-accent)]/40 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                  className="relative flex items-center gap-3.5 sm:gap-5 px-4 sm:px-6 py-4 sm:py-5 group rounded-2xl sm:rounded-[1.5rem] bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] hover:border-[var(--ui-accent)]/40 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5"
                 >
                   <div className={`absolute inset-0 bg-gradient-to-r ${ch.color} transition-colors duration-500`} />
                   
-                  <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-inner">
+                  <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-inner">
                     <ch.icon className="h-6 w-6 text-[var(--ui-text-secondary)] group-hover:text-[var(--ui-text)] transition-colors" />
                   </div>
                   
@@ -143,9 +143,9 @@ export default function DashboardPage() {
               <motion.div key={action.name} variants={itemVariants}>
                 <Link
                   href={action.href}
-                  className="flex flex-col items-center justify-center py-7 px-4 group rounded-[1.5rem] bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] hover:border-[var(--ui-accent)]/40 hover:bg-[var(--ui-bg-elevated)] transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"
+                  className="flex flex-col items-center justify-center py-5 sm:py-7 px-3 sm:px-4 group rounded-2xl sm:rounded-[1.5rem] bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] hover:border-[var(--ui-accent)]/40 hover:bg-[var(--ui-bg-elevated)] transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"
                 >
-                  <div className="h-14 w-14 rounded-2xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                  <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300 shadow-inner">
                     <action.icon className="h-6 w-6 text-[var(--ui-text-muted)] group-hover:text-[var(--ui-text)] transition-colors" />
                   </div>
                   <span className="text-sm font-bold text-[var(--ui-text-secondary)] group-hover:text-[var(--ui-text)] transition-colors">

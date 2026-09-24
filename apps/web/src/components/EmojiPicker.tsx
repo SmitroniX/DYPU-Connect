@@ -45,7 +45,7 @@ export default function EmojiPicker({ onSelect, disabled, align = 'left', trigge
             </div>
 
             {open && (
-                <div className={`absolute z-50 bottom-12 ${panelAlignment} w-[320px] rounded-xl border border-[var(--ui-border)] bg-[var(--ui-bg-surface)] shadow-2xl overflow-hidden`}>
+                <div className={`absolute z-50 bottom-12 ${panelAlignment} w-[calc(100vw-2rem)] sm:w-[320px] max-w-[320px] rounded-xl border border-[var(--ui-border)] bg-[var(--ui-bg-surface)] shadow-2xl overflow-hidden`}>
                     {/* Header */}
                     <div className="flex items-center justify-between px-3 pt-3 pb-2">
                         <h3 className="text-sm font-semibold text-[var(--ui-text)]">Emoji</h3>
