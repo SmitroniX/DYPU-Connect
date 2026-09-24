@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, Mail, ArrowRight, Loader2, RefreshCcw } from 'lucide-react';
+import { ShieldCheck, Mail, ArrowRight, RefreshCcw } from 'lucide-react';
 import { ButtonSpinner } from '@/components/LoadingSpinner';
+import LegalModal from '@/components/LegalModal';
 import toast from 'react-hot-toast';
 import { validateEmail, RESEND_COOLDOWN_SECONDS, getRemainingCooldown } from '@/lib/validation/authValidation';
 
@@ -13,6 +14,8 @@ export default function LoginPage() {
     const [loading, setLoading] = useState<string | null>(null);
     const [linkSent, setLinkSent] = useState(false);
     const [cooldown, setCooldown] = useState(0);
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [legalModal, setLegalModal] = useState<'terms' | 'privacy' | null>(null);
     const { signInWithGoogle, sendLoginLink, user, loading: authLoading } = useAuth();
     const router = useRouter();
 
@@ -23,7 +26,7 @@ export default function LoginPage() {
         }
     }, [authLoading, user, router]);
 
-    // Initialize cooldown on client mount from persistent storage
+    // Initialize cooldown and terms consent on client mount from persistent storage
     useEffect(() => {
         const remaining = getRemainingCooldown();
         if (remaining > 0) {
@@ -31,6 +34,10 @@ export default function LoginPage() {
             setLinkSent(true);
             const savedEmail = window.localStorage.getItem('emailForSignIn');
             if (savedEmail) setEmail(savedEmail);
+        }
+        const termsAccepted = window.localStorage.getItem('dypu_terms_accepted_at');
+        if (termsAccepted) {
+            setAgreedToTerms(true);
         }
     }, []);
 
@@ -44,9 +51,14 @@ export default function LoginPage() {
     }, [cooldown]);
 
     const handleGoogleSignIn = async () => {
+        if (!agreedToTerms) {
+            toast.error('Please accept the Terms & Conditions and Privacy Policy to continue.');
+            return;
+        }
         setLoading('google');
         try {
             await signInWithGoogle();
+            window.localStorage.setItem('dypu_terms_accepted_at', Date.now().toString());
             toast.success('Signed in successfully!');
             router.replace('/');
         } catch (error: unknown) {
@@ -59,6 +71,11 @@ export default function LoginPage() {
     const handleEmailLinkSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
         
+        if (!agreedToTerms) {
+            toast.error('Please accept the Terms & Conditions and Privacy Policy to continue.');
+            return;
+        }
+
         const validation = validateEmail(email);
         if (!validation.valid || !validation.email) {
             return toast.error(validation.error || 'Please enter a valid email address.');
@@ -68,6 +85,7 @@ export default function LoginPage() {
         try {
             await sendLoginLink(validation.email);
             setEmail(validation.email); // Set normalized email
+            window.localStorage.setItem('dypu_terms_accepted_at', Date.now().toString());
             setLinkSent(true);
             setCooldown(RESEND_COOLDOWN_SECONDS);
         } catch (error: unknown) {
@@ -115,7 +133,7 @@ export default function LoginPage() {
                 {!linkSent ? (
                     /* Step 1: Email Input Form */
                     <>
-                        <form onSubmit={handleEmailLinkSignIn} className="space-y-4 mb-8">
+                        <form onSubmit={handleEmailLinkSignIn} className="space-y-4 mb-6">
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <Mail className="h-5 w-5 text-[var(--ui-text-muted)] group-focus-within:text-[var(--ui-accent)] transition-colors" />
@@ -130,6 +148,48 @@ export default function LoginPage() {
                                     disabled={!!loading}
                                 />
                             </div>
+
+                            {/* Terms & Privacy Acceptance Checkbox */}
+                            <div className={`p-3 rounded-xl border transition-all select-none ${
+                                !agreedToTerms 
+                                    ? 'bg-[var(--ui-bg-surface)] border-[var(--ui-border)]' 
+                                    : 'bg-[var(--ui-accent-dim)] border-[var(--ui-accent)]/20'
+                            }`}>
+                                <div className="flex items-start gap-2.5 text-xs text-[var(--ui-text-muted)]">
+                                    <input
+                                        id="terms-checkbox"
+                                        type="checkbox"
+                                        checked={agreedToTerms}
+                                        onChange={(e) => {
+                                            setAgreedToTerms(e.target.checked);
+                                            if (e.target.checked) {
+                                                window.localStorage.setItem('dypu_terms_accepted_at', Date.now().toString());
+                                            }
+                                        }}
+                                        className="mt-0.5 h-4 w-4 rounded border-[var(--ui-border)] text-[var(--ui-accent)] focus:ring-[var(--ui-accent)]/20 cursor-pointer accent-[var(--ui-accent)] shrink-0"
+                                    />
+                                    <label htmlFor="terms-checkbox" className="leading-relaxed cursor-pointer text-[var(--ui-text-secondary)]">
+                                        I agree to the{' '}
+                                        <button
+                                            type="button"
+                                            onClick={() => setLegalModal('terms')}
+                                            className="font-semibold text-[var(--ui-accent)] hover:underline inline cursor-pointer"
+                                        >
+                                            Terms &amp; Conditions
+                                        </button>{' '}
+                                        and{' '}
+                                        <button
+                                            type="button"
+                                            onClick={() => setLegalModal('privacy')}
+                                            className="font-semibold text-[var(--ui-accent)] hover:underline inline cursor-pointer"
+                                        >
+                                            Privacy Policy
+                                        </button>
+                                        .
+                                    </label>
+                                </div>
+                            </div>
+
                             <button
                                 type="submit"
                                 disabled={!!loading || !email}
@@ -147,7 +207,7 @@ export default function LoginPage() {
                         </form>
 
                         {/* Divider */}
-                        <div className="relative mb-8">
+                        <div className="relative mb-6">
                             <div className="absolute inset-0 flex items-center">
                                 <div className="w-full border-t border-[var(--ui-border)]"></div>
                             </div>
@@ -157,14 +217,14 @@ export default function LoginPage() {
                         </div>
 
                         {/* Google Button */}
-                        <div className="mb-8">
+                        <div className="mb-6">
                             <button
                                 onClick={handleGoogleSignIn}
                                 disabled={!!loading}
                                 className="w-full flex items-center justify-center gap-2.5 py-3.5 px-4 text-sm font-bold rounded-xl bg-white text-zinc-900 hover:bg-zinc-100 active:scale-[0.96] transition-all shadow-md disabled:opacity-50"
                             >
                                 {loading === 'google' ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <ButtonSpinner tone="muted" size="sm" />
                                 ) : (
                                     <>
                                         <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -195,7 +255,7 @@ export default function LoginPage() {
                                 className="w-full flex items-center justify-center gap-2 py-3 px-4 text-sm font-bold rounded-xl bg-[var(--ui-bg-elevated)] text-[var(--ui-text)] border border-[var(--ui-border)] hover:bg-[var(--ui-bg-hover)] active:scale-[0.98] transition-all disabled:opacity-50"
                             >
                                 {loading === 'resend' ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <ButtonSpinner tone="muted" size="sm" />
                                 ) : (
                                     <>
                                         <RefreshCcw className="w-4 h-4" />
@@ -223,10 +283,40 @@ export default function LoginPage() {
                     </div>
                 </div>
 
-                <p className="mt-8 text-center text-[11px] text-[var(--ui-text-muted)] font-medium">
+                {/* Footer Legal Links */}
+                <div className="mt-6 flex items-center justify-center gap-3 text-xs text-[var(--ui-text-muted)]">
+                    <button
+                        type="button"
+                        onClick={() => setLegalModal('terms')}
+                        className="hover:text-[var(--ui-text)] transition-colors hover:underline"
+                    >
+                        Terms of Service
+                    </button>
+                    <span>&bull;</span>
+                    <button
+                        type="button"
+                        onClick={() => setLegalModal('privacy')}
+                        className="hover:text-[var(--ui-text)] transition-colors hover:underline"
+                    >
+                        Privacy Policy
+                    </button>
+                </div>
+
+                <p className="mt-4 text-center text-[11px] text-[var(--ui-text-muted)] font-medium">
                     Powered by Firebase Authentication &bull; MIT Licensed
                 </p>
             </div>
+
+            {/* Legal Modal View */}
+            <LegalModal
+                type={legalModal}
+                onClose={() => setLegalModal(null)}
+                onAccept={() => {
+                    setAgreedToTerms(true);
+                    window.localStorage.setItem('dypu_terms_accepted_at', Date.now().toString());
+                    toast.success('Accepted Terms & Privacy Policy');
+                }}
+            />
         </div>
     );
 }

@@ -101,6 +101,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             profileUpdates.highlights = profile.highlights;
                         }
 
+                        // Sync terms acceptance timestamp from localStorage to user profile in Firestore
+                        const localTerms = typeof window !== 'undefined' ? window.localStorage.getItem('dypu_terms_accepted_at') : null;
+                        if (localTerms && !profile.termsAcceptedAt) {
+                            const ts = parseInt(localTerms, 10) || Date.now();
+                            profile.termsAcceptedAt = ts;
+                            profileUpdates.termsAcceptedAt = ts;
+                        }
+
                         if (Object.keys(profileUpdates).length > 0) {
                             await updateDoc(docRef, profileUpdates);
                         }

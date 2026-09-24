@@ -129,6 +129,9 @@ export default function SetupProfilePage() {
                     announcements: true,
                 },
                 mutedEntities: [],
+                termsAcceptedAt: typeof window !== 'undefined' && window.localStorage.getItem('dypu_terms_accepted_at')
+                    ? parseInt(window.localStorage.getItem('dypu_terms_accepted_at')!, 10) || Date.now()
+                    : Date.now(),
                 createdAt: Date.now(),
                 };
 
