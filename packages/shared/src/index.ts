@@ -110,6 +110,7 @@ export const userProfileSchema = z.object({
     encryptionSalt: z.string().optional(),
     encryptionEnabled: z.boolean().default(false),
     fcmToken: z.string().optional(),
+    accentColor: z.string().optional(),
     notificationPrefs: notificationPreferencesSchema,
     mutedEntities: z.array(z.string()).default([]),
     role: userRoleSchema.default('user'),

@@ -42,10 +42,10 @@ type TabKey = 'personal' | 'social' | 'academic' | 'privacy' | 'backup';
 function InputField({ label, id, ...props }: { label: string; id: string } & React.InputHTMLAttributes<HTMLInputElement>) {
     return (
         <div className="group">
-            <label htmlFor={id} className="block text-[11px] font-bold uppercase tracking-wider text-[var(--ui-text-muted)] mb-2 transition-colors group-focus-within:text-blue-400">{label}</label>
+            <label htmlFor={id} className="block text-[11px] font-bold uppercase tracking-wider text-[var(--ui-text-muted)] mb-2 transition-colors group-focus-within:text-[var(--ui-accent)]">{label}</label>
             <input
                 id={id}
-                className="w-full rounded-xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] px-4 py-3 text-sm text-[var(--ui-text)] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-[var(--ui-text-muted)]"
+                className="w-full rounded-xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] px-4 py-3 text-sm text-[var(--ui-text)] focus:outline-none focus:border-[var(--ui-accent)]/50 focus:ring-1 focus:ring-[var(--ui-accent)]/50 transition-all placeholder:text-[var(--ui-text-muted)]"
                 {...props}
             />
         </div>
@@ -55,11 +55,11 @@ function InputField({ label, id, ...props }: { label: string; id: string } & Rea
 function SelectField({ label, id, children, ...props }: { label: string; id: string; children: React.ReactNode } & React.SelectHTMLAttributes<HTMLSelectElement>) {
     return (
         <div className="group">
-            <label htmlFor={id} className="block text-[11px] font-bold uppercase tracking-wider text-[var(--ui-text-muted)] mb-2 transition-colors group-focus-within:text-blue-400">{label}</label>
+            <label htmlFor={id} className="block text-[11px] font-bold uppercase tracking-wider text-[var(--ui-text-muted)] mb-2 transition-colors group-focus-within:text-[var(--ui-accent)]">{label}</label>
             <div className="relative">
                 <select
                     id={id}
-                    className="w-full rounded-xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] px-4 py-3 text-sm text-[var(--ui-text)] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all appearance-none"
+                    className="w-full rounded-xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] px-4 py-3 text-sm text-[var(--ui-text)] focus:outline-none focus:border-[var(--ui-accent)]/50 focus:ring-1 focus:ring-[var(--ui-accent)]/50 transition-all appearance-none"
                     {...props}
                 >
                     {children}
@@ -304,12 +304,13 @@ export default function AccountsCenterPage() {
                                             <img 
                                                 src={resolveProfileImage(formData.profileImage, userProfile.email, formData.name)} 
                                                 alt="Profile" 
-                                                className="w-24 h-24 rounded-full object-cover ring-2 ring-zinc-800"
+                                                className="w-24 h-24 rounded-full object-cover ring-2 ring-[var(--ui-border)] shadow-md"
                                             />
                                             <button 
                                                 onClick={() => profilePhotoFileInputRef.current?.click()}
                                                 disabled={!!uploadingTarget}
-                                                className="absolute bottom-0 right-0 p-1.5 bg-blue-600 hover:bg-blue-500 text-[var(--ui-text)] rounded-full ring-4 ring-zinc-950 transition-colors"
+                                                aria-label="Upload profile photo"
+                                                className="absolute bottom-0 right-0 p-1.5 bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-[var(--ui-accent-text)] rounded-full ring-4 ring-[var(--ui-bg-surface)] shadow-md transition-colors"
                                             >
                                                 <Camera className="h-4 w-4" />
                                             </button>
@@ -493,7 +494,7 @@ export default function AccountsCenterPage() {
                         <button 
                             onClick={handleSave}
                             disabled={saving}
-                            className="px-5 py-2 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-500 text-[var(--ui-text)] shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 disable:opacity-50"
+                            className="px-5 py-2 rounded-xl text-sm font-bold bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-[var(--ui-accent-text)] shadow-lg shadow-[var(--ui-accent)]/25 transition-all flex items-center gap-2 disabled:opacity-50"
                         >
                             <Save className="h-4 w-4" />
                             {saving ? 'Saving...' : 'Save'}

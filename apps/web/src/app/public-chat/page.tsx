@@ -279,6 +279,11 @@ export default function PublicChatPage() {
 
                 <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20">
                     <div className="max-w-3xl mx-auto transition-all duration-300">
+                        <div className="px-4 pb-1 flex justify-center">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--ui-accent-dim)] text-[var(--ui-accent)] border border-[var(--ui-accent)]/20 shadow-xs">
+                                📢 Campus Plaza • Public broadcast to all students (48h auto-expire)
+                            </span>
+                        </div>
                         <ChatInput
                             onSend={handleSend}
                             placeholder="Message everyone in Campus Plaza..."

@@ -41,16 +41,16 @@ export default function SendButton({
                 type="button"
                 onClick={onSend}
                 disabled={!canSend || overLimit}
-                className={`h-11 w-11 flex items-center justify-center rounded-2xl transition-all duration-500 shadow-2xl relative group/btn ${
+                className={`h-11 w-11 flex items-center justify-center rounded-2xl transition-all duration-300 shadow-xl relative group/btn ${
                     canSend && !overLimit
-                        ? 'bg-[var(--ui-text)] text-[var(--ui-bg-base)] shadow-[var(--ui-text)]/10 cursor-pointer'
-                        : 'bg-[var(--ui-bg-active)] text-[var(--ui-text)]/20 cursor-not-allowed border border-[var(--ui-border)]'
+                        ? 'bg-[var(--ui-accent)] text-[var(--ui-accent-text)] shadow-lg shadow-[var(--ui-accent)]/30 hover:brightness-110 active:scale-95 cursor-pointer'
+                        : 'bg-[var(--ui-bg-active)] text-[var(--ui-text-muted)]/40 cursor-not-allowed border border-[var(--ui-border)]'
                 }`}
                 title="Send message"
             >
                 {/* Send Glow Effect */}
                 {canSend && !overLimit && (
-                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500 rounded-2xl" />
+                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 rounded-2xl" />
                 )}
                 
                 {/* Circular Progress */}

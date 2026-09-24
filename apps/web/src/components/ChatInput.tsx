@@ -254,7 +254,7 @@ export default function ChatInput({
                             exit={{ opacity: 0, y: 10 }}
                             className="absolute -top-10 left-1/2 -translate-x-1/2 z-30 hidden sm:block"
                         >
-                            <div className="bg-black/40 backdrop-blur-xl border border-[var(--ui-border)] rounded-xl px-1 py-1 shadow-2xl">
+                            <div className="bg-[var(--ui-bg-elevated)] backdrop-blur-xl border border-[var(--ui-border)] rounded-xl px-1.5 py-1 shadow-xl">
                                 <MarkdownToolbar onWrapSelection={wrapSelection} />
                             </div>
                         </motion.div>
@@ -338,7 +338,7 @@ export default function ChatInput({
 
             {/* Keyboard hint (hidden on mobile) */}
             <div className="hidden sm:flex items-center justify-center mt-3">
-                <p className="text-[10px] text-white/20 font-medium tracking-wide flex items-center gap-2">
+                <p className="text-[10px] text-[var(--ui-text-muted)] font-medium tracking-wide flex items-center gap-2">
                     <span className="px-1.5 py-0.5 rounded-md bg-[var(--ui-bg-hover)] border border-[var(--ui-border)]">Enter</span>
                     <span>to send</span>
                     <span className="w-1 h-1 rounded-full bg-[var(--ui-bg-active)]" />

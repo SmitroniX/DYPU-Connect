@@ -60,12 +60,12 @@ export default function ProfilePage() {
                 
                 {/* Header Card */}
                 <div className="glass-panel overflow-hidden rounded-3xl border border-[var(--ui-border)] bg-[var(--ui-bg-surface)] shadow-xl">
-                    <div className="h-32 bg-gradient-to-r from-[var(--ui-accent)]/20 to-[var(--ui-accent-dim)]" />
+                    <div className="h-32 bg-gradient-to-r from-[var(--ui-accent)]/30 via-[var(--ui-accent)]/15 to-[var(--ui-accent-dim)] relative border-b border-[var(--ui-border)]" />
                     
                     <div className="px-6 pb-6 sm:px-10 relative">
                         {/* Avatar */}
                         <div className="flex justify-between items-end -mt-16 mb-4">
-                            <div className="relative h-32 w-32 rounded-full p-1.5 bg-[var(--ui-bg-surface)]">
+                            <div className="relative h-32 w-32 rounded-full p-1.5 bg-[var(--ui-bg-surface)] shadow-lg">
                                 <img
                                     src={resolvedPreviewImage}
                                     alt={userProfile.name}
@@ -83,7 +83,7 @@ export default function ProfilePage() {
                                 onClick={() => router.push('/profile/edit')}
                                 className="flex items-center gap-2 px-4 py-2 bg-[var(--ui-bg-elevated)] hover:bg-[var(--ui-bg-hover)] border border-[var(--ui-border)] rounded-xl text-sm font-semibold transition-colors shadow-sm text-[var(--ui-text)]"
                             >
-                                <Edit3 className="h-4 w-4" /> Edit Profile
+                                <Edit3 className="h-4 w-4 text-[var(--ui-accent)]" /> Edit Profile
                             </button>
                         </div>
 
@@ -93,12 +93,12 @@ export default function ProfilePage() {
                                 <h1 className="text-2xl sm:text-3xl font-bold text-[var(--ui-text)] tracking-tight">
                                     {userProfile.name}
                                 </h1>
-                                <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${userProfile.accountVisibility === 'public' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'}`}>
+                                <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${userProfile.accountVisibility === 'public' ? 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20' : 'bg-zinc-500/10 text-zinc-500 dark:text-zinc-400 border border-zinc-500/20'}`}>
                                     {userProfile.accountVisibility === 'public' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                                     {userProfile.accountVisibility}
                                 </span>
                                 {userProfile.role === 'admin' && (
-                                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20 text-[10px] font-bold uppercase tracking-wider">
+                                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-fuchsia-500/10 text-fuchsia-500 dark:text-fuchsia-400 border border-fuchsia-500/20 text-[10px] font-bold uppercase tracking-wider">
                                         <Sparkles className="h-3 w-3" /> Admin
                                     </span>
                                 )}
@@ -111,18 +111,42 @@ export default function ProfilePage() {
                             )}
                         </div>
 
+                        {/* Profile Completion Meter */}
+                        {profileCompletion < 100 && (
+                            <div className="mt-5 p-3.5 rounded-2xl bg-[var(--ui-bg-input)] border border-[var(--ui-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+                                        <span className="text-[var(--ui-text)]">Profile Strength</span>
+                                        <span className="text-[var(--ui-accent)] font-bold">{profileCompletion}%</span>
+                                    </div>
+                                    <div className="w-full bg-[var(--ui-border)] h-2 rounded-full overflow-hidden">
+                                        <div
+                                            className="bg-[var(--ui-accent)] h-full rounded-full transition-all duration-500"
+                                            style={{ width: `${profileCompletion}%` }}
+                                        />
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => router.push('/profile/edit')}
+                                    className="text-xs font-semibold text-[var(--ui-accent)] hover:underline shrink-0"
+                                >
+                                    Complete profile →
+                                </button>
+                            </div>
+                        )}
+
                         {/* Social Links */}
                         {(userProfile.socialLinks?.instagram || userProfile.socialLinks?.linkedin || userProfile.socialLinks?.github) && (
                             <div className="flex flex-wrap gap-3 mt-6">
                                 {userProfile.socialLinks.instagram && (
                                     <a href={`https://instagram.com/${userProfile.socialLinks.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer"
-                                        className="flex items-center gap-2 rounded-lg bg-pink-500/10 px-3 py-1.5 text-xs font-semibold text-pink-400 hover:bg-pink-500 hover:text-white transition-colors">
+                                        className="flex items-center gap-2 rounded-lg bg-pink-500/10 px-3 py-1.5 text-xs font-semibold text-pink-500 dark:text-pink-400 hover:bg-pink-500 hover:text-white transition-colors">
                                         <Instagram className="h-4 w-4" /> Instagram
                                     </a>
                                 )}
                                 {userProfile.socialLinks.linkedin && (
                                     <a href={userProfile.socialLinks.linkedin.startsWith('http') ? userProfile.socialLinks.linkedin : `https://linkedin.com/in/${userProfile.socialLinks.linkedin}`} target="_blank" rel="noopener noreferrer"
-                                        className="flex items-center gap-2 rounded-lg bg-blue-500/10 px-3 py-1.5 text-xs font-semibold text-blue-400 hover:bg-blue-600 hover:text-white transition-colors">
+                                        className="flex items-center gap-2 rounded-lg bg-blue-500/10 px-3 py-1.5 text-xs font-semibold text-blue-500 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition-colors">
                                         <Linkedin className="h-4 w-4" /> LinkedIn
                                     </a>
                                 )}

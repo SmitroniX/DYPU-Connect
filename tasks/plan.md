@@ -1,161 +1,72 @@
-# Implementation Plan: Unified Loading Animations, Skeletons & UI Motion Polish
+# Implementation Plan: Comprehensive Rework — Themes, Accent Colors, Settings, Public Texting Bar & Profile Section
 
 ## Overview
-
-This plan comprehensively overhauls the loading states, skeleton screens, button indicators, and UI motion across the DYPU-Connect Next.js web application (`apps/web`). It eliminates jarring layout shifts, replaces 20+ ad-hoc `animate-spin` divs with standardized components, provides domain-tailored skeleton presets, and polishes page/micro-interaction motions.
-
----
-
-## Architecture & Design Decisions
-
-1. **Primitive & Component Unification**:
-   - **`Skeleton.tsx`**: Upgrade from basic primitives to include rich domain skeleton presets (`ConfessionFeedSkeleton`, `ChatMessageSkeleton`, `GroupCardSkeleton`, `ProfileSkeleton`, `TableSkeleton`, `SettingsSkeleton`). All skeletons use shimmering gradient sweeps with CSS variable-driven glassmorphism (`--ui-bg-elevated`, `--ui-border`).
-   - **`LoadingSpinner.tsx`**: Support `variant="full" | "inline" | "minimal" | "button"` and customizable `size` (`xs`, `sm`, `md`, `lg`) and `tone` (`accent`, `white`, `danger`).
-   - **`ButtonSpinner` / Button States**: Add reusable spinner for buttons that maintains button dimensions, prevents label jumping, and automatically disables clicks during inflight actions.
-
-2. **Elimination of Ad-Hoc Spinners**:
-   - Standardize all 20+ inline spinners found across:
-     - `app/admin/**` (users, analytics, content, reports, announcements, confessions, anonymous-chat, settings, moderation-rules)
-     - `app/settings/page.tsx` (login activity, session revocation, avatar upload, password change)
-     - `app/profile/edit/page.tsx`
-     - `components/ProfilePopup.tsx`, `components/GlobalSearch.tsx`, `app/login/page.tsx`, `app/verify-email/page.tsx`.
-
-3. **Skeleton-Driven Feed & View Transitions**:
-   - Replace full-page blank flash and centered spinners on initial query fetches with exact layout-matching skeletons:
-     - `app/confessions/page.tsx`: Replace custom inline `animate-pulse` divs with `<ConfessionFeedSkeleton />`.
-     - `app/groups/page.tsx`: Replace `LoadingSpinner variant="full"` with `<GroupCardSkeleton />` grid.
-     - `app/messages/[chatId]/page.tsx`: Replace center spinner with `<ChatMessageSkeleton count={5} />`.
-     - `app/public-chat/page.tsx` & `app/anonymous-chat/page.tsx`: Show smooth skeleton feed while loading initial Firestore messages.
-     - `app/profile/page.tsx`: Replace center spinner with `<ProfileSkeleton />`.
-
-4. **UI Motion & Micro-Interactions**:
-   - Refine `.btn-primary` and `.btn-secondary` in `globals.css` with smooth micro-transforms (`active:scale-[0.98]`, subtle shimmer highlights).
-   - Ensure all keyframe animations (`fade-in-up`, `typing-dot`, `pulse-glow`) have reduced-motion alternatives for accessibility (`@media (prefers-reduced-motion: reduce)`).
+This initiative addresses key UX pain points across the DYPU-Connect platform:
+1. **Light & Dark Mode Fix**: Fix broken theme switching caused by Tailwind v4 media-query default by introducing class-based `@custom-variant dark` and eliminating hardcoded dark-only utility classes.
+2. **Custom UI Accent Color Engine**: Empower users to choose custom accent colors (Indigo, Violet, Emerald, Cyan, Rose, Amber, or custom hex) in Settings that dynamically update CSS tokens and persist across sessions.
+3. **Settings Page Rework**: Modernize `settings/page.tsx` into categorized, accessible sections (Appearance & Theme, Account, Notifications, Privacy & Blocked Users, Security & Devices, and Cookies/Data).
+4. **Public & Mass Texting Bar Rework**: Polish `ChatInput.tsx` and public campus chat (`public-chat` and `anonymous-chat`) for crisp contrast in light/dark modes, dynamic accent styling, audio/attachment previews, and seamless mobile interactions.
+5. **Profile Section Rework**: Upgrade `profile/page.tsx`, `profile/edit/page.tsx`, and `ProfilePopup.tsx` with dynamic accent banners, interactive completion meter, academic credentials, and responsive layouts.
 
 ---
 
-## Tasks Breakdown
-
-### Phase 1: Foundation — Core Loaders & Skeletons
-
-#### Task 1: Enhance `LoadingSpinner` with Size, Tone, and Button Variant
-- **Description**: Extend `LoadingSpinner` to support flexible sizes (`xs`, `sm`, `md`, `lg`), color tones (`accent`, `white`, `danger`, `muted`), and a dedicated lightweight `button` or `ButtonSpinner` helper export.
-- **Acceptance Criteria**:
-  - `LoadingSpinner` accepts `size`, `tone`, and `className` props with safe defaults.
-  - Export a convenient `<ButtonSpinner />` sub-component or helper for clean insertion into `<button>` elements.
-  - Works seamlessly with dark theme glassmorphism.
-- **Verification**: `npx tsc --noEmit` succeeds; vitest unit test verifies rendering and class application.
-- **Files**: `apps/web/src/components/LoadingSpinner.tsx`, `apps/web/src/components/LoadingSpinner.test.ts`
-- **Scope**: S (2 files)
-
-#### Task 2: Extend `Skeleton` with Domain Layout Presets
-- **Description**: Add domain skeleton presets to `Skeleton.tsx` for cards, feed items, message streams, profile views, and data tables.
-- **Acceptance Criteria**:
-  - Export `ConfessionCardSkeleton`, `ChatMessageSkeleton`, `GroupCardSkeleton`, `ProfileSkeleton`, `TableSkeleton`.
-  - Maintain shimmer motion with smooth CSS animation and fallback for reduced-motion.
-- **Verification**: `npx tsc --noEmit` succeeds; test file asserts component exports and structure.
-- **Files**: `apps/web/src/components/Skeleton.tsx`, `apps/web/src/components/Skeleton.test.ts`
-- **Scope**: S (2 files)
+## Architecture Decisions
+- **Tailwind v4 Dark Mode Variant**: Add `@custom-variant dark (&:where(.dark, .dark *));` in `apps/web/src/app/globals.css` so `dark:...` classes respond reliably to `next-themes` toggling the `.dark` class on `html`.
+- **Dynamic Accent Color Token System**:
+  - Store selected color in `localStorage` (`dypu_accent_color`) and sync to Firestore user profile when authenticated.
+  - Implement a theme helper `apps/web/src/lib/theme.ts` with color presets, contrast calculation, and CSS variable injection (`--ui-accent`, `--ui-accent-hover`, `--ui-accent-dim`, `--ui-accent-text`).
+  - Wire into `ThemeProvider.tsx` and `SystemProvider.tsx` so the theme loads instantly with zero flash.
+- **Unified Contrast Principles**:
+  - Replace hardcoded `text-white/20`, `bg-black/40`, and similar values with semantic tokens (`text-[var(--ui-text-muted)]`, `bg-[var(--ui-bg-surface)]`, `bg-[var(--ui-bg-elevated)]`).
+  - Ensure all accent-colored buttons use `text-[var(--ui-accent-text)]` so text remains readable regardless of light or dark background.
 
 ---
 
-### Checkpoint: Foundation
-- [ ] Component unit tests pass
-- [ ] TypeScript check clean (`npx tsc --noEmit`)
+## Subagents Required: 4 Specialized Agents
+
+| Subagent | Role | Scope / Files Touched |
+|---|---|---|
+| **Agent 1** | **Theme & Accent Color Engine Specialist** | `globals.css`, `lib/theme.ts`, `ThemeProvider.tsx`, `ThemeToggle.tsx` |
+| **Agent 2** | **Settings & Appearance Rehaul Specialist** | `settings/page.tsx`, `components/AccentColorPicker.tsx` |
+| **Agent 3** | **Public & Mass Texting Bar Specialist** | `ChatInput.tsx`, `ChatInput/*`, `public-chat/page.tsx`, `anonymous-chat/page.tsx` |
+| **Agent 4** | **Profile Section & Edit Specialist** | `profile/page.tsx`, `profile/edit/page.tsx`, `ProfilePopup.tsx` |
 
 ---
 
-### Phase 2: User-Facing Pages — Skeletons & Layout Stability
+## Task Breakdown
 
-#### Task 3: Upgrade Confessions & Groups Page Loading
-- **Description**: Replace the ad-hoc `animate-pulse` divs in `confessions/page.tsx` with `ConfessionCardSkeleton` and replace the full-page spinner in `groups/page.tsx` with `GroupCardSkeleton` grid.
-- **Acceptance Criteria**:
-  - No layout shift or full-page blanking while fetching confessions or groups.
-  - Skeletons match exact card dimensions and padding.
-- **Verification**: Page loads without React warning; `npm run build` succeeds.
-- **Files**: `apps/web/src/app/confessions/page.tsx`, `apps/web/src/app/groups/page.tsx`
-- **Scope**: S (2 files)
+### Phase 1: Foundation — Theme Engine & Accent Color System (Agent 1)
+- [ ] Task 1.1: Fix Tailwind v4 `@custom-variant dark` and clean light/dark mode CSS tokens in `globals.css`.
+- [ ] Task 1.2: Implement `apps/web/src/lib/theme.ts` with accent color presets, dynamic CSS variable application, and storage sync.
+- [ ] Task 1.3: Update `ThemeProvider.tsx` and `ThemeToggle.tsx` to handle accent color mounting and smooth transitions.
+- [ ] Checkpoint 1: Theme Engine (TypeScript clean, zero theme flash, dark/light toggle switches classes properly).
 
-#### Task 4: Upgrade Chat & Message Streams Loading
-- **Description**: Introduce `ChatMessageSkeleton` in `messages/[chatId]/page.tsx`, `public-chat/page.tsx`, and `anonymous-chat/page.tsx` so users see realistic chat message placeholders on initial connect.
-- **Acceptance Criteria**:
-  - `messages/[chatId]/page.tsx` displays message skeleton bubbles instead of a single spinning circle while fetching message history.
-  - `public-chat/page.tsx` and `anonymous-chat/page.tsx` display chat skeletons during connecting/initial load.
-- **Verification**: `npx tsc --noEmit` and `npm run build` clean.
-- **Files**: `apps/web/src/app/messages/[chatId]/page.tsx`, `apps/web/src/app/public-chat/page.tsx`, `apps/web/src/app/anonymous-chat/page.tsx`
-- **Scope**: M (3 files)
+### Phase 2: Settings & Appearance Rehaul (Agent 2)
+- [ ] Task 2.1: Build `AccentColorPicker.tsx` component with preset swatches, active checkmarks, and custom hex input.
+- [ ] Task 2.2: Rework `apps/web/src/app/settings/page.tsx` with a dedicated "Appearance & Theme" tab/section.
+- [ ] Task 2.3: Reorganize Account, Privacy (Blocked users), Notifications, and Security settings with clean UI cards.
+- [ ] Checkpoint 2: Settings Rehaul (Users can toggle Light/Dark/System and pick custom UI accent colors that apply live).
 
-#### Task 5: Upgrade Profile & Settings Initial States
-- **Description**: Replace full-screen loading spinners in `app/profile/page.tsx` and `app/settings/page.tsx` with layout-matching skeletons (`ProfileSkeleton`, `SettingsSkeleton`).
-- **Acceptance Criteria**:
-  - Visiting `/profile` or `/settings` immediately renders structural skeletons instead of a center spinner, eliminating layout flash upon profile hydration.
-- **Verification**: `npx tsc --noEmit` clean.
-- **Files**: `apps/web/src/app/profile/page.tsx`, `apps/web/src/app/settings/page.tsx`
-- **Scope**: S (2 files)
+### Phase 3: Public & Mass Texting Bar Rework (Agent 3)
+- [ ] Task 3.1: Fix light/dark mode styling in `ChatInput.tsx`, `MarkdownToolbar.tsx`, `SendButton.tsx`, and `AttachmentPreview.tsx`.
+- [ ] Task 3.2: Enhance public chat (`public-chat/page.tsx`) and anonymous chat (`anonymous-chat/page.tsx`) texting bar with dynamic accent glows, 48-hour indicator pill, and responsive touch controls.
+- [ ] Checkpoint 3: Texting Bar (Full functionality in light and dark modes, zero clipping, smooth send and media attachments).
 
----
+### Phase 4: Profile Section Rework (Agent 4)
+- [ ] Task 4.1: Modernize `apps/web/src/app/profile/page.tsx` with dynamic accent header, profile completion gauge, academic credentials, and social links.
+- [ ] Task 4.2: Upgrade `apps/web/src/app/profile/edit/page.tsx` with responsive sticky actions, instant avatar preview, and department selectors.
+- [ ] Task 4.3: Polish `components/ProfilePopup.tsx` for high-contrast light and dark mode display.
+- [ ] Checkpoint 4: Profile Section (Flawless responsiveness, high-contrast light/dark mode, smooth editing flow).
 
-### Checkpoint: User-Facing Pages
-- [ ] All user pages compile and build cleanly
-- [ ] No layout shift on page transitions
+### Phase 5: Verification & Synthesis
+- [ ] Task 5.1: Run `npx tsc --noEmit` and `npm test`.
+- [ ] Task 5.2: Verify responsive scaling, color persistency, and commit & push changes.
 
 ---
 
-### Phase 3: Unification of Spinners & Button Loading States
-
-#### Task 6: Standardize Button & Sub-Panel Spinners in Settings & Profile Edit
-- **Description**: Replace raw `animate-spin` divs in `app/settings/page.tsx` (login logs, delete session, password reset, avatar upload) and `app/profile/edit/page.tsx` with standardized `ButtonSpinner` and `LoadingSpinner variant="inline"`.
-- **Acceptance Criteria**:
-  - Zero raw `border-t animate-spin` divs remaining in `settings/page.tsx` and `profile/edit/page.tsx`.
-  - Buttons keep their width/height when entering loading state without text jitter.
-- **Verification**: `grep -rn "animate-spin" apps/web/src/app/settings` and `profile/edit` verify standard component usage.
-- **Files**: `apps/web/src/app/settings/page.tsx`, `apps/web/src/app/profile/edit/page.tsx`
-- **Scope**: S (2 files)
-
-#### Task 7: Standardize Admin Dashboard Loaders & Tables
-- **Description**: Replace all raw `animate-spin` divs across `app/admin/**` (users, analytics, content, reports, announcements, confessions, anonymous-chat, settings, moderation-rules) with `<LoadingSpinner variant="inline" />`, `<ButtonSpinner />`, or `<TableSkeleton />`.
-- **Acceptance Criteria**:
-  - All admin tables display clean `<TableSkeleton />` or inline branded spinners during data fetching.
-  - All admin action buttons (save, delete, refresh) use unified button spinners.
-- **Verification**: `grep -rn "animate-spin" apps/web/src/app/admin` shows only standard components or Lucide icons.
-- **Files**: `apps/web/src/app/admin/users/page.tsx`, `apps/web/src/app/admin/analytics/page.tsx`, `apps/web/src/app/admin/content/page.tsx`, `apps/web/src/app/admin/reports/page.tsx`, `apps/web/src/app/admin/announcements/page.tsx`, `apps/web/src/app/admin/confessions/page.tsx`, `apps/web/src/app/admin/anonymous-chat/page.tsx`, `apps/web/src/app/admin/moderation-rules/page.tsx`, `apps/web/src/app/admin/settings/page.tsx`
-- **Scope**: L (9 files, highly repetitive and safe substitution)
-
-#### Task 8: Standardize Popups, Search & Auth Page Loaders
-- **Description**: Replace raw spinners in `components/ProfilePopup.tsx`, `components/GlobalSearch.tsx`, `app/login/page.tsx`, and `app/verify-email/page.tsx` with standard `ButtonSpinner` and `LoadingSpinner`.
-- **Acceptance Criteria**:
-  - Consistent loader aesthetics across search, profile popup, and authentication screens.
-- **Verification**: `npx tsc --noEmit` and `npm run check` clean.
-- **Files**: `apps/web/src/components/ProfilePopup.tsx`, `apps/web/src/components/GlobalSearch.tsx`, `apps/web/src/app/login/page.tsx`, `apps/web/src/app/verify-email/page.tsx`
-- **Scope**: S (4 files)
-
----
-
-### Phase 4: UI Motion, Transitions & Micro-Interactions
-
-#### Task 9: Polish CSS Transitions & Reduced-Motion Accessibility
-- **Description**: Refine button transitions, glass-panel hover states, and keyframe animations in `globals.css` with hardware-accelerated transforms and `@media (prefers-reduced-motion: reduce)` fallbacks.
-- **Acceptance Criteria**:
-  - `.btn-primary` and `.btn-secondary` feature smooth active press down (`scale(0.98)`).
-  - All animations respect user's reduced-motion preference without breaking layout.
-- **Verification**: CSS builds cleanly without errors.
-- **Files**: `apps/web/src/app/globals.css`
-- **Scope**: XS (1 file)
-
----
-
-### Checkpoint: Complete Verification
-- [ ] ESLint zero errors (`npx eslint --quiet`)
-- [ ] TypeScript zero errors (`npx tsc --noEmit`)
-- [ ] Vitest test suite passes (`npm test`)
-- [ ] Production build succeeds (`npm run build`)
-
----
-
-## Risks and Mitigations
-
+## Risks & Mitigations
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Layout shifts when button text is replaced by spinner | Low | Use `ButtonSpinner` with flex alignment and fixed or minimum dimensions to preserve button size. |
-| Virtualized list (`react-virtuoso`) skeleton mismatch | Medium | Skeleton sits outside `Virtuoso` and is conditionally displayed when `loading === true`, keeping `Virtuoso` unmounted or hidden until data is ready. |
-| CSS animation overhead on lower-end mobile devices | Low | Shimmer and pulse effects use CSS transforms and opacity; reduced motion query disables heavy loops. |
+| Flash of Unstyled Color (FOUC) | Low | Inject stored accent color before paint via script or inline style in `ThemeProvider` |
+| Contrast failure on custom colors | Medium | Pre-calculate luminance in `lib/theme.ts` to set `--ui-accent-text` to either `#FFFFFF` or `#09090B` |
+| Firestore permission on theme sync | Low | Gracefully fallback to `localStorage` if unauthenticated or network is offline |

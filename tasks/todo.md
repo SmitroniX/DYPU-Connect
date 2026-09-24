@@ -1,22 +1,28 @@
-# Task List: Loading Animations, Skeletons & UI Motion Polish
+# Task List: Theme Fixes, Accent Colors, Settings, Public Texting Bar & Profile Rework
 
-### Phase 1: Foundation — Core Loaders & Skeletons
-- [x] Task 1: Enhance `LoadingSpinner` with Size, Tone, and Button Variant (`apps/web/src/components/LoadingSpinner.tsx`)
-- [x] Task 2: Extend `Skeleton` with Domain Layout Presets (`apps/web/src/components/Skeleton.tsx`)
-- [x] Checkpoint 1: Foundation (Typecheck & Unit Tests pass)
+### Phase 1: Theme Engine & Accent Color System (Agent 1)
+- [x] Task 1.1: Fix Tailwind v4 `@custom-variant dark` & refresh light/dark tokens (`apps/web/src/app/globals.css`)
+- [x] Task 1.2: Implement Accent Color Manager & Presets (`apps/web/src/lib/theme.ts`)
+- [x] Task 1.3: Wire Accent Color provider into `ThemeProvider.tsx` & enhance `ThemeToggle.tsx`
+- [x] Checkpoint 1: Theme Engine (TypeScript compiles, dark & light mode toggles cleanly, accent color applies dynamically)
 
-### Phase 2: User-Facing Pages — Skeletons & Layout Stability
-- [x] Task 3: Upgrade Confessions & Groups Page Loading (`apps/web/src/app/confessions/page.tsx`, `apps/web/src/app/groups/page.tsx`)
-- [x] Task 4: Upgrade Chat & Message Streams Loading (`apps/web/src/app/messages/[chatId]/page.tsx`, `apps/web/src/app/public-chat/page.tsx`, `apps/web/src/app/anonymous-chat/page.tsx`)
-- [x] Task 5: Upgrade Profile & Settings Initial States (`apps/web/src/app/profile/page.tsx`, `apps/web/src/app/settings/page.tsx`)
-- [x] Checkpoint 2: User-Facing Pages (Clean build & no layout shifts)
+### Phase 2: Settings & Appearance Rehaul (Agent 2)
+- [x] Task 2.1: Create interactive `AccentColorPicker` component (`apps/web/src/components/AccentColorPicker.tsx`)
+- [x] Task 2.2: Add Appearance & Theme section with Live Color Swatches in `settings/page.tsx`
+- [x] Task 2.3: Reorganize Settings sections (Account with Edit Profile shortcut, Privacy/Blocked Users, Notifications, Security) with clean UI cards
+- [x] Checkpoint 2: Settings Rehaul (Appearance controls working, accent color changes persist)
 
-### Phase 3: Unification of Spinners & Button Loading States
-- [x] Task 6: Standardize Button & Sub-Panel Spinners in Settings & Profile Edit (`apps/web/src/app/settings/page.tsx`, `apps/web/src/app/profile/edit/page.tsx`)
-- [x] Task 7: Standardize Admin Dashboard Loaders & Tables (`apps/web/src/app/admin/**`)
-- [x] Task 8: Standardize Popups, Search & Auth Page Loaders (`apps/web/src/components/ProfilePopup.tsx`, `apps/web/src/components/GlobalSearch.tsx`, `apps/web/src/app/login/page.tsx`, `apps/web/src/app/verify-email/page.tsx`)
-- [x] Checkpoint 3: Admin & Components (All ad-hoc spinners replaced)
+### Phase 3: Public & Mass Texting Bar Rework (Agent 3)
+- [x] Task 3.1: Fix light/dark mode contrast in `ChatInput.tsx`, `MarkdownToolbar.tsx`, `AttachmentPreview.tsx`, and `SendButton.tsx`
+- [x] Task 3.2: Enhance public chat (`public-chat/page.tsx`) & anonymous chat (`anonymous-chat/page.tsx`) texting bar
+- [x] Checkpoint 3: Texting Bar (Full functionality in light and dark modes, dynamic accent color matching)
 
-### Phase 4: UI Motion, Transitions & Micro-Interactions
-- [x] Task 9: Polish CSS Transitions & Reduced-Motion Accessibility (`apps/web/src/app/globals.css`)
-- [x] Checkpoint 4: Complete Verification (ESLint 0 errors, TypeScript 0 errors, all tests pass, production build succeeds)
+### Phase 4: Profile Section Rework (Agent 4)
+- [x] Task 4.1: Modernize `apps/web/src/app/profile/page.tsx` with dynamic accent header & completion meter
+- [x] Task 4.2: Upgrade `apps/web/src/app/profile/edit/page.tsx` with responsive sticky actions & department pickers
+- [x] Task 4.3: Polish `components/ProfilePopup.tsx` for light/dark contrast
+- [x] Checkpoint 4: Profile Section (Flawless responsiveness, high-contrast light/dark mode)
+
+### Phase 5: Verification & Review
+- [x] Task 5.1: Run `npx tsc --noEmit` and `npm test` across all suites
+- [ ] Task 5.2: Stage, commit, and push changes with zero errors

@@ -105,7 +105,8 @@ export default function ProfilePopup({ userId, anchorRect, onClose }: ProfilePop
                             <div className="h-20 bg-gradient-to-br from-[var(--ui-accent)]/40 via-[var(--ui-bg-surface)] to-[var(--ui-bg-base)] relative border-b border-[var(--ui-border)]">
                                 <button
                                     onClick={onClose}
-                                    className="absolute top-3 right-3 p-1.5 rounded-full bg-black/20 text-white/70 hover:text-white hover:bg-black/40 backdrop-blur-md transition-all"
+                                    aria-label="Close profile card"
+                                    className="absolute top-3 right-3 p-1.5 rounded-full bg-[var(--ui-bg-surface)]/80 text-[var(--ui-text)] hover:bg-[var(--ui-bg-surface)] backdrop-blur-md transition-all shadow-sm border border-[var(--ui-border)]"
                                 >
                                     <X className="h-4 w-4" />
                                 </button>

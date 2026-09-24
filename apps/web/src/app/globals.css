@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ── Draggable Area for Electron ── */
 .titlebar-drag {
   -webkit-app-region: drag;
@@ -10,9 +12,6 @@
 }
 
 /* ── Premium Native Design Tokens ───────────────── */
-
-
-
 
 /* ── Safe Area Insets (Android WebView + iOS notch & landscape) ── */
 html {
@@ -29,30 +28,30 @@ html {
 :root {
   color-scheme: light;
 
-  /* Surfaces — Pure, bright, minimal */
+  /* Surfaces — Pure, bright, minimal glassmorphism */
   --ui-bg-base:      #FAFAFA;
-  --ui-bg-surface:   rgba(255, 255, 255, 0.75);
-  --ui-bg-elevated:  rgba(255, 255, 255, 0.9);
-  --ui-bg-input:     rgba(0, 0, 0, 0.03);
-  --ui-bg-hover:     rgba(0, 0, 0, 0.05);
-  --ui-bg-active:    rgba(0, 0, 0, 0.08);
-  --ui-bg-overlay:   rgba(0, 0, 0, 0.25);
+  --ui-bg-surface:   rgba(255, 255, 255, 0.85);
+  --ui-bg-elevated:  rgba(255, 255, 255, 0.95);
+  --ui-bg-input:     rgba(0, 0, 0, 0.04);
+  --ui-bg-hover:     rgba(0, 0, 0, 0.06);
+  --ui-bg-active:    rgba(0, 0, 0, 0.10);
+  --ui-bg-overlay:   rgba(0, 0, 0, 0.40);
 
   /* Text — Sharp, high contrast */
   --ui-text:           #09090B;
-  --ui-text-secondary: #52525B;
-  --ui-text-muted:     #71717A;
-  --ui-text-link:      #4F46E5;
+  --ui-text-secondary: #475569;
+  --ui-text-muted:     #64748B;
+  --ui-text-link:      var(--ui-accent);
 
-  /* Accent — Vibrant Indigo (Stitch style) */
-  --ui-accent:       #4F46E5;
-  --ui-accent-hover: #4338CA;
-  --ui-accent-dim:   rgba(79, 70, 229, 0.15);
+  /* Accent — Defaults to Vibrant Indigo (dynamically overridden by user) */
+  --ui-accent:       #6366F1;
+  --ui-accent-hover: #4F46E5;
+  --ui-accent-dim:   rgba(99, 102, 241, 0.15);
   --ui-accent-text:  #FFFFFF;
 
   /* Borders & Dividers */
-  --ui-border:  rgba(0, 0, 0, 0.08);
-  --ui-divider: rgba(0, 0, 0, 0.05);
+  --ui-border:  rgba(0, 0, 0, 0.09);
+  --ui-divider: rgba(0, 0, 0, 0.06);
 
   /* Semantic colors */
   --ui-success: #10B981;
@@ -70,8 +69,8 @@ html {
 
   /* Surfaces — Deep Premium Zinc */
   --ui-bg-base:      #09090B;
-  --ui-bg-surface:   rgba(24, 24, 27, 0.65);
-  --ui-bg-elevated:  rgba(39, 39, 42, 0.75);
+  --ui-bg-surface:   rgba(24, 24, 27, 0.70);
+  --ui-bg-elevated:  rgba(39, 39, 42, 0.80);
   --ui-bg-input:     rgba(255, 255, 255, 0.05);
   --ui-bg-hover:     rgba(255, 255, 255, 0.08);
   --ui-bg-active:    rgba(255, 255, 255, 0.12);
@@ -79,28 +78,25 @@ html {
 
   /* Text — Crisp contrast */
   --ui-text:           #FAFAFA;
-  --ui-text-secondary: #A1A1AA;
-  --ui-text-muted:     #71717A;
-  --ui-text-link:      #818CF8;
+  --ui-text-secondary: #94A3B8;
+  --ui-text-muted:     #64748B;
+  --ui-text-link:      var(--ui-accent);
 
-  /* Accent — Vibrant Indigo */
+  /* Accent — Defaults to Vibrant Indigo (dynamically overridden by user) */
   --ui-accent:       #6366F1;
   --ui-accent-hover: #818CF8;
   --ui-accent-dim:   rgba(99, 102, 241, 0.15);
   --ui-accent-text:  #FFFFFF;
 
   /* Borders & Dividers */
-  --ui-border:  rgba(255, 255, 255, 0.08);
-  --ui-divider: rgba(255, 255, 255, 0.06);
+  --ui-border:  rgba(255, 255, 255, 0.09);
+  --ui-divider: rgba(255, 255, 255, 0.07);
   
   --ui-success: #10B981;
   --ui-warning: #F59E0B;
   --ui-danger:  #EF4444;
   --ui-info:    #3B82F6;
 }
-
-
-
 
 @theme inline {
   --color-background: var(--ui-bg-base);
@@ -112,8 +108,8 @@ html {
 body {
   background: var(--ui-bg-base);
   background-image: 
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, var(--ui-accent-dim) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, var(--ui-accent-dim) 0px, transparent 50%);
   background-attachment: fixed;
   color: var(--ui-text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -254,22 +250,22 @@ body {
   padding: 0.625rem 1.25rem;
   font-weight: 600;
   font-size: 0.875rem;
-  color: #fff;
-  background: linear-gradient(135deg, var(--ui-accent), #4f46e5);
+  color: var(--ui-accent-text);
+  background: linear-gradient(135deg, var(--ui-accent), var(--ui-accent-hover));
   border-radius: 0.75rem;
   border: none;
-  box-shadow: 0 4px 12px var(--ui-accent-dim), inset 0 1px 0 rgba(255,255,255,0.2);
+  box-shadow: 0 4px 14px var(--ui-accent-dim), inset 0 1px 0 rgba(255,255,255,0.25);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3), inset 0 1px 0 rgba(255,255,255,0.3);
-  filter: brightness(1.1);
+  box-shadow: 0 6px 20px var(--ui-accent-dim), inset 0 1px 0 rgba(255,255,255,0.35);
+  filter: brightness(1.08);
 }
 .btn-primary:active:not(:disabled) {
   transform: translateY(1px) scale(0.98);
-  box-shadow: 0 2px 4px var(--ui-accent-dim);
+  box-shadow: 0 2px 6px var(--ui-accent-dim);
 }
 .btn-primary:disabled {
   opacity: 0.5;

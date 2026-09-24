@@ -30,7 +30,9 @@ import {
     panicWipeCookies,
 } from '@/lib/cookieShield';
 import { generateSessionFingerprint } from '@/lib/security';
-import { Shield, Cookie, Lock, Fingerprint, ShieldCheck, ShieldAlert, Trash2, RefreshCw, KeyRound, Activity, Eye, Monitor, Smartphone, Laptop, Globe, X, LogOut, CloudUpload, Clock, CheckCircle2, Bell, ChevronRight } from 'lucide-react';
+import { Shield, Cookie, Lock, Fingerprint, ShieldCheck, ShieldAlert, Trash2, RefreshCw, KeyRound, Activity, Eye, Monitor, Smartphone, Laptop, Globe, X, LogOut, CloudUpload, Clock, CheckCircle2, Bell, ChevronRight, Sun, Moon, Palette, ExternalLink } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import AccentColorPicker from '@/components/AccentColorPicker';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { fetchActivityLog, type ActivityLogEntry } from '@/lib/activityLog';
@@ -880,11 +882,17 @@ function AutoBackupSection() {
 export default function SettingsPage() {
     const { user, loading, logout } = useAuth();
     const { userProfile, setUserProfile } = useStore();
+    const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
     const router = useRouter();
     const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
     const [initialized, setInitialized] = useState(false);
     const [driveFolderLink, setDriveFolderLink] = useState('');
     const [driveBusy, setDriveBusy] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         if (loading) return;
@@ -1063,6 +1071,61 @@ export default function SettingsPage() {
                         <SettingsSkeleton />
                     ) : (
                         <div className="space-y-6 animate-[fade-in-up_0.3s_ease-out]">
+                            {/* ── Appearance & UI Accent Color ── */}
+                            <section className="surface p-6">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <Palette className="h-5 w-5 text-[var(--ui-accent)]" />
+                                    <h2 className="text-lg font-semibold text-[var(--ui-text)]">Appearance & Theme</h2>
+                                </div>
+                                <p className="text-sm text-[var(--ui-text-muted)] mb-5">
+                                    Personalize your interface theme mode and custom UI accent color.
+                                </p>
+
+                                {/* Theme Mode Selector */}
+                                <div className="space-y-2 mb-6">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ui-text-muted)]">
+                                        Interface Mode
+                                    </label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {[
+                                            { id: 'light', label: 'Light', icon: Sun },
+                                            { id: 'dark', label: 'Dark', icon: Moon },
+                                            { id: 'system', label: 'System', icon: Laptop },
+                                        ].map(({ id, label, icon: Icon }) => {
+                                            const isActive = (mounted ? theme : 'system') === id;
+                                            return (
+                                                <button
+                                                    key={id}
+                                                    type="button"
+                                                    onClick={() => setTheme(id)}
+                                                    className={`flex flex-col items-center justify-center p-3.5 rounded-xl border transition-all ${
+                                                        isActive
+                                                            ? 'bg-[var(--ui-accent-dim)] border-[var(--ui-accent)] text-[var(--ui-accent)] shadow-sm'
+                                                            : 'border-[var(--ui-border)] text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)]'
+                                                    }`}
+                                                >
+                                                    <Icon className="h-5 w-5 mb-1.5" />
+                                                    <span className="text-xs font-semibold">{label}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Custom UI Accent Color */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ui-text-muted)]">
+                                            UI Accent Color
+                                        </label>
+                                        <span className="text-[11px] text-[var(--ui-text-muted)]">
+                                            Dynamically colors buttons, badges & active states
+                                        </span>
+                                    </div>
+                                    <AccentColorPicker />
+                                </div>
+                            </section>
+
                             <section className="surface p-6">
                                 <h2 className="text-lg font-semibold text-[var(--ui-text)]">Preferences</h2>
                         
@@ -1196,8 +1259,17 @@ export default function SettingsPage() {
                     <CookiePrivacySection />
 
                     <section className="surface p-6">
-                        <h2 className="text-lg font-semibold text-[var(--ui-text)]">Account</h2>
-                        <dl className="mt-4 space-y-2 text-sm">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-[var(--ui-text)]">Account</h2>
+                            <Link
+                                href="/profile/edit"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--ui-border)] text-xs font-semibold text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                            >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                Edit Profile
+                            </Link>
+                        </div>
+                        <dl className="space-y-2 text-sm">
                             <div className="flex justify-between">
                                 <dt className="text-[var(--ui-text-muted)]">Name</dt>
                                 <dd className="text-[var(--ui-text)] font-medium">{userProfile.name}</dd>

@@ -64,6 +64,11 @@ export default function RootLayout({
                 <link rel="preconnect" href="https://firestore.googleapis.com" />
                 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" />
                 <link rel="preconnect" href="https://lh3.googleusercontent.com" />
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `(function(){try{var c=localStorage.getItem('dypu_accent_color');if(c&&/^#[0-9A-Fa-f]{3,6}$/.test(c)){document.documentElement.style.setProperty('--ui-accent',c);}}catch(e){}})();`,
+                    }}
+                />
             </head>
             <body className={`${inter.className} min-h-screen bg-[var(--ui-bg-base)] text-[var(--ui-text)] relative overflow-x-hidden`} suppressHydrationWarning>
                 {/* Global Glassmorphism Background */}
