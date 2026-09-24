@@ -126,7 +126,7 @@ export default function NotificationPanel({ align = 'sidebar' }: NotificationPan
         if (!notif.read) {
             markNotificationRead(user.uid, notif.id).catch(() => {});
         }
-        if (notif.link) {
+        if (notif.link && notif.link.startsWith('/') && !notif.link.startsWith('//') && !notif.link.includes('\\')) {
             router.push(notif.link);
         }
         setOpen(false);

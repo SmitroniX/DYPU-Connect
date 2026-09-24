@@ -15,7 +15,7 @@ import {
     type Timestamp,
     type Unsubscribe,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 
 /* ══════════════════════════════════════════════════════
    Notification Types
@@ -38,6 +38,8 @@ export interface AppNotification {
     link?: string;
     read: boolean;
     createdAt: number;
+    /** Authenticated sender ID */
+    senderId?: string;
     /** Sender display name (for message / mention types) */
     senderName?: string;
     /** Sender profile image URL */
@@ -76,6 +78,7 @@ function toAppNotification(docSnap: { id: string; data: () => Record<string, unk
         link: (d.link as string) || undefined,
         read: !!(d.read),
         createdAt: ts?.toMillis?.() ?? Date.now(),
+        senderId: (d.senderId as string) || undefined,
         senderName: (d.senderName as string) || undefined,
         senderImage: (d.senderImage as string) || undefined,
     };
@@ -92,6 +95,9 @@ export async function createNotification(
     recipientUserId: string,
     data: NotificationCreateData,
 ): Promise<void> {
+    const currentUid = auth.currentUser?.uid;
+    if (!currentUid) return;
+
     try {
         await addDoc(notificationsRef(recipientUserId), {
             type: data.type,
@@ -100,6 +106,7 @@ export async function createNotification(
             link: data.link ?? null,
             read: false,
             createdAt: serverTimestamp(),
+            senderId: currentUid,
             senderName: data.senderName ?? null,
             senderImage: data.senderImage ?? null,
         });

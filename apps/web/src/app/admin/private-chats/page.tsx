@@ -237,7 +237,7 @@ export default function PrivateChatOversightPage() {
                                 Private Chat Oversight
                             </h1>
                             <p className="text-xs text-[var(--ui-text-secondary)] mt-0.5">
-                                Classified deep-inspection of end-to-end encrypted user communications.
+                                Administrative inspection of user communications for safety and compliance.
                             </p>
                         </div>
                     </div>

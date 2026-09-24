@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -208,6 +208,7 @@ export default function DashboardLayout({
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const pathname = usePathname();
+    const router = useRouter();
     const { user } = useAuth();
     const isSpecificChat = /^\/(messages|groups)\/[^\/]+$/.test(pathname) || pathname === '/public-chat';
     const {
@@ -275,8 +276,8 @@ export default function DashboardLayout({
                                         import('@/lib/notifications').then(({ markNotificationRead }) => {
                                              markNotificationRead(user.uid, latest.id).catch(() => {});
                                         });
-                                        if (latest.link) {
-                                            window.location.href = latest.link;
+                                        if (latest.link && latest.link.startsWith('/') && !latest.link.startsWith('//') && !latest.link.includes('\\')) {
+                                            router.push(latest.link);
                                         }
                                     }}
                                     className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-sm font-bold text-[var(--ui-accent)] hover:bg-[var(--ui-accent)]/10 transition-colors focus:outline-none"

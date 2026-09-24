@@ -13,11 +13,8 @@ let tray = null;
 const WEB_APP_URL = 'https://dypu-connect.netlify.app/';
 const INTERNAL_HOSTS = [
   'dypu-connect.netlify.app',
-  'dypu-connect.firebaseapp.com',
-  'dypu-connect.firebaseio.com',
-  'accounts.google.com',
-  'google.com',
-  'google.co.in'
+  'localhost',
+  '127.0.0.1'
 ];
 
 // Handle deep link protocol: dypu-connect://
@@ -69,21 +66,18 @@ function createWindow() {
   mainWindow.webContents.on('will-navigate', (event, url) => {
     if (!isInternalUrl(url)) {
       event.preventDefault();
-      shell.openExternal(url);
+      safeOpenExternal(url);
     }
   });
 
   // Handle popups and new windows
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    // If it's an internal URL (like a sub-app or specific auth flow we want in app)
-    // but usually for Electron, we want EVERYTHING external to go to system browser
-    // to keep the app focused and secure.
-    if (isInternalUrl(url) && !url.includes('accounts.google.com')) {
+    if (isInternalUrl(url)) {
       return { action: 'allow' };
     }
     
-    // Always open external links and auth providers in system browser
-    shell.openExternal(url);
+    // Always open external links safely in system browser
+    safeOpenExternal(url);
     return { action: 'deny' };
   });
 
@@ -97,9 +91,25 @@ function createWindow() {
   });
 }
 
+function safeOpenExternal(urlStr) {
+  try {
+    const parsed = new URL(urlStr);
+    if (['http:', 'https:'].includes(parsed.protocol)) {
+      shell.openExternal(urlStr);
+    } else {
+      log.warn(`Blocked potentially unsafe protocol openExternal: ${urlStr}`);
+    }
+  } catch (e) {
+    log.error(`Invalid URL in openExternal: ${urlStr}`);
+  }
+}
+
 function isInternalUrl(urlStr) {
   try {
     const url = new URL(urlStr);
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      return false;
+    }
     const host = url.hostname;
     return INTERNAL_HOSTS.some(internal => host === internal || host.endsWith('.' + internal));
   } catch (e) {

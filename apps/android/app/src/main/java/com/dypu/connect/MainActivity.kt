@@ -174,9 +174,9 @@ class MainActivity : AppCompatActivity() {
         settings.domStorageEnabled = true
         settings.databaseEnabled = true
         settings.mediaPlaybackRequiresUserGesture = false
-        settings.allowFileAccess = true
+        settings.allowFileAccess = false
         settings.cacheMode = WebSettings.LOAD_DEFAULT
-        settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
         settings.setSupportZoom(false)
 
         CookieManager.getInstance().setAcceptCookie(true)
@@ -222,9 +222,14 @@ class MainActivity : AppCompatActivity() {
                 }
                 
                 try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    startActivity(intent)
-                    return true
+                    val uri = Uri.parse(url)
+                    val scheme = uri.scheme?.lowercase()
+                    if (scheme in listOf("http", "https", "mailto", "tel")) {
+                        val intent = Intent(Intent.ACTION_VIEW, uri)
+                        startActivity(intent)
+                        return true
+                    }
+                    return false
                 } catch (e: Exception) {
                     Log.e(TAG, "Cannot handle URL: $url")
                     return false
@@ -254,7 +259,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPermissionRequest(request: PermissionRequest?) {
-                request?.grant(request.resources)
+                val origin = request?.origin?.toString() ?: ""
+                if (origin.startsWith(BASE_URL) || origin.startsWith("https://dypu-connect.netlify.app")) {
+                    request?.grant(request.resources)
+                } else {
+                    request?.deny()
+                }
             }
 
             override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
