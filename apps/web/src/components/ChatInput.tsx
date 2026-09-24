@@ -245,16 +245,17 @@ export default function ChatInput({
             {/* Premium Input Container */}
             <div className="flex flex-col relative z-20 transition-all duration-500 max-w-5xl mx-auto w-full">
                 
-                {/* Floating Markdown Toolbar (Desktop) */}
+                {/* Floating Markdown Toolbar (Floats gracefully above input when typing) */}
                 <AnimatePresence>
                     {features.markdown && message.length > 0 && (       
                         <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            className="absolute -top-10 left-1/2 -translate-x-1/2 z-30 hidden sm:block"
+                            initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                            transition={{ type: 'spring', stiffness: 420, damping: 25 }}
+                            className="absolute -top-11 right-2 sm:left-1/2 sm:-translate-x-1/2 z-30"
                         >
-                            <div className="bg-[var(--ui-bg-elevated)] backdrop-blur-xl border border-[var(--ui-border)] rounded-xl px-1.5 py-1 shadow-xl">
+                            <div className="bg-[var(--ui-bg-surface)]/95 backdrop-blur-2xl border border-[var(--ui-border)] rounded-2xl px-2 py-1 shadow-[0_10px_28px_rgba(0,0,0,0.3)]">
                                 <MarkdownToolbar onWrapSelection={wrapSelection} />
                             </div>
                         </motion.div>
@@ -268,19 +269,20 @@ export default function ChatInput({
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.98 }}
-                            className="absolute inset-0 z-40 bg-[var(--ui-accent)]/20 backdrop-blur-sm border-2 border-dashed border-[var(--ui-accent)] rounded-3xl flex items-center justify-center pointer-events-none"
+                            className="absolute inset-0 z-40 bg-[var(--ui-accent)]/20 backdrop-blur-sm border-2 border-dashed border-[var(--ui-accent)] rounded-[28px] flex items-center justify-center pointer-events-none"
                         >
-                            <span className="text-[var(--ui-accent)] font-medium bg-[var(--ui-bg-surface)] px-4 py-2 rounded-full shadow-lg">
+                            <span className="text-[var(--ui-accent)] font-semibold bg-[var(--ui-bg-surface)] px-4 py-2 rounded-full shadow-lg">
                                 Drop image to upload
                             </span>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                <div className={`flex items-end gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-3xl bg-[var(--ui-bg-surface)]/70 hover:bg-[var(--ui-bg-surface)]/80 border border-[var(--ui-border)] focus-within:border-[var(--ui-accent)]/50 focus-within:bg-[var(--ui-bg-surface)] transition-all duration-300 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.25)] group/input ${isDragging ? 'opacity-0' : ''}`}>
+                {/* Main Glassmorphic Input Capsule */}
+                <div className={`flex items-end gap-1.5 sm:gap-2.5 p-1.5 sm:p-2 rounded-[28px] bg-[var(--ui-bg-surface)]/85 hover:bg-[var(--ui-bg-surface)]/95 border border-[var(--ui-border)] focus-within:border-[var(--ui-accent)]/60 focus-within:ring-2 focus-within:ring-[var(--ui-accent)]/20 focus-within:bg-[var(--ui-bg-surface)] transition-all duration-300 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,0.18)] dark:shadow-[0_10px_35px_rgba(0,0,0,0.45)] group/input ${isDragging ? 'opacity-0' : ''}`}>
                     
-                    {/* Integrated Action Bar */}
-                    <div className="shrink-0 pl-0.5 pb-0.5">
+                    {/* Action Toggle & Dock */}
+                    <div className="shrink-0 self-end p-0.5">
                         <InputActions
                             features={features}   
                             uploading={uploading} 
@@ -293,8 +295,8 @@ export default function ChatInput({
                         />
                     </div>
 
-                    {/* Text Field & Mobile Toolbar */}
-                    <div className="flex-1 min-w-0 flex flex-col justify-center py-1.5 sm:py-2">
+                    {/* Text Field */}
+                    <div className="flex-1 min-w-0 py-1.5 sm:py-2 px-1 flex flex-col justify-center">
                         <textarea
                             ref={textareaRef} 
                             value={message}   
@@ -304,35 +306,21 @@ export default function ChatInput({
                             disabled={disabled}
                             maxLength={maxLength}
                             rows={1}
-                            className="w-full bg-transparent text-[15px] sm:text-[16px] leading-tight pt-1 text-[var(--ui-text)] placeholder-[var(--ui-text-muted)] focus:outline-none resize-none overflow-y-auto max-h-[160px] px-1 scrollbar-hide selection:bg-[var(--ui-accent)]/30"     
+                            className="w-full bg-transparent text-[15px] sm:text-[16px] leading-[1.45] text-[var(--ui-text)] placeholder-[var(--ui-text-muted)] focus:outline-none resize-none overflow-y-auto max-h-[160px] px-1 scrollbar-hide selection:bg-[var(--ui-accent)]/30"     
                         />
-                        
-                        {/* Mobile Markdown Toolbar */}
-                        <AnimatePresence>
-                            {features.markdown && message.length > 0 && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    className="overflow-hidden sm:hidden"
-                                >
-                                    <div className="pt-2 flex justify-center">
-                                        <MarkdownToolbar onWrapSelection={wrapSelection} />
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
                     </div>
 
                     {/* Send Control */}
-                    <SendButton
-                        canSend={canSend}     
-                        overLimit={overLimit} 
-                        showCharCount={showCharCount}
-                        messageLength={message.length}
-                        maxLength={maxLength}
-                        onSend={handleSend}   
-                    />
+                    <div className="shrink-0 self-end p-0.5">
+                        <SendButton
+                            canSend={canSend}     
+                            overLimit={overLimit} 
+                            showCharCount={showCharCount}
+                            messageLength={message.length}
+                            maxLength={maxLength}
+                            onSend={handleSend}   
+                        />
+                    </div>
                 </div>
             </div>
 

@@ -9,56 +9,56 @@ interface MarkdownToolbarProps {
 
 export default function MarkdownToolbar({ onWrapSelection }: MarkdownToolbarProps) {
     return (
-        <div className="flex items-center gap-1 sm:gap-2 opacity-60 hover:opacity-100 focus-within:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 sm:gap-1.5 text-[var(--ui-text-muted)]">
             <motion.button
-                whileHover={{ scale: 0.98 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.12, color: 'var(--ui-text)' }}
+                whileTap={{ scale: 0.92 }}
                 type="button"
                 onClick={() => onWrapSelection('**', '**')}
-                className="p-2 sm:p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[var(--ui-bg-hover)] transition-colors cursor-pointer"
                 title="Bold (Ctrl+B)"
             >
-                <Bold className="w-4 h-4 sm:w-4 sm:h-4" />
+                <Bold className="w-4 h-4" />
             </motion.button>
             <motion.button
-                whileHover={{ scale: 0.98 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.12, color: 'var(--ui-text)' }}
+                whileTap={{ scale: 0.92 }}
                 type="button"
                 onClick={() => onWrapSelection('*', '*')}
-                className="p-2 sm:p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[var(--ui-bg-hover)] transition-colors cursor-pointer"
                 title="Italic (Ctrl+I)"
             >
-                <Italic className="w-4 h-4 sm:w-4 sm:h-4" />
+                <Italic className="w-4 h-4" />
             </motion.button>
             <motion.button
-                whileHover={{ scale: 0.98 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.12, color: 'var(--ui-text)' }}
+                whileTap={{ scale: 0.92 }}
                 type="button"
                 onClick={() => onWrapSelection('~~', '~~')}
-                className="p-2 sm:p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[var(--ui-bg-hover)] transition-colors cursor-pointer"
                 title="Strikethrough"
             >
-                <Strikethrough className="w-4 h-4 sm:w-4 sm:h-4" />
+                <Strikethrough className="w-4 h-4" />
             </motion.button>
             <motion.button
-                whileHover={{ scale: 0.98 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.12, color: 'var(--ui-text)' }}
+                whileTap={{ scale: 0.92 }}
                 type="button"
                 onClick={() => onWrapSelection('> ', '')}
-                className="p-2 sm:p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[var(--ui-bg-hover)] transition-colors cursor-pointer"
                 title="Blockquote"
             >
-                <Quote className="w-4 h-4 sm:w-4 sm:h-4" />
+                <Quote className="w-4 h-4" />
             </motion.button>
             <motion.button
-                whileHover={{ scale: 0.98 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.12, color: 'var(--ui-text)' }}
+                whileTap={{ scale: 0.92 }}
                 type="button"
                 onClick={() => onWrapSelection('`', '`')}
-                className="p-2 sm:p-1 rounded-md text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[var(--ui-bg-hover)] transition-colors cursor-pointer"
                 title="Inline code (Ctrl+K)"
             >
-                <Code className="w-4 h-4 sm:w-4 sm:h-4" />
+                <Code className="w-4 h-4" />
             </motion.button>
         </div>
     );
