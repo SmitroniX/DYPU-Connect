@@ -13,7 +13,7 @@ import ProfilePopup from '@/components/ProfilePopup';
 import dynamic from 'next/dynamic';
 const VideoCall = dynamic(() => import('@/components/VideoCall'), { ssr: false });
 import ChatDetailsDrawer from '@/components/ChatDetailsDrawer';
-import { Lock, Search, X } from 'lucide-react';
+import { Lock, Search, X, Sparkles, ChevronDown } from 'lucide-react';
 import { sanitiseInput } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -24,6 +24,7 @@ import TypingIndicator from '@/components/TypingIndicator';
 import MessageItem from '@/components/MessageItem';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { Message } from '@/lib/validation/schemas';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ChatInfo {
     participants: string[];
@@ -32,6 +33,13 @@ interface ChatInfo {
     lastMessage?: string;
     unreadCount?: Record<string, number>;
 }
+
+const SAY_HELLO_CHIPS = [
+    '👋 Hey there!',
+    '📚 Are you free to study?',
+    '☕ Coffee at the cafeteria?',
+    '📝 Notes from today\'s lecture?'
+];
 
 export default function PrivateChatDetail({ params }: { params: Promise<{ chatId: string }> }) {
     const { chatId } = use(params);
@@ -47,6 +55,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [isAtBottom, setIsAtBottom] = useState(true);
 
     const { user } = useAuth();
     const { userProfile } = useStore();
@@ -84,7 +93,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                         setIsLoading(false);
                     }
                 }
-            } catch (error) {
+            } catch {
                 if (isMounted) {
                     setChatError('Failed to load chat details.');
                     setIsLoading(false);
@@ -146,7 +155,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                 [`unreadCount.${user.uid}`]: 0
             }).catch(() => {});
         }
-    }, [chatId, user, chatInfo?.unreadCount?.[user?.uid || '']]);
+    }, [chatId, user, chatInfo]);
 
     const handleSend = useCallback(async (payload: ChatInputPayload) => {
         if (!user) return;
@@ -191,7 +200,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                 senderName,
                 senderImage,
             });
-        } catch (error) {
+        } catch {
             toast.error('Failed to send message');
         }
     }, [chatId, user, chatInfo, replyToMessage]);
@@ -270,6 +279,14 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
         return messages.filter(m => m.text.toLowerCase().includes(lowerQ));
     }, [messages, searchQuery]);
 
+    const scrollToBottom = () => {
+        virtuosoRef.current?.scrollToIndex({
+            index: filteredMessages.length - 1,
+            align: 'end',
+            behavior: 'smooth'
+        });
+    };
+
     if (!user || !userProfile) return null;
 
     if (chatError) {
@@ -317,8 +334,9 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 
     return (
         <DashboardLayout>
-            <div className="flex flex-col h-full bg-[var(--ui-bg-base)]">
-                {/* Fixed Header */}
+            {/* Fluid full-height messaging container without mobile keyboard jitter */}
+            <div className="flex flex-col h-[100dvh] max-h-[100dvh] bg-[var(--ui-bg-base)] overflow-hidden overscroll-none select-text">
+                {/* Header Integration with ChatHeader */}
                 <div className="shrink-0 z-30">
                     <ChatHeader 
                         chatId={chatId}
@@ -341,7 +359,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                 <div className="flex-1 relative flex flex-col min-h-0 bg-gradient-to-b from-[var(--ui-bg-base)] to-[var(--ui-bg-surface)] overflow-hidden">
                     {/* Search Bar */}
                     {isSearching && (
-                        <div className="absolute top-0 left-0 right-0 p-3 bg-[var(--ui-bg-elevated)] border-b border-[var(--ui-border)] z-10 animate-[fade-in-down_0.2s_ease-out] shadow-sm flex items-center gap-2">
+                        <div className="absolute top-0 left-0 right-0 p-3 bg-[var(--ui-bg-elevated)] border-b border-[var(--ui-border)] z-20 animate-[fade-in-down_0.2s_ease-out] shadow-sm flex items-center gap-2">
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ui-text-muted)]" />
                                 <input
@@ -358,7 +376,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                     setIsSearching(false);
                                     setSearchQuery('');
                                 }}
-                                className="p-2 text-[var(--ui-text-muted)] hover:bg-[var(--ui-bg-surface)] rounded-full transition-colors"
+                                className="p-2 text-[var(--ui-text-muted)] hover:bg-[var(--ui-bg-surface)] rounded-full transition-colors cursor-pointer"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -371,102 +389,148 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                             <ChatMessageListSkeleton count={6} />
                         </div>
                     ) : (
-                        <Virtuoso
-                            ref={virtuosoRef}
-                            data={filteredMessages}
-                            initialTopMostItemIndex={Math.max(0, filteredMessages.length - 1)}
-                            followOutput="smooth"
-                        className="flex-1 overflow-x-hidden px-4"
-                        itemContent={(i, msg) => {
-                            const isMine = msg.senderId === user.uid;
-                            const prev = i > 0 ? filteredMessages[i - 1] : null;
-                            const showMsgHeader = shouldShowHeader(
-                                msg.senderId,
-                                prev?.senderId,
-                                msg.timestamp instanceof Date ? msg.timestamp : (msg.timestamp as any)?.toDate?.() ?? null,
-                                prev?.timestamp instanceof Date ? prev.timestamp : (prev?.timestamp as any)?.toDate?.() ?? null
-                            );
+                        <div className="flex-1 relative flex flex-col min-h-0">
+                            <Virtuoso
+                                ref={virtuosoRef}
+                                data={filteredMessages}
+                                initialTopMostItemIndex={Math.max(0, filteredMessages.length - 1)}
+                                followOutput="smooth"
+                                atBottomStateChange={(bottom) => setIsAtBottom(bottom)}
+                                className="flex-1 overflow-x-hidden px-4"
+                                itemContent={(i, msg) => {
+                                    const isMine = msg.senderId === user.uid;
+                                    const prev = i > 0 ? filteredMessages[i - 1] : null;
+                                    const showMsgHeader = shouldShowHeader(
+                                        msg.senderId,
+                                        prev?.senderId,
+                                        msg.timestamp instanceof Date ? msg.timestamp : (msg.timestamp as { toDate?: () => Date })?.toDate?.() ?? null,
+                                        prev?.timestamp instanceof Date ? prev.timestamp : (prev?.timestamp as { toDate?: () => Date })?.toDate?.() ?? null
+                                    );
 
-                            return (
-                                <MessageItem
-                                    key={msg.id}
-                                    msg={{
-                                        ...msg,
-                                        senderName: isMine ? 'You' : otherName,
-                                        senderImage: isMine
-                                            ? resolveProfileImage(chatInfo.participantImages?.[user.uid], undefined, 'You')
-                                            : otherImage
-                                    }}
-                                    isMine={isMine}
-                                    showMsgHeader={showMsgHeader}
-                                    currentUserId={user.uid}
-                                    replyToMsg={msg.replyToId ? messages.find(m => m.id === msg.replyToId) : null}
-                                    editingMessageId={editingMessageId}
-                                    editValue={editingMessageId === msg.id ? editValue : undefined}
-                                    setEditValue={setEditValue}
-                                    onStartEdit={handleStartEdit}
-                                    onSaveEdit={handleSaveEdit}
-                                    onCancelEdit={handleCancelEdit}
-                                    onDelete={handleDelete}
-                                    onReply={handleStartReply}
-                                    onReact={handleReact}
-                                    onAvatarClick={handleAvatarClick}
-                                />
-                            );
-                        }}
-                        components={{
-                            Header: () => (
-                                <>
-                                    <div className="flex justify-center mb-6 mt-4">
-                                        <div className="flex items-center gap-1.5 text-[10px] text-[var(--ui-text-muted)] font-medium tracking-wide uppercase px-3 py-1 bg-[var(--ui-bg-surface)]/50 rounded-full border border-[var(--ui-border)]/30 backdrop-blur-sm">
-                                            <Lock className="w-3 h-3 shrink-0 opacity-70" />
-                                            <span>End-to-end encrypted</span>
-                                        </div>
-                                    </div>
-                                    {messages.length === 0 && (
-                                        <div className="flex flex-col items-center justify-center h-full text-center py-10">
-                                            <div className="w-16 h-16 rounded-full overflow-hidden mb-4">
-                                                <img src={otherImage} alt={otherName} className="w-16 h-16 rounded-full object-cover" />
-                                            </div>
-                                            <h3 className="text-xl font-bold text-[var(--ui-text)]">{otherName}</h3>
-                                            <p className="text-sm text-[var(--ui-text-muted)] mt-1">This is the beginning of your conversation with {otherName}. Say hello! 👋</p>
-                                        </div>
-                                    )}
-                                    {searchQuery.trim() && filteredMessages.length === 0 && (
-                                        <div className="flex flex-col items-center justify-center h-full text-[var(--ui-text-muted)] py-10">
-                                            <p>No messages found for &quot;{searchQuery}&quot;</p>
-                                        </div>
-                                    )}
-                                </>
-                            ),
-                            Footer: () => (
-                                <>
-                                    {isPartnerTyping && (
-                                        <div className="flex w-full justify-start mt-2 mb-2 animate-[fade-in-up_0.2s_ease-out]">
-                                            <div className="flex gap-3 max-w-[85%] sm:max-w-[70%] flex-row">
-                                                <div className="w-8 shrink-0 flex flex-col items-center justify-end pb-1">
-                                                    <img
-                                                        src={otherImage}
-                                                        alt=""
-                                                        className="w-8 h-8 rounded-full object-cover shadow-sm ring-1 ring-[var(--ui-border)]"
-                                                    />
-                                                </div>
-                                                <div className="relative flex flex-col items-start">
-                                                    <TypingIndicator />
+                                    return (
+                                        <MessageItem
+                                            key={msg.id}
+                                            msg={{
+                                                ...msg,
+                                                senderName: isMine ? 'You' : otherName,
+                                                senderImage: isMine
+                                                    ? resolveProfileImage(chatInfo.participantImages?.[user.uid], undefined, 'You')
+                                                    : otherImage
+                                            }}
+                                            isMine={isMine}
+                                            showMsgHeader={showMsgHeader}
+                                            currentUserId={user.uid}
+                                            replyToMsg={msg.replyToId ? messages.find(m => m.id === msg.replyToId) : null}
+                                            editingMessageId={editingMessageId}
+                                            editValue={editingMessageId === msg.id ? editValue : undefined}
+                                            setEditValue={setEditValue}
+                                            onStartEdit={handleStartEdit}
+                                            onSaveEdit={handleSaveEdit}
+                                            onCancelEdit={handleCancelEdit}
+                                            onDelete={handleDelete}
+                                            onReply={handleStartReply}
+                                            onReact={handleReact}
+                                            onAvatarClick={handleAvatarClick}
+                                        />
+                                    );
+                                }}
+                                components={{
+                                    Header: () => (
+                                        <>
+                                            <div className="flex justify-center mb-6 mt-4">
+                                                <div className="flex items-center gap-1.5 text-[10px] text-[var(--ui-text-muted)] font-medium tracking-wide uppercase px-3 py-1 bg-[var(--ui-bg-surface)]/50 rounded-full border border-[var(--ui-border)]/30 backdrop-blur-sm">
+                                                    <Lock className="w-3 h-3 shrink-0 opacity-70" />
+                                                    <span>End-to-end encrypted</span>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
-                                    <div className="h-4" />
-                                </>
-                            )
-                            }}
+                                            {/* Empty chat state with illustrated avatar & "Say hello" prompt chips */}
+                                            {messages.length === 0 && (
+                                                <div className="flex flex-col items-center justify-center text-center py-10 px-4 animate-[fade-in_0.3s_ease-out]">
+                                                    <div className="relative mb-4">
+                                                        <div className="w-20 h-20 rounded-full p-1 ring-4 ring-[var(--ui-accent)]/20 bg-gradient-to-br from-[var(--ui-accent)]/10 to-purple-500/10 flex items-center justify-center shadow-xl">
+                                                            <img 
+                                                                src={otherImage} 
+                                                                alt={otherName} 
+                                                                className="w-full h-full rounded-full object-cover" 
+                                                            />
+                                                        </div>
+                                                        <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[var(--ui-accent)] text-white flex items-center justify-center shadow-md">
+                                                            <Sparkles className="w-3.5 h-3.5" />
+                                                        </div>
+                                                    </div>
+                                                    <h3 className="text-xl font-extrabold text-[var(--ui-text)] tracking-tight">{otherName}</h3>
+                                                    <p className="text-xs text-[var(--ui-text-muted)] mt-1 max-w-xs font-medium">
+                                                        This is the start of your direct conversation with {otherName}. Send a message or pick an icebreaker below!
+                                                    </p>
+
+                                                    {/* "Say hello" prompt chips */}
+                                                    <div className="mt-6 flex flex-wrap gap-2 justify-center max-w-sm">
+                                                        {SAY_HELLO_CHIPS.map((chip) => (
+                                                            <button
+                                                                key={chip}
+                                                                onClick={() => handleSend({ text: chip })}
+                                                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-[var(--ui-bg-surface)] hover:bg-[var(--ui-bg-hover)] active:scale-95 text-[var(--ui-text)] border border-[var(--ui-border)] shadow-xs transition-all cursor-pointer hover:border-[var(--ui-accent)]/50"
+                                                            >
+                                                                <span>{chip}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {searchQuery.trim() && filteredMessages.length === 0 && (
+                                                <div className="flex flex-col items-center justify-center h-full text-[var(--ui-text-muted)] py-10">
+                                                    <p>No messages found for &quot;{searchQuery}&quot;</p>
+                                                </div>
+                                            )}
+                                        </>
+                                    ),
+                                    Footer: () => (
+                                        <>
+                                            {isPartnerTyping && (
+                                                <div className="flex w-full justify-start mt-2 mb-2 animate-[fade-in-up_0.2s_ease-out]">
+                                                    <div className="flex gap-3 max-w-[85%] sm:max-w-[70%] flex-row">
+                                                        <div className="w-8 shrink-0 flex flex-col items-center justify-end pb-1">
+                                                            <img
+                                                                src={otherImage}
+                                                                alt=""
+                                                                className="w-8 h-8 rounded-full object-cover shadow-sm ring-1 ring-[var(--ui-border)]"
+                                                            />
+                                                        </div>
+                                                        <div className="relative flex flex-col items-start">
+                                                            <TypingIndicator />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="h-4" />
+                                        </>
+                                    )
+                                }}
                             />
+
+                            {/* Floating Jump to Bottom Button */}
+                            <AnimatePresence>
+                                {!isAtBottom && (
+                                    <motion.button
+                                        initial={{ opacity: 0, scale: 0.8, y: 16 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.8, y: 16 }}
+                                        transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                                        onClick={scrollToBottom}
+                                        className="absolute bottom-4 right-6 z-20 flex items-center gap-1 px-3 py-1.5 rounded-full bg-[var(--ui-bg-surface)]/90 hover:bg-[var(--ui-bg-surface)] text-[var(--ui-text)] border border-[var(--ui-border)] shadow-xl backdrop-blur-xl transition-all cursor-pointer group"
+                                        aria-label="Jump to bottom"
+                                    >
+                                        <ChevronDown className="w-4 h-4 text-[var(--ui-accent)] group-hover:translate-y-0.5 transition-transform" />
+                                        <span className="text-xs font-semibold">Latest</span>
+                                    </motion.button>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     )}
 
-                            {/* Input Area */}
-                            <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20">
-                            <div className="max-w-3xl mx-auto transition-all duration-300">
+                    {/* Input Area */}
+                    <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+                        <div className="max-w-3xl mx-auto transition-all duration-300">
                             <ChatInput
                                 onSend={handleSend}
                                 placeholder={`Message @${otherName}`}
@@ -475,35 +539,36 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                 replyToMessage={replyToMessage}
                                 onCancelReply={() => setReplyToMessage(null)}
                             />
-                            </div>
-                            </div>
-                            </div>
-            {/* Chat Details Drawer */}
-            <ChatDetailsDrawer 
-                isOpen={isDrawerOpen}
-                onClose={() => setIsDrawerOpen(false)}
-                otherName={otherName}
-                otherImage={otherImage}
-                messages={messages}
-                onSearchClick={() => {
-                    setIsDrawerOpen(false);
-                    setIsSearching(true);
-                }}
-                isMuted={isMuted}
-                onToggleMute={handleToggleMute}
-                chatId={chatId}
-                user={user}
-                otherUserId={otherUserId}
-            />
+                        </div>
+                    </div>
+                </div>
 
-            {profilePopup && (
-                <ProfilePopup
-                    userId={profilePopup.userId}
-                    anchorRect={profilePopup.rect}
-                    onClose={() => setProfilePopup(null)}
+                {/* Chat Details Drawer */}
+                <ChatDetailsDrawer 
+                    isOpen={isDrawerOpen}
+                    onClose={() => setIsDrawerOpen(false)}
+                    otherName={otherName}
+                    otherImage={otherImage}
+                    messages={messages}
+                    onSearchClick={() => {
+                        setIsDrawerOpen(false);
+                        setIsSearching(true);
+                    }}
+                    isMuted={isMuted}
+                    onToggleMute={handleToggleMute}
+                    chatId={chatId}
+                    user={user}
+                    otherUserId={otherUserId}
                 />
-            )}
-        </div>
-    </DashboardLayout>
-);
+
+                {profilePopup && (
+                    <ProfilePopup
+                        userId={profilePopup.userId}
+                        anchorRect={profilePopup.rect}
+                        onClose={() => setProfilePopup(null)}
+                    />
+                )}
+            </div>
+        </DashboardLayout>
+    );
 }

@@ -11,13 +11,16 @@ import ProfilePopup from '@/components/ProfilePopup';
 import MessageItem from '@/components/MessageItem';
 import { sanitiseInput } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
-import { Users } from 'lucide-react';
+import { Users, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { db } from '@/lib/firebase';
+import { db, rtdb } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, limit } from 'firebase/firestore';
+import { ref, onValue } from 'firebase/database';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { ChatMessageListSkeleton } from '@/components/Skeleton';
 import { Message } from '@/lib/validation/schemas';
+import { format, isSameDay, isToday, isYesterday } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function PublicChatPage() {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -38,11 +41,41 @@ export default function PublicChatPage() {
     const [editValue, setEditValue] = useState('');
     const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isAtBottom, setIsAtBottom] = useState(true);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [onlineCount, setOnlineCount] = useState<number>(1);
     
     const { user } = useAuth();
     const { userProfile } = useStore();
     const virtuosoRef = useRef<VirtuosoHandle>(null);
+    const prevCountRef = useRef(0);
 
+    // Track online participants count
+    useEffect(() => {
+        if (!rtdb) return;
+        try {
+            const statusRef = ref(rtdb, '/status');
+            const unsubscribe = onValue(statusRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    let count = 0;
+                    if (data && typeof data === 'object') {
+                        Object.values(data).forEach((userVal: unknown) => {
+                            if (typeof userVal === 'object' && userVal !== null && (userVal as { state?: string }).state === 'online') {
+                                count++;
+                            }
+                        });
+                    }
+                    setOnlineCount(Math.max(1, count));
+                }
+            });
+            return () => unsubscribe();
+        } catch {
+            // fallback gracefully
+        }
+    }, []);
+
+    // Listen to public messages
     useEffect(() => {
         const messagesRef = collection(db, 'public_chat');
         const simplerQ = query(messagesRef, orderBy('timestamp', 'asc'), limit(200));
@@ -84,6 +117,24 @@ export default function PublicChatPage() {
         
         return () => unsubscribe();
     }, [user, userProfile]);
+
+    // Unread count tracking when scrolled up
+    useEffect(() => {
+        if (!isAtBottom && optimisticMessages.length > prevCountRef.current) {
+            const diff = optimisticMessages.length - prevCountRef.current;
+            setUnreadCount(prev => prev + diff);
+        }
+        prevCountRef.current = optimisticMessages.length;
+    }, [optimisticMessages.length, isAtBottom]);
+
+    const handleJumpToBottom = useCallback(() => {
+        virtuosoRef.current?.scrollToIndex({
+            index: optimisticMessages.length - 1,
+            align: 'end',
+            behavior: 'smooth'
+        });
+        setUnreadCount(0);
+    }, [optimisticMessages.length]);
 
     const handleSend = useCallback(async (payload: ChatInputPayload) => {
         const cleanMessage = sanitiseInput(payload.text);
@@ -210,77 +261,150 @@ export default function PublicChatPage() {
         <DashboardLayout>
             <ModuleGuard moduleKey="disablePublicChat" moduleName="Public Chat">
             <div className="h-full flex flex-col bg-[var(--ui-bg-base)]">
+                {/* Modern Chat Header with Live Online Participant Count Pill */}
                 <ChannelHeader name="campus-plaza" description="Real-time public chat for everyone at DYPU">
-                    <Users className="h-4 w-4 text-[var(--ui-text-muted)]" />
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 backdrop-blur-md shadow-xs select-none">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                        </span>
+                        <span>{onlineCount} {onlineCount === 1 ? 'student' : 'students'} online</span>
+                    </div>
                 </ChannelHeader>
 
-                {loading ? (
-                    <div className="flex-1 overflow-y-auto px-4 py-4">
-                        <ChatMessageListSkeleton count={6} />
-                    </div>
-                ) : (
-                    <Virtuoso
-                        ref={virtuosoRef}
-                        data={optimisticMessages}
-                        initialTopMostItemIndex={Math.max(0, optimisticMessages.length - 1)}
-                        followOutput="auto"
-                        className="flex-1 overflow-x-hidden px-4"
-                        itemContent={(i, msg) => {
-                            const isMine = msg.senderId === user?.uid;
-                            const prev = i > 0 ? optimisticMessages[i - 1] : null;
-                            const showMsgHeader = shouldShowHeader(
-                                msg.senderId,
-                                prev?.senderId,
-                                msg.timestamp instanceof Date ? msg.timestamp : (msg.timestamp as any)?.toDate?.() ?? null,
-                                prev?.timestamp instanceof Date ? prev.timestamp : (prev?.timestamp as any)?.toDate?.() ?? null
-                            );
+                {/* Message stream with smooth skeleton loading state */}
+                <AnimatePresence mode="wait">
+                    {loading ? (
+                        <motion.div
+                            key="skeleton"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex-1 overflow-y-auto px-4 py-4"
+                        >
+                            <ChatMessageListSkeleton count={6} />
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="chat-stream"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            className="flex-1 relative flex flex-col min-h-0 overflow-hidden"
+                        >
+                            <Virtuoso
+                                ref={virtuosoRef}
+                                data={optimisticMessages}
+                                initialTopMostItemIndex={Math.max(0, optimisticMessages.length - 1)}
+                                followOutput="auto"
+                                atBottomStateChange={(bottom) => {
+                                    setIsAtBottom(bottom);
+                                    if (bottom) {
+                                        setUnreadCount(0);
+                                    }
+                                }}
+                                className="flex-1 overflow-x-hidden px-4"
+                                itemContent={(i, msg) => {
+                                    const isMine = msg.senderId === user?.uid;
+                                    const prev = i > 0 ? optimisticMessages[i - 1] : null;
+                                    
+                                    const msgDate = msg.timestamp instanceof Date ? msg.timestamp : (msg.timestamp as { toDate?: () => Date })?.toDate?.() ?? new Date();
+                                    const prevDate = prev ? (prev.timestamp instanceof Date ? prev.timestamp : (prev.timestamp as { toDate?: () => Date })?.toDate?.() ?? null) : null;
+                                    const isDifferentDay = !prevDate || !isSameDay(msgDate, prevDate);
 
-                            return (
-                                <MessageItem
-                                    key={msg.id}
-                                    msg={msg}
-                                    isMine={isMine}
-                                    showMsgHeader={showMsgHeader}
-                                    currentUserId={user?.uid ?? ''}
-                                    replyToMsg={msg.replyToId ? messageMap.get(msg.replyToId) : null}
-                                    editingMessageId={editingMessageId}
-                                    editValue={editingMessageId === msg.id ? editValue : undefined}
-                                    setEditValue={setEditValue}
-                                    onStartEdit={handleStartEdit}
-                                    onSaveEdit={handleSaveEdit}
-                                    onCancelEdit={handleCancelEdit}
-                                    onDelete={handleDelete}
-                                    onReply={handleStartReply}
-                                    onReact={handleReact}
-                                    onAvatarClick={handleAvatarClick}
-                                />
-                            );
-                        }}
-                        components={{
-                            Header: () => (
-                                <>
-                                    {optimisticMessages.length === 0 && (
-                                        <div className="flex flex-col items-center justify-center h-full text-center py-20 animate-[fade-in-up_0.5s_ease-out]">
-                                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--ui-accent)] to-purple-500 flex items-center justify-center mb-6 shadow-lg shadow-[var(--ui-accent)]/20">
-                                                <Users className="h-10 w-10 text-white" />
-                                            </div>
-                                            <h3 className="text-2xl font-bold text-[var(--ui-text)] mb-2">Welcome to Campus Plaza</h3>
-                                            <p className="text-[var(--ui-text-muted)] max-w-sm">
-                                                This is a public space for everyone at DYPU. Messages here automatically disappear after 48 hours.
-                                            </p>
+                                    let dateLabel = format(msgDate, 'MMMM d, yyyy');
+                                    if (isToday(msgDate)) dateLabel = 'Today';
+                                    else if (isYesterday(msgDate)) dateLabel = 'Yesterday';
+
+                                    const showMsgHeader = shouldShowHeader(
+                                        msg.senderId,
+                                        prev?.senderId,
+                                        msgDate,
+                                        prevDate
+                                    );
+
+                                    return (
+                                        <div key={msg.id}>
+                                            {/* Sticky Date Separator with Glassmorphic Badge Styling */}
+                                            {isDifferentDay && (
+                                                <div className="sticky top-2 z-10 flex justify-center my-3 pointer-events-none">
+                                                    <span className="px-3.5 py-1 rounded-full text-[11px] font-semibold tracking-wide bg-[var(--ui-bg-surface)]/80 backdrop-blur-xl border border-[var(--ui-border)]/70 text-[var(--ui-text-muted)] shadow-xs select-none">
+                                                        {dateLabel}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <MessageItem
+                                                msg={msg}
+                                                isMine={isMine}
+                                                showMsgHeader={showMsgHeader}
+                                                currentUserId={user?.uid ?? ''}
+                                                replyToMsg={msg.replyToId ? messageMap.get(msg.replyToId) : null}
+                                                editingMessageId={editingMessageId}
+                                                editValue={editingMessageId === msg.id ? editValue : undefined}
+                                                setEditValue={setEditValue}
+                                                onStartEdit={handleStartEdit}
+                                                onSaveEdit={handleSaveEdit}
+                                                onCancelEdit={handleCancelEdit}
+                                                onDelete={handleDelete}
+                                                onReply={handleStartReply}
+                                                onReact={handleReact}
+                                                onAvatarClick={handleAvatarClick}
+                                            />
                                         </div>
-                                    )}
-                                </>
-                            ),
-                            Footer: () => <div className="h-4" />
-                        }}
-                    />
-                )}
+                                    );
+                                }}
+                                components={{
+                                    Header: () => (
+                                        <>
+                                            {optimisticMessages.length === 0 && (
+                                                <div className="flex flex-col items-center justify-center h-full text-center py-20 animate-[fade-in-up_0.5s_ease-out]">
+                                                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--ui-accent)] to-purple-500 flex items-center justify-center mb-6 shadow-lg shadow-[var(--ui-accent)]/20">
+                                                        <Users className="h-10 w-10 text-white" />
+                                                    </div>
+                                                    <h3 className="text-2xl font-bold text-[var(--ui-text)] mb-2">Welcome to Campus Plaza</h3>
+                                                    <p className="text-[var(--ui-text-muted)] max-w-sm">
+                                                        This is a public space for everyone at DYPU. Messages here automatically disappear after 48 hours.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </>
+                                    ),
+                                    Footer: () => <div className="h-4" />
+                                }}
+                            />
 
+                            {/* Floating 'Jump to Bottom' scroll button with unread count badge & smooth spring */}
+                            <AnimatePresence>
+                                {!isAtBottom && (
+                                    <motion.button
+                                        initial={{ opacity: 0, scale: 0.8, y: 16 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.8, y: 16 }}
+                                        transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                                        onClick={handleJumpToBottom}
+                                        className="absolute bottom-4 right-6 z-30 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[var(--ui-bg-surface)]/90 hover:bg-[var(--ui-bg-surface)] text-[var(--ui-text)] border border-[var(--ui-border)] shadow-xl backdrop-blur-xl transition-all cursor-pointer group select-none"
+                                        aria-label="Jump to bottom"
+                                    >
+                                        <ChevronDown className="w-4 h-4 text-[var(--ui-accent)] group-hover:translate-y-0.5 transition-transform" />
+                                        <span className="text-xs font-bold">Latest</span>
+                                        {unreadCount > 0 && (
+                                            <span className="inline-flex items-center justify-center px-1.5 py-0.5 min-w-[18px] text-[10px] font-bold rounded-full bg-[var(--ui-accent)] text-white shadow-xs">
+                                                {unreadCount > 99 ? '99+' : unreadCount}
+                                            </span>
+                                        )}
+                                    </motion.button>
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Sticky input area */}
                 <div className="shrink-0 bg-gradient-to-t from-[var(--ui-bg-base)] via-[var(--ui-bg-base)]/80 to-transparent sticky bottom-0 z-20">
                     <div className="max-w-3xl mx-auto transition-all duration-300">
                         <div className="px-4 pb-1 flex justify-center">
-                            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--ui-accent-dim)] text-[var(--ui-accent)] border border-[var(--ui-accent)]/20 shadow-xs">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--ui-accent-dim)] text-[var(--ui-accent)] border border-[var(--ui-accent)]/20 shadow-xs select-none">
                                 📢 Campus Plaza • Public broadcast to all students (48h auto-expire)
                             </span>
                         </div>

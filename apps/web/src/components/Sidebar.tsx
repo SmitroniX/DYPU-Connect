@@ -92,31 +92,39 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                     )}
                 >
                     {isActive && (
-                        <motion.div
-                            layoutId="sidebar-active-pill"
-                            className="absolute inset-0 bg-gradient-to-r from-[var(--ui-accent)] to-blue-600 rounded-xl"
-                            initial={false}
-                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                        />
+                        <>
+                            <motion.div
+                                layoutId="sidebar-active-pill"
+                                className="absolute inset-0 bg-gradient-to-r from-[var(--ui-accent)] to-blue-600 rounded-xl shadow-[0_4px_16px_var(--ui-accent-dim),inset_0_1px_1px_rgba(255,255,255,0.35)]"
+                                initial={false}
+                                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                            />
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--ui-accent)] to-blue-600 rounded-xl blur-sm opacity-25 -z-10 pointer-events-none" />
+                        </>
                     )}
                     <item.icon 
                         className={clsx(
-                            'relative z-10 h-[18px] w-[18px] shrink-0 transition-transform duration-300 group-hover:scale-110', 
+                            'relative z-10 h-[18px] w-[18px] shrink-0 transition-transform duration-300 group-hover:scale-110 group-active:scale-95', 
                             isActive ? 'text-white drop-shadow-sm' : 'text-[var(--ui-text-muted)] group-hover:text-[var(--ui-accent)]'
                         )} 
                     />
-                    <span className="relative z-10 truncate flex-1 tracking-tight">{item.name}</span>
+                    <span className={clsx(
+                        'relative z-10 truncate flex-1 tracking-tight transition-colors duration-200',
+                        isActive ? 'text-white font-semibold' : 'group-hover:text-[var(--ui-text)]'
+                    )}>
+                        {item.name}
+                    </span>
                     
                     {badgeCount > 0 && (
                         <span className={clsx(
-                            'relative z-10 inline-flex items-center justify-center h-5 min-w-5 rounded-full px-1.5 text-[10px] font-bold shrink-0 shadow-sm transition-all',
-                            isActive ? 'bg-white/20 text-white backdrop-blur-md' : 'bg-[var(--ui-accent)] text-white'
+                            'relative z-10 inline-flex items-center justify-center h-5 min-w-5 rounded-full px-1.5 text-[10px] font-bold shrink-0 shadow-sm transition-all badge-bounce',
+                            isActive ? 'bg-white/25 text-white backdrop-blur-md border border-white/20' : 'bg-[var(--ui-accent)] text-white shadow-sm shadow-[var(--ui-accent-dim)]'
                         )}>
                             {badgeCount > 99 ? '99+' : badgeCount}
                         </span>
                     )}
                     {isActive && badgeCount === 0 && (
-                        <div className="relative z-10 h-1.5 w-1.5 rounded-full bg-white opacity-60 shrink-0 shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                        <div className="relative z-10 h-1.5 w-1.5 rounded-full bg-white opacity-70 shrink-0 shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
                     )}
                 </Link>
             </li>
@@ -157,8 +165,11 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                         >
                             <Bell className="h-4 w-4 group-hover:scale-110 transition-transform" />
                             {unreadCount > 0 && (
-                                <span className="absolute -top-1 -right-1 flex items-center justify-center h-4.5 min-w-[18px] rounded-full bg-red-500 px-1 text-[9px] font-black text-white ring-2 ring-[var(--ui-bg-base)] shadow-sm animate-pulse">
-                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                <span className="absolute -top-1 -right-1 flex h-4.5 min-w-[18px]">
+                                    <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping" />
+                                    <span className="relative inline-flex items-center justify-center h-4.5 min-w-[18px] rounded-full bg-red-500 px-1 text-[9px] font-black text-white ring-2 ring-[var(--ui-bg-base)] shadow-sm">
+                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                    </span>
                                 </span>
                             )}
                         </button>
@@ -193,33 +204,46 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 ))}
             </nav>
 
-            {/* User panel */}
+            {/* User footer card */}
             {userProfile && (
-                <div className="p-4">
-                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] shadow-sm">
+                <div className="p-3.5 mt-auto">
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--ui-bg-surface)]/75 dark:bg-zinc-900/60 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.2)] dark:shadow-[0_12px_28px_-6px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:border-[var(--ui-accent)]/30 transition-all duration-300">
                         <div className="relative shrink-0">
                             <img
-                                className="h-9 w-9 rounded-xl object-cover object-center ring-1 ring-[var(--ui-border)] shadow-sm"
+                                className="h-9 w-9 rounded-xl object-cover object-center ring-1 ring-white/20 dark:ring-white/10 shadow-sm"
                                 src={userProfile.profileImage}
-                                alt=""
+                                alt={userProfile.name || 'User avatar'}
                             />
-                            <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-[var(--ui-bg-surface)] shadow-sm" />
+                            {/* Online presence green dot with pulsing halo */}
+                            <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center">
+                                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-2 ring-[var(--ui-bg-surface)] dark:ring-zinc-900 shadow-sm" />
+                            </span>
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-bold text-[var(--ui-text)] truncate">
+                            <p className="text-[13px] font-bold text-[var(--ui-text)] truncate tracking-tight">
                                 {userProfile.name.split(' ')[0]}
                             </p>
                             <p className="text-[11px] font-medium text-[var(--ui-text-muted)] truncate">
-                                {userProfile.field}
+                                {userProfile.field || 'Student'}
                             </p>
                         </div>
-                        <button
-                            onClick={logout}
-                            className="p-2 text-[var(--ui-text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
-                            title="Logout"
-                        >
-                            <LogOut className="h-4 w-4" />
-                        </button>
+                        <div className="relative group/logout shrink-0">
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={logout}
+                                className="p-2 text-[var(--ui-text-muted)] hover:text-red-500 hover:bg-red-500/10 dark:hover:bg-red-500/15 rounded-xl transition-all duration-200 focus:outline-none"
+                                aria-label="Log out"
+                            >
+                                <LogOut className="h-4 w-4 transition-transform group-hover/logout:translate-x-0.5" />
+                            </motion.button>
+                            {/* Sleek Tooltip */}
+                            <div className="pointer-events-none absolute bottom-full right-0 mb-2 hidden group-hover/logout:flex items-center px-2 py-1 text-[11px] font-semibold text-white bg-zinc-900/90 dark:bg-zinc-800/95 backdrop-blur-md rounded-lg shadow-xl border border-white/10 whitespace-nowrap z-50">
+                                Log out
+                                <span className="absolute top-full right-3 border-4 border-transparent border-t-zinc-900/90 dark:border-t-zinc-800/95" />
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

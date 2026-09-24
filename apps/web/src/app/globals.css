@@ -177,6 +177,17 @@ body {
   50% { opacity: 0.9; transform: scale(1.08); }
 }
 
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.4); opacity: 0; }
+  100% { transform: scale(0.95); opacity: 0; }
+}
+
+@keyframes subtle-badge-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
 @keyframes skeleton-shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
@@ -239,6 +250,82 @@ body {
   border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+}
+
+.glass-dock {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.7);
+}
+
+.dark .glass-dock {
+  background: rgba(9, 9, 11, 0.72);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.glass-card {
+  background: var(--ui-bg-surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--ui-border);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  border-radius: 1rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-interactive {
+  background: var(--ui-bg-surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--ui-border);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  border-radius: 1rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-interactive:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.1), 0 0 24px var(--ui-accent-dim);
+}
+
+.dark .glass-card-interactive:hover {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 28px var(--ui-accent-dim);
+}
+
+.active-pill-glow {
+  box-shadow: 0 0 20px -2px var(--ui-accent), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.pulse-halo {
+  animation: pulse-ring 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.badge-bounce {
+  animation: subtle-badge-bounce 2.6s ease-in-out infinite;
+}
+
+.mesh-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.mesh-glow::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, var(--ui-accent-dim) 0%, transparent 65%);
+  pointer-events: none;
+  opacity: 0.6;
+  z-index: 0;
 }
 
 /* Button Styles */
@@ -368,6 +455,8 @@ body {
   .animate-spin,
   .animate-pulse,
   .animate-bounce,
+  .pulse-halo,
+  .badge-bounce,
   [class*="animate-"] {
     animation: none !important;
     transform: none !important;

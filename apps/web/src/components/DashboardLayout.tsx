@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 import { AlertCircle, Info, Menu, X, Zap, Bell, Search, Home, MessageCircle, Users, User } from 'lucide-react';
@@ -62,26 +62,41 @@ function AnnouncementBanner() {
     }, [userProfile?.field, userProfile?.year, user?.uid, user]);
 
     const visible = announcements.filter(a => !dismissed.has(a.id));
-    if (visible.length === 0) return null;
 
     return (
         <div className="shrink-0 space-y-0 relative z-[60]">
-            {visible.map(ann => {
-                const style = PRIORITY_STYLES[ann.priority] || PRIORITY_STYLES.info;
-                const PIcon = style.icon;
-                return (
-                    <div key={ann.id} className={`flex items-center gap-3 px-4 py-2.5 border-b ${style.bg}`}>
-                        <PIcon className={`h-4 w-4 shrink-0 ${style.iconColor}`} />
-                        <div className="flex-1 min-w-0">
-                            <span className={`text-sm font-semibold ${style.text}`}>{ann.title}</span>
-                            <span className="text-sm text-[var(--ui-text-muted)] ml-2 truncate">{ann.body}</span>
-                        </div>
-                        <button onClick={() => setDismissed(prev => new Set(prev).add(ann.id))} aria-label="Dismiss announcement" className="p-1 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] shrink-0">
-                            <X className="h-3.5 w-3.5" />
-                        </button>
-                    </div>
-                );
-            })}
+            <AnimatePresence initial={false}>
+                {visible.map(ann => {
+                    const style = PRIORITY_STYLES[ann.priority] || PRIORITY_STYLES.info;
+                    const PIcon = style.icon;
+                    return (
+                        <motion.div
+                            key={ann.id}
+                            initial={{ opacity: 0, height: 0, y: -10 }}
+                            animate={{ opacity: 1, height: 'auto', y: 0 }}
+                            exit={{ opacity: 0, height: 0, y: -10 }}
+                            transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                            className="overflow-hidden"
+                        >
+                            <div className={`flex items-center gap-3 px-4 py-2.5 border-b backdrop-blur-md ${style.bg}`}>
+                                <PIcon className={`h-4 w-4 shrink-0 ${style.iconColor}`} />
+                                <div className="flex-1 min-w-0">
+                                    <span className={`text-sm font-semibold ${style.text}`}>{ann.title}</span>
+                                    <span className="text-sm text-[var(--ui-text-muted)] ml-2 truncate">{ann.body}</span>
+                                </div>
+                                <motion.button
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => setDismissed(prev => new Set(prev).add(ann.id))}
+                                    aria-label="Dismiss announcement"
+                                    className="p-1 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-black/5 dark:hover:bg-white/5 rounded-lg shrink-0 transition-colors"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    );
+                })}
+            </AnimatePresence>
         </div>
     );
 }
@@ -115,84 +130,116 @@ function PushPromptBanner() {
         localStorage.setItem('pushPromptDismissed', 'true');
     };
 
-    if (!visible) return null;
-
     return (
-        <div className="shrink-0 space-y-0 relative shadow-sm z-[60]">
-            <div className="flex items-center gap-3 px-4 py-3 bg-[var(--ui-accent-dim)] border-b border-[var(--ui-accent-dim)]">
-                <Bell className="h-5 w-5 shrink-0 text-[var(--ui-accent)]" />
-                <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center">
-                    <span className="text-sm font-semibold text-[var(--ui-text)]">Enable Push Notifications</span>
-                    <span className="text-[13px] text-[var(--ui-text-muted)] sm:ml-2 truncate hidden sm:block">Stay up to date with messages and mentions.</span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                    <button 
-                        onClick={handleEnable} 
-                        className="px-3 py-1.5 bg-[var(--ui-accent)] text-[var(--ui-text)] font-medium rounded-full text-[13px] hover:brightness-110 transition-all shadow-sm"
-                    >
-                        Allow
-                    </button>
-                    <button onClick={handleDismiss} aria-label="Dismiss notification prompt" className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-elevated)] rounded-full shrink-0 transition-colors">
-                        <X className="h-4 w-4" />
-                    </button>
-                </div>
-            </div>
-        </div>
+        <AnimatePresence>
+            {visible && (
+                <motion.div
+                    initial={{ opacity: 0, height: 0, y: -12 }}
+                    animate={{ opacity: 1, height: 'auto', y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -12 }}
+                    transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                    className="overflow-hidden shrink-0 space-y-0 relative shadow-sm z-[60]"
+                >
+                    <div className="flex items-center gap-3 px-4 py-3 bg-[var(--ui-accent-dim)] backdrop-blur-md border-b border-[var(--ui-accent-dim)]">
+                        <Bell className="h-5 w-5 shrink-0 text-[var(--ui-accent)] animate-pulse" />
+                        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center">
+                            <span className="text-sm font-semibold text-[var(--ui-text)]">Enable Push Notifications</span>
+                            <span className="text-[13px] text-[var(--ui-text-muted)] sm:ml-2 truncate hidden sm:block">Stay up to date with messages and mentions.</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <motion.button 
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.94 }}
+                                onClick={handleEnable} 
+                                className="px-3.5 py-1.5 bg-[var(--ui-accent)] text-white font-medium rounded-full text-[13px] hover:brightness-110 transition-all shadow-sm"
+                            >
+                                Allow
+                            </motion.button>
+                            <motion.button 
+                                whileTap={{ scale: 0.9 }}
+                                onClick={handleDismiss} 
+                                aria-label="Dismiss notification prompt" 
+                                className="p-1.5 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-elevated)] rounded-full shrink-0 transition-colors"
+                            >
+                                <X className="h-4 w-4" />
+                            </motion.button>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }
 
 function MobileBottomNav() {
     const pathname = usePathname();
+    const { unreadMessagesCount, unreadGroupsCount } = useStore();
 
     const navItems = [
-        { name: 'Home', href: '/', icon: Home },
-        { name: 'Messages', href: '/messages', icon: MessageCircle },
-        { name: 'Groups', href: '/groups', icon: Users },
-        { name: 'Profile', href: '/profile', icon: User },
+        { name: 'Home', href: '/', icon: Home, badge: 0 },
+        { name: 'Messages', href: '/messages', icon: MessageCircle, badge: unreadMessagesCount },
+        { name: 'Groups', href: '/groups', icon: Users, badge: unreadGroupsCount },
+        { name: 'Profile', href: '/profile', icon: User, badge: 0 },
     ];
 
     return (
         <nav 
-            className="lg:hidden fixed left-1/2 -translate-x-1/2 z-[100] w-[88%] max-w-[340px] bg-[var(--ui-bg-surface)]/65 dark:bg-zinc-950/65 backdrop-blur-2xl backdrop-saturate-150 rounded-full border border-white/20 dark:border-white/10 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(255,255,255,0.2)] overflow-hidden"
+            className="lg:hidden fixed left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[340px] h-[50px] bg-white/70 dark:bg-zinc-950/70 backdrop-blur-2xl backdrop-saturate-180 rounded-full border border-white/20 dark:border-white/10 shadow-2xl px-1.5 select-none"
             style={{ bottom: 'calc(0.75rem + var(--safe-bottom))' }}
+            role="navigation"
+            aria-label="Mobile navigation"
         >
             {/* Subtle top glare highlight */}
-            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/35 dark:via-white/20 to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 dark:via-white/20 to-transparent pointer-events-none rounded-full" />
             
-            <div className="flex items-center justify-between h-[56px] px-2 sm:px-3">
+            <div className="flex items-center justify-around h-full">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
                     return (
                         <Link 
                             key={item.name} 
                             href={item.href}
-                            className={clsx(
-                                "relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-all duration-300",
-                                isActive ? "text-[var(--ui-text)]" : "text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]"
-                            )}
+                            className="relative flex-1 h-full flex items-center justify-center no-underline"
+                            aria-label={item.name}
                         >
-                            <div className={clsx("relative flex items-center justify-center px-3.5 py-1 rounded-full z-10 transition-all duration-300", isActive ? "text-white" : "")}>
+                            <motion.div
+                                whileTap={{ scale: 0.92 }}
+                                transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                                className={clsx(
+                                    "relative flex flex-col items-center justify-center w-full h-[42px] rounded-full transition-colors duration-200",
+                                    isActive ? "text-white" : "text-[var(--ui-text-muted)] hover:text-[var(--ui-text)]"
+                                )}
+                            >
                                 {isActive && (
                                     <motion.div
                                         layoutId="nav-pill-mobile"
-                                        className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--ui-accent)] to-indigo-600 shadow-[0_4px_16px_rgba(59,130,246,0.4),inset_0_1px_1px_rgba(255,255,255,0.35)] border border-white/20 -z-10"
+                                        className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--ui-accent)] to-blue-600 shadow-[0_4px_14px_rgba(99,102,241,0.45),inset_0_1px_1px_rgba(255,255,255,0.35)] border border-white/20 -z-10"
                                         transition={{ type: "spring", stiffness: 450, damping: 32 }}
                                     />
                                 )}
-                                <item.icon 
-                                    className={clsx(
-                                        "w-[18px] h-[18px] transition-transform duration-300 relative z-10",
-                                        isActive ? "scale-105 drop-shadow-sm" : ""
-                                    )} 
-                                    strokeWidth={isActive ? 2.5 : 2}
-                                />
-                            </div>
-                            <span className={clsx(
-                                "text-[9px] tracking-wider uppercase transition-all duration-300 leading-tight",
-                                isActive ? "font-bold text-[var(--ui-text)]" : "font-medium"
-                            )}>
-                                {item.name}
-                            </span>
+                                <div className="relative flex items-center justify-center">
+                                    <item.icon 
+                                        className={clsx(
+                                            "w-[18px] h-[18px] transition-transform duration-200",
+                                            isActive ? "scale-105 drop-shadow-sm text-white" : ""
+                                        )} 
+                                        strokeWidth={isActive ? 2.5 : 2}
+                                    />
+                                    {/* Unread notification dot badge */}
+                                    {item.badge > 0 && (
+                                        <span className="absolute -top-1 -right-1.5 flex h-2.5 w-2.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 ring-2 ring-white dark:ring-zinc-950" />
+                                        </span>
+                                    )}
+                                </div>
+                                <span className={clsx(
+                                    "text-[9px] tracking-tight leading-none mt-0.5",
+                                    isActive ? "font-bold text-white" : "font-medium"
+                                )}>
+                                    {item.name}
+                                </span>
+                            </motion.div>
                         </Link>
                     );
                 })}
@@ -221,6 +268,7 @@ export default function DashboardLayout({
         setNotificationPanelOpen,
         setSearchModalOpen
     } = useStore();
+    const shouldReduceMotion = useReducedMotion();
     const prevUnreadRef = useRef(0);
     const prevUnreadMsgRef = useRef(0);
     const prevUnreadGroupRef = useRef(0);
@@ -365,29 +413,41 @@ export default function DashboardLayout({
                 <div className="flex-1 flex flex-col lg:pl-[260px] h-full overflow-hidden">
                     {/* Header bar (consistent across platforms) */}
                     <header 
-                        className={clsx("items-center justify-between bg-[var(--ui-bg-base)]/50 backdrop-blur-xl border-b border-[var(--ui-border)] px-3 sm:px-6 shrink-0 relative z-[70]", isSpecificChat ? 'hidden lg:flex' : 'flex')}
+                        className={clsx(
+                            "items-center justify-between bg-[var(--ui-bg-base)]/60 backdrop-blur-xl border-b border-[var(--ui-border)]/70 px-3 sm:px-6 shrink-0 relative z-[70] shadow-[0_2px_16px_rgba(0,0,0,0.03)] dark:shadow-[0_2px_20px_rgba(0,0,0,0.2)] transition-colors", 
+                            isSpecificChat ? 'hidden lg:flex' : 'flex'
+                        )}
                         style={{ minHeight: 'calc(3.75rem + var(--safe-top))', paddingTop: 'var(--safe-top)' }}
                     >
                         <div className="flex items-center gap-3">
-                            <button
+                            <motion.button
+                                whileTap={{ scale: 0.92 }}
                                 onClick={() => setSidebarOpen(true)}
-                                className="lg:hidden p-2 -ml-2 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] active:scale-95 transition-all"
+                                className="lg:hidden p-2 -ml-2 text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] rounded-xl transition-all"
                                 aria-label="Open sidebar"
                             >
                                 <Menu className="h-5 w-5" />
-                            </button>
-                            <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                                    <span className="text-[var(--ui-text)] text-xs font-black">C</span>
-                                </div>
-                                <span className="text-[15px] font-bold text-[var(--ui-text)] tracking-tight hidden sm:block">DYPU Connect</span>
-                            </div>
+                            </motion.button>
+                            <Link href="/" className="flex items-center gap-2.5 group no-select">
+                                <motion.div 
+                                    whileHover={{ scale: 1.08, rotate: 3 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                                    className="h-8 w-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:shadow-indigo-500/40"
+                                >
+                                    <span className="text-white text-xs font-black">C</span>
+                                </motion.div>
+                                <span className="text-[15px] font-bold text-[var(--ui-text)] tracking-tight hidden sm:block group-hover:text-[var(--ui-accent)] transition-colors">
+                                    DYPU Connect
+                                </span>
+                            </Link>
                         </div>
                         
-<div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             <ThemeToggle />
                             <motion.button
-                                whileTap={{ scale: 0.95 }}
+                                whileTap={{ scale: 0.92 }}
+                                whileHover={{ scale: 1.04 }}
                                 onClick={() => setSearchModalOpen(true)}
                                 className="p-2 rounded-xl text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-all"
                                 aria-label="Search"
@@ -396,14 +456,18 @@ export default function DashboardLayout({
                             </motion.button>
                             <div className="relative">
                                 <motion.button
-                                    whileTap={{ scale: 0.95 }}
+                                    whileTap={{ scale: 0.92 }}
+                                    whileHover={{ scale: 1.04 }}
                                     onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
                                     className="relative p-2 rounded-xl text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-all"
-                                    aria-label="Notifications"
+                                    aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
                                 >
                                     <Bell className="h-5 w-5" />
                                     {unreadCount > 0 && (
-                                        <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[var(--ui-bg-base)]" />
+                                        <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 ring-2 ring-[var(--ui-bg-base)]" />
+                                        </span>
                                     )}
                                 </motion.button>
                                 <NotificationPanel align="header" />
@@ -424,11 +488,15 @@ export default function DashboardLayout({
                         <AnimatePresence mode="wait" initial={false}>
                             <motion.div
                                 key={pathname}
-                                initial={{ opacity: 0, y: 10 }}
+                                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.2 }}
-                                className="h-full"
+                                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                                transition={
+                                    shouldReduceMotion
+                                        ? { duration: 0.05 }
+                                        : { type: "spring", stiffness: 380, damping: 28, mass: 0.8 }
+                                }
+                                className="h-full w-full"
                             >
                                 {children}
                             </motion.div>

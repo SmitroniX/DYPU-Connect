@@ -7,14 +7,14 @@ import { doc, getDoc, setDoc, deleteDoc, updateDoc, increment, serverTimestamp, 
 import { useAuth } from '@/components/AuthProvider';
 import {
     Heart, MessageCircle, Ghost, Clock, Quote,
-    Share2, Camera, MoreVertical, Flag, Download, X
+    Share2, Camera, MoreVertical, Flag, Download, X, Check
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
 import { filterProfanity } from '@/lib/security';
 import { shareToAndroid, isAndroidApp, shareImageToAndroid, saveImageToAndroid } from '@/lib/android';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ConfessionCardProps {
     confession: Confession;
@@ -36,6 +36,7 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
     const [showMoreMenu, setShowMoreMenu] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
     const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
     
     const mood = getMood(confession.mood);
     const gradient = confession.mood ? mood.gradient : cardGradient(confession.id);
@@ -106,9 +107,7 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
         const text = `"${filtered.slice(0, 100)}${filtered.length > 100 ? '…' : ''}" — Read this confession on DYPU Connect!`;
         
         if (isAndroidApp()) {
-            shareToAndroid(`${text}
-
-${url}`, 'DYPU Connect Confession');
+            shareToAndroid(`${text}\n\n${url}`, 'DYPU Connect Confession');
             return;
         }
 
@@ -117,15 +116,17 @@ ${url}`, 'DYPU Connect Confession');
                 await navigator.share({ title: 'DYPU Connect Confession', text, url });
                 return;
             } catch (error) { 
-                console.log(error);
+                if (error instanceof Error && error.name !== 'AbortError') {
+                    console.log(error);
+                }
             }
         }
         
         try {
-            await navigator.clipboard.writeText(`${text}
-
-${url}`);
-            toast.success('Link and text copied to clipboard!');
+            await navigator.clipboard.writeText(`${text}\n\n${url}`);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+            toast.success('Link copied to clipboard!');
         } catch {
             toast.error('Failed to copy link');
         }
@@ -292,35 +293,41 @@ ${url}`);
     const CardContent = (
         <article
             ref={cardRef}
-            className={`group relative rounded-2xl sm:rounded-3xl border ${borderColor} bg-[var(--ui-bg-surface)] overflow-hidden transition-all duration-300 hover:border-[var(--ui-accent)]/40 hover:shadow-xl hover:shadow-[var(--ui-accent)]/10 hover:-translate-y-0.5`}
+            className={`group relative rounded-2xl sm:rounded-3xl border ${borderColor} bg-[var(--ui-bg-surface)]/85 backdrop-blur-md overflow-hidden transition-all duration-300 hover:border-[var(--ui-accent)]/50 hover:shadow-xl hover:shadow-[var(--ui-accent)]/10 hover:-translate-y-0.5`}
         >
-            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity`} />
+            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} pointer-events-none opacity-75 group-hover:opacity-100 transition-opacity`} />
 
-            <div className="relative p-4 sm:p-6 sm:p-7 flex flex-col h-full">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-2">
+            <div className="relative p-5 sm:p-7 flex flex-col h-full">
+                {/* Header: Author & Mood badge + Time & Actions */}
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2 flex-wrap">
                         {confession.mood ? (
-                            <span className={`inline-flex items-center gap-1.5 rounded-full ${mood.bg} px-3 py-1 text-[12px] font-bold tracking-wide ${mood.accent}`}>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full ${mood.bg} border ${borderColor} px-3 py-1 text-[11px] font-extrabold tracking-wide ${mood.accent} shadow-sm backdrop-blur-sm`}>
                                 {mood.label}
                             </span>
                         ) : (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--ui-accent)]/10 px-3 py-1 text-[12px] font-bold tracking-wide text-[var(--ui-accent)]">
-                                <Ghost className="h-3.5 w-3.5" /> Anonymous
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--ui-accent)]/10 border border-[var(--ui-accent)]/20 px-3 py-1 text-[11px] font-extrabold tracking-wide text-[var(--ui-accent)] shadow-sm">
+                                <Ghost className="h-3 w-3" /> Anonymous
                             </span>
                         )}
+
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--ui-bg-elevated)]/80 border border-[var(--ui-border)] px-2.5 py-1 text-[11px] font-bold text-[var(--ui-text-secondary)] shadow-sm backdrop-blur-sm">
+                            <Ghost className="h-3 w-3 text-[var(--ui-accent)]" />
+                            <span>{confession.anonymousName}</span>
+                        </span>
                     </div>
                     
-                    <div className="flex items-center gap-3">
-                        <span className="text-xs font-medium text-[var(--ui-text-muted)] flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5" />
+                    <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[11px] font-medium text-[var(--ui-text-muted)] flex items-center gap-1 bg-[var(--ui-bg-elevated)]/60 px-2 py-0.5 rounded-md border border-[var(--ui-border)]/50">
+                            <Clock className="h-3 w-3" />
                             {timeAgo}
                         </span>
                         
                         <div className="relative more-menu-container">
                             <button 
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowMoreMenu(!showMoreMenu); }}
-                                className="p-1 -mr-1 rounded-full text-[var(--ui-text-muted)] hover:bg-[var(--ui-bg-hover)] transition-colors active:scale-95"
+                                className="p-1 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] transition-colors active:scale-95"
+                                title="More options"
                             >
                                 <MoreVertical className="h-4 w-4" />
                             </button>
@@ -335,7 +342,6 @@ ${url}`);
                                         >
                                             <Flag className="h-4 w-4" /> Report
                                         </button>
-                                        {/* If we had client-side deletion access we would add it here */}
                                     </div>
                                 </>
                             )}
@@ -343,48 +349,56 @@ ${url}`);
                     </div>
                 </div>
 
-                <Quote className="h-8 w-8 text-[var(--ui-accent)]/20 mb-3" />
+                <Quote className="h-7 w-7 text-[var(--ui-accent)]/20 mb-2.5 shrink-0" />
 
-                <p className="text-[16px] sm:text-[17px] leading-relaxed text-[var(--ui-text)] whitespace-pre-wrap break-words font-medium flex-1">
+                {/* Confession text */}
+                <p className="text-[15px] sm:text-[16px] leading-relaxed text-[var(--ui-text)] whitespace-pre-wrap break-words font-medium flex-1">
                     {filterProfanity(confession.text)}
                 </p>
 
-                <div className="mt-6 flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-[var(--ui-accent)]/15 flex items-center justify-center text-[var(--ui-accent)] text-xs font-bold shadow-sm">
-                        {confession.anonymousName.charAt(0)}
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-[13px] font-bold text-[var(--ui-text)]">
-                            {confession.anonymousName}
-                        </span>
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--ui-text-muted)]">
-                            DYPU Connect
-                        </span>
+                {/* Bottom author signature */}
+                <div className="mt-5 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-[var(--ui-accent)]/20 to-[var(--ui-accent)]/5 border border-[var(--ui-accent)]/30 flex items-center justify-center text-[var(--ui-accent)] text-xs font-black shadow-sm">
+                            {confession.anonymousName.charAt(0)}
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold text-[var(--ui-text)]">
+                                {confession.anonymousName}
+                            </span>
+                            <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--ui-text-muted)]">
+                                DYPU Connect • Encrypted
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="h-px bg-[var(--ui-divider)] my-5" data-html2canvas-ignore />
+                <div className="h-px bg-[var(--ui-divider)] my-4" data-html2canvas-ignore />
 
-                {/* Actions */}
+                {/* Actions: Spring Pop Like Button, Comments, Snap, Share */}
                 <div className="flex items-center justify-between" data-html2canvas-ignore>
-                    <div className="flex items-center gap-1 sm:gap-2">
-                        <button
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                        {/* Like Button with spring pop micro-interaction */}
+                        <motion.button
                             onClick={handleLike}
-                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all active:scale-95 ${
+                            whileTap={{ scale: 0.85 }}
+                            transition={{ type: "spring", stiffness: 450, damping: 15 }}
+                            className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-sm ${
                                 isLiked 
-                                ? 'text-pink-500 bg-pink-500/15' 
-                                : 'text-[var(--ui-text-muted)] hover:text-pink-400 hover:bg-pink-500/10'
+                                ? 'text-pink-500 bg-pink-500/15 border border-pink-500/30' 
+                                : 'text-[var(--ui-text-muted)] hover:text-pink-400 hover:bg-pink-500/10 border border-transparent'
                             }`}
                         >
                             <motion.div
-                                animate={isLiked ? { scale: [1, 1.4, 1], rotate: [0, -10, 10, 0] } : {}}
-                                transition={{ duration: 0.4, type: "spring" }}
+                                animate={isLiked ? { scale: [1, 1.35, 1], rotate: [0, -10, 10, 0] } : { scale: 1, rotate: 0 }}
+                                transition={{ duration: 0.35, type: "spring", stiffness: 400, damping: 15 }}
                             >
-                                <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
+                                <Heart className={`h-4 w-4 transition-colors ${isLiked ? 'fill-pink-500 text-pink-500' : ''}`} />
                             </motion.div>
                             <span>{likesCount}</span>
-                        </button>
+                        </motion.button>
                         
+                        {/* Comments button */}
                         <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-[var(--ui-text-muted)] hover:text-blue-400 hover:bg-blue-500/10 transition-all active:scale-95 cursor-pointer">
                             <MessageCircle className="h-4 w-4" />
                             <span>{commentsCount}</span>
@@ -392,41 +406,52 @@ ${url}`);
                     </div>
                     
                     <div className="flex items-center gap-1 sm:gap-1.5">
-                        <button
+                        {/* Snap Button */}
+                        <motion.button
                             onClick={handleScreenshot}
-                            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-indigo-400 hover:bg-indigo-500/10 transition-all active:scale-95 flex items-center gap-1.5"
-                            title="Snapshot"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-indigo-400 hover:bg-indigo-500/10 transition-all flex items-center gap-1.5"
+                            title="Generate snapshot card"
                         >
                             <Camera className="h-4 w-4" />
                             <span className="text-[11px] font-bold uppercase tracking-wider hidden sm:block">Snap</span>
-                        </button>
-                        <button
+                        </motion.button>
+
+                        {/* Share Button */}
+                        <motion.button
                             onClick={handleShare}
-                            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] hover:bg-[var(--ui-accent)]/10 transition-all active:scale-95"
-                            title="Share"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="p-2 rounded-full text-[var(--ui-text-muted)] hover:text-[var(--ui-accent)] hover:bg-[var(--ui-accent)]/10 transition-all"
+                            title="Share link"
                         >
-                            <Share2 className="h-4 w-4" />
-                        </button>
+                            {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Share2 className="h-4 w-4" />}
+                        </motion.button>
                     </div>
                 </div>
             </div>
-            
-            </article>
+        </article>
     );
 
-    
-    
-    const reportModal = (
-        <>
-            {/* Snapshot Modal */}
+    const modals = (
+        <AnimatePresence>
+            {/* Snapshot Modal with smooth backdrop blur and scale-in spring */}
             {snapshotUrl && (
-                <div 
-                    className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md animate-[fade-in_0.2s_ease-out] overflow-y-auto"
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto"
                     style={{ paddingTop: 'max(var(--safe-top), 16px)', paddingBottom: 'max(var(--safe-bottom), 16px)' }}
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSnapshotUrl(null); }}
                 >
-                    <div 
-                        className="w-full max-w-sm my-auto flex flex-col items-center gap-3 animate-[scale-in_0.2s_ease-out]" 
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9, y: 12 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.94, y: 8 }}
+                        transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                        className="w-full max-w-sm my-auto flex flex-col items-center gap-3" 
                         onClick={e => e.stopPropagation()}
                     >
                         <div className="relative w-full flex justify-center">
@@ -444,38 +469,55 @@ ${url}`);
                             </button>
                         </div>
                         <div className="flex gap-2 w-full pt-1">
-                            <button 
+                            <motion.button 
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.96 }}
                                 onClick={handleSaveSnapshot}
-                                className="flex-1 py-2.5 px-4 rounded-xl bg-[var(--ui-accent)] text-white font-semibold shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                                className="flex-1 py-2.5 px-4 rounded-xl bg-[var(--ui-accent)] text-white font-bold shadow-lg hover:opacity-95 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
                             >
                                 <Download className="h-4 w-4" /> Save
-                            </button>
-                            <button 
+                            </motion.button>
+                            <motion.button 
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.96 }}
                                 onClick={handleShareSnapshot}
-                                className="flex-1 py-2.5 px-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] text-[var(--ui-text)] font-semibold hover:bg-[var(--ui-bg-hover)] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                                className="flex-1 py-2.5 px-4 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] text-[var(--ui-text)] font-bold hover:bg-[var(--ui-bg-hover)] transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
                             >
                                 <Share2 className="h-4 w-4" /> Share
-                            </button>
+                            </motion.button>
                         </div>
-                        <p className="text-[11px] text-white/60 text-center">Tap Save to store, or Share to send directly.</p>
-                    </div>
-                </div>
+                        <p className="text-[11px] text-white/70 text-center font-medium">Tap Save to store, or Share to send directly.</p>
+                    </motion.div>
+                </motion.div>
             )}
             
-            {/* Report Modal */}
+            {/* Report Modal with smooth backdrop blur and scale-in spring */}
             {showReportModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowReportModal(false); }}>
-                    <div className="bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-[scale-in_0.2s_ease-out]" onClick={e => e.stopPropagation()}>
-                        <div className="p-4 border-b border-[var(--ui-divider)]">
-                            <h3 className="font-bold text-[var(--ui-text)]">Report Confession</h3>
-                            <p className="text-xs text-[var(--ui-text-muted)] mt-1">Why are you reporting this?</p>
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" 
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowReportModal(false); }}
+                >
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.92, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 8 }}
+                        transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                        className="bg-[var(--ui-bg-surface)] border border-[var(--ui-border)] rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl" 
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="p-5 border-b border-[var(--ui-divider)]">
+                            <h3 className="font-extrabold text-[var(--ui-text)] text-base">Report Confession</h3>
+                            <p className="text-xs text-[var(--ui-text-muted)] mt-1 font-medium">Help keep DYPU-Connect safe. Why are you reporting this?</p>
                         </div>
-                        <div className="p-2">
+                        <div className="p-3 space-y-1">
                             {['Spam', 'Harassment', 'Offensive content', 'Personal information', 'Other'].map(reason => (
                                 <button
                                     key={reason}
                                     onClick={(e) => { e.preventDefault(); handleReport(reason); }}
-                                    className="w-full text-left px-4 py-3 text-sm font-medium text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] rounded-xl transition-colors"
+                                    className="w-full text-left px-4 py-2.5 text-sm font-semibold text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)] rounded-xl transition-colors"
                                 >
                                     {reason}
                                 </button>
@@ -484,16 +526,15 @@ ${url}`);
                         <div className="p-4 pt-2">
                             <button 
                                 onClick={(e) => { e.preventDefault(); setShowReportModal(false); }}
-                                className="w-full py-2.5 rounded-xl bg-[var(--ui-bg-elevated)] text-[var(--ui-text)] font-semibold hover:bg-[var(--ui-bg-hover)] transition-colors"
+                                className="w-full py-2.5 rounded-xl bg-[var(--ui-bg-elevated)] text-[var(--ui-text)] font-bold hover:bg-[var(--ui-bg-hover)] transition-colors text-sm"
                             >
                                 Cancel
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             )}
-        
-        </>
+        </AnimatePresence>
     );
 
     if (linkToDetail) {
@@ -502,7 +543,7 @@ ${url}`);
                 <Link href={`/confessions/${confession.id}`} className="block">
                     {CardContent}
                 </Link>
-                {reportModal}
+                {modals}
             </>
         );
     }
@@ -510,8 +551,7 @@ ${url}`);
     return (
         <>
             {CardContent}
-            {reportModal}
+            {modals}
         </>
     );
-
 }
