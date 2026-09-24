@@ -5,8 +5,6 @@ import {
     getRemainingCooldown,
     recordAuthLinkSent,
     checkAuthRateLimit,
-    AUTH_COOLDOWN_STORAGE_KEY,
-    AUTH_ATTEMPTS_STORAGE_KEY,
     MAX_AUTH_REQUESTS_PER_WINDOW,
     RESEND_COOLDOWN_SECONDS,
 } from './authValidation';

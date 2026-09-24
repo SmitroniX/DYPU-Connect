@@ -11,6 +11,7 @@ import { useStore } from '@/store/useStore';
 import { CheckSquare, EyeOff, MessageSquare, MessagesSquare, Search, Square, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { TableSkeleton } from '@/components/Skeleton';
 
 type ContentTab = 'confessions' | 'public_chat' | 'anonymous_chat';
 
@@ -203,10 +204,7 @@ export default function AdminContentPage() {
             {/* Content List */}
             <div className="surface overflow-hidden">
                 {loading ? (
-                    <div className="p-12 flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
-                        <p className="text-sm text-[var(--ui-text-muted)]">Loading content...</p>
-                    </div>
+                    <TableSkeleton rows={5} cols={5} bare />
                 ) : filteredItems.length === 0 ? (
                     <div className="p-12 text-center">
                         <p className="text-sm text-[var(--ui-text-muted)]">No content found.</p>

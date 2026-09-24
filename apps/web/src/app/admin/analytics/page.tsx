@@ -8,6 +8,7 @@ import { BarChart3, GraduationCap, RefreshCw, TrendingUp, Users, Calendar } from
 import toast from 'react-hot-toast';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart as RechartsBarChart, Bar, Legend } from 'recharts';
 import { format, subDays, startOfDay, eachDayOfInterval } from 'date-fns';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface FieldDistribution {
     field: string;
@@ -236,10 +237,7 @@ export default function AdminAnalyticsPage() {
             </div>
 
             {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 gap-3">
-                    <div className="h-10 w-10 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
-                    <p className="text-sm text-[var(--ui-text-muted)]">Crunching numbers...</p>
-                </div>
+                <LoadingSpinner variant="inline" message="Crunching numbers..." />
             ) : data ? (
                 <>
                     {/* Top-level stats */}

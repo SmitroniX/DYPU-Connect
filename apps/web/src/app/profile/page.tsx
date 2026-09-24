@@ -11,7 +11,7 @@ import {
     ShieldCheck, Globe, Lock, Sparkles, Award
 } from 'lucide-react';
 import { resolveProfileImage } from '@/lib/profileImage';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import { ProfileSkeleton } from '@/components/Skeleton';
 
 /* ── Profile completion calculator ── */
 function computeProfileCompletion(profile: any): number {
@@ -45,9 +45,7 @@ export default function ProfilePage() {
     if (!user || !userProfile) {
         return (
             <DashboardLayout>
-                <div className="flex h-full items-center justify-center">
-                    <LoadingSpinner />
-                </div>
+                <ProfileSkeleton />
             </DashboardLayout>
         );
     }

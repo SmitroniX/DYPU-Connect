@@ -22,6 +22,7 @@ import toast from 'react-hot-toast';
 
 import { Confession, getMood, MOODS, MoodKey } from '@/lib/confessions';
 import ConfessionCard from '@/components/ConfessionCard';
+import { ConfessionCardSkeleton } from '@/components/Skeleton';
 
 /* ── Sort Modes ── */
 type SortMode = 'latest' | 'trending';
@@ -312,27 +313,9 @@ export default function ConfessionsPage() {
 
                         {/* ═══════ Feed ═══════ */}
                         {isInitialLoading ? (
-                            <div className="space-y-4 animate-pulse">
+                            <div className="space-y-4">
                                 {[1, 2, 3].map(i => (
-                                    <div key={i} className="rounded-3xl border border-[var(--ui-divider)] bg-[var(--ui-bg-surface)] p-6 sm:p-7 h-[200px] flex flex-col justify-between">
-                                        <div className="flex justify-between items-center">
-                                            <div className="h-6 w-24 bg-[var(--ui-bg-elevated)] rounded-full" />
-                                            <div className="h-4 w-16 bg-[var(--ui-bg-elevated)] rounded-md" />
-                                        </div>
-                                        <div className="space-y-3 mt-6">
-                                            <div className="h-4 w-full bg-[var(--ui-bg-elevated)] rounded-md" />
-                                            <div className="h-4 w-5/6 bg-[var(--ui-bg-elevated)] rounded-md" />
-                                        </div>
-                                        <div className="mt-6 flex justify-between">
-                                            <div className="flex gap-2">
-                                                <div className="h-8 w-14 bg-[var(--ui-bg-elevated)] rounded-full" />
-                                                <div className="h-8 w-14 bg-[var(--ui-bg-elevated)] rounded-full" />
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <div className="h-8 w-8 bg-[var(--ui-bg-elevated)] rounded-full" />
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <ConfessionCardSkeleton key={i} />
                                 ))}
                             </div>
                         ) : sortedConfessions.length === 0 ? (

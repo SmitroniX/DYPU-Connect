@@ -10,6 +10,7 @@ import { useStore } from '@/store/useStore';
 import { AlertCircle, Bell, Info, Megaphone, Plus, RefreshCw, Send, Trash2, X, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { TableSkeleton } from '@/components/Skeleton';
 import { PROFILE_FIELDS, PROFILE_YEARS } from '@/types/profile';
 
 type Priority = 'info' | 'warning' | 'critical';
@@ -235,10 +236,7 @@ export default function AdminAnnouncementsPage() {
             {/* Announcements List */}
             <div className="surface overflow-hidden divide-y divide-[var(--ui-divider)]">
                 {loading ? (
-                    <div className="p-12 flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
-                        <p className="text-sm text-[var(--ui-text-muted)]">Loading announcements...</p>
-                    </div>
+                    <TableSkeleton rows={5} cols={4} bare />
                 ) : announcements.length === 0 ? (
                     <div className="p-16 text-center">
                         <Bell className="h-12 w-12 text-[var(--ui-text-muted)] mx-auto mb-4" />

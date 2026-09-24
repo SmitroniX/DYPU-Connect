@@ -6,6 +6,7 @@ import { collection, query, getDocs, doc, updateDoc, orderBy, limit } from 'fire
 import { Ban, CheckCircle, Search, Shield, UserCheck, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { TableSkeleton } from '@/components/Skeleton';
 import { resolveProfileImage } from '@/lib/profileImage';
 import { isUserAdmin } from '@/lib/admin';
 import { logAdminAction } from '@/lib/auditLog';
@@ -187,10 +188,7 @@ export default function AdminUsersPage() {
             {/* Users Table */}
             <div className="surface overflow-hidden">
                 {loading ? (
-                    <div className="p-12 flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
-                        <p className="text-sm text-[var(--ui-text-muted)]">Loading users...</p>
-                    </div>
+                    <TableSkeleton rows={6} cols={6} bare />
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-[var(--ui-divider)]">

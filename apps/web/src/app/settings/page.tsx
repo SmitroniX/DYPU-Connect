@@ -6,6 +6,8 @@ import ChannelHeader from '@/components/ChannelHeader';
 import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
+import LoadingSpinner, { ButtonSpinner } from '@/components/LoadingSpinner';
+import { SettingsSkeleton } from '@/components/Skeleton';
 import { deleteField, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import {
@@ -181,7 +183,7 @@ function SecuritySection() {
                 </div>
                 {loadingLogs ? (
                     <div className="flex items-center justify-center py-6">
-                        <div className="h-5 w-5 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
+                        <LoadingSpinner variant="inline" size="sm" />
                     </div>
                 ) : loginLogs.length === 0 ? (
                     <p className="text-xs text-[var(--ui-text-muted)] py-4 text-center">No login activity recorded yet.</p>
@@ -279,7 +281,7 @@ function DeviceSessionsSection() {
 
             {loading ? (
                 <div className="flex items-center justify-center py-8">
-                    <div className="h-6 w-6 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
+                    <ButtonSpinner tone="accent" size="sm" />
                 </div>
             ) : sessions.length === 0 ? (
                 <p className="text-xs text-[var(--ui-text-muted)] py-6 text-center">No device sessions recorded yet.</p>
@@ -340,7 +342,7 @@ function DeviceSessionsSection() {
                                 className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[var(--ui-danger)] hover:text-[var(--ui-danger)]/80 disabled:opacity-50 transition-colors"
                             >
                                 {removingAll ? (
-                                    <div className="h-3 w-3 rounded-full border border-[var(--ui-danger)]/30 border-t-[var(--ui-danger)] animate-spin" />
+                                    <ButtonSpinner tone="danger" size="xs" />
                                 ) : (
                                     <LogOut className="h-3 w-3" />
                                 )}
@@ -383,7 +385,7 @@ function DeviceSessionsSection() {
                                     title="Remove this device"
                                 >
                                     {removingId === session.id ? (
-                                        <div className="h-4 w-4 rounded-full border-2 border-[var(--ui-danger)]/30 border-t-[var(--ui-danger)] animate-spin" />
+                                        <ButtonSpinner tone="danger" size="xs" />
                                     ) : (
                                         <X className="h-4 w-4" />
                                     )}
@@ -846,7 +848,7 @@ function AutoBackupSection() {
                         className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--ui-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
                     >
                         {saving ? (
-                            <div className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                            <ButtonSpinner tone="white" size="xs" />
                         ) : (
                             <CloudUpload className="h-3.5 w-3.5" />
                         )}
@@ -858,7 +860,7 @@ function AutoBackupSection() {
                         className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--ui-border)] px-4 py-2 text-sm font-medium text-[var(--ui-text-secondary)] hover:bg-[var(--ui-bg-hover)] disabled:opacity-50 transition-colors"
                     >
                         {backingUp ? (
-                            <div className="h-3.5 w-3.5 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
+                            <ButtonSpinner tone="accent" size="xs" />
                         ) : (
                             <RefreshCw className="h-3.5 w-3.5" />
                         )}
@@ -1051,25 +1053,18 @@ export default function SettingsPage() {
         }
     };
 
-    if (loading || !userProfile) {
-        return (
-            <DashboardLayout>
-                <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--ui-accent)]"></div>
-                </div>
-            </DashboardLayout>
-        );
-    }
-
     return (
         <DashboardLayout>
             <div className="h-full flex flex-col">
                 <ChannelHeader name="settings" description="Manage your app preferences and account" />
 
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-3xl mx-auto w-full space-y-6 animate-[fade-in-up_0.3s_ease-out]">
-
-                    <section className="surface p-6">
-                        <h2 className="text-lg font-semibold text-[var(--ui-text)]">Preferences</h2>
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-3xl mx-auto w-full space-y-6">
+                    {loading || !userProfile ? (
+                        <SettingsSkeleton />
+                    ) : (
+                        <div className="space-y-6 animate-[fade-in-up_0.3s_ease-out]">
+                            <section className="surface p-6">
+                                <h2 className="text-lg font-semibold text-[var(--ui-text)]">Preferences</h2>
                         
                         <div className="mt-4 mb-5">
                             <Link href="/settings/notifications" className="flex items-center justify-between rounded-lg border border-[var(--ui-border)] p-4 bg-[var(--ui-bg-elevated)] transition-colors hover:border-[var(--ui-accent)]/50 group">
@@ -1233,6 +1228,8 @@ export default function SettingsPage() {
                             </button>
                         </div>
                     </section>
+                </div>
+                )}
                 </div>
             </div>
         </DashboardLayout>

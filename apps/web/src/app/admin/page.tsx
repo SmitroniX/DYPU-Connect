@@ -24,6 +24,7 @@ import {
     Users,
     Settings,
 } from 'lucide-react';
+import { TableSkeleton } from '@/components/Skeleton';
 
 interface DashboardStats {
     totalUsers: number;
@@ -245,12 +246,7 @@ export default function AdminDashboard() {
                 </h2>
                 <div className="surface overflow-hidden divide-y divide-[var(--ui-divider)]">
                     {loading ? (
-                        <div className="p-8 text-center">
-                            <div className="flex flex-col items-center gap-3">
-                                <div className="h-10 w-10 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
-                                <p className="text-sm text-[var(--ui-text-muted)]">Loading activity...</p>
-                            </div>
-                        </div>
+                        <TableSkeleton rows={4} cols={4} />
                     ) : recentActivity.length === 0 ? (
                         <div className="p-12 text-center">
                             <Activity className="h-10 w-10 text-[var(--ui-text-muted)] mx-auto mb-3" />

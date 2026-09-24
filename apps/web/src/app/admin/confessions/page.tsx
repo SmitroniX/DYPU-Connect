@@ -11,6 +11,8 @@ import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { TableSkeleton } from '@/components/Skeleton';
+import { ButtonSpinner } from '@/components/LoadingSpinner';
 
 interface PrivateConfession {
     id: string;
@@ -148,10 +150,7 @@ export default function AdminConfessionsPage() {
 
             <div className="surface overflow-hidden">
                 {loading ? (
-                    <div className="p-12 flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
-                        <p className="text-sm text-[var(--ui-text-muted)]">Loading tracking logs...</p>
-                    </div>
+                    <TableSkeleton rows={5} cols={4} bare />
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-[var(--ui-divider)]">
@@ -199,7 +198,7 @@ export default function AdminConfessionsPage() {
                                                 title="Delete confession (public + tracking)"
                                             >
                                                 {deletingId === log.id ? (
-                                                    <div className="h-3 w-3 rounded-full border border-red-400/40 border-t-red-400 animate-spin" />
+                                                    <ButtonSpinner tone="danger" size="xs" />
                                                 ) : (
                                                     <Trash2 className="h-3 w-3" />
                                                 )}

@@ -8,6 +8,7 @@ import { cacheGet, cacheInvalidate } from '@/lib/cache';
 import { Ban, CheckCircle, ClipboardList, RefreshCw, Search, Shield, Trash2, UserX } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow, format } from 'date-fns';
+import { TableSkeleton } from '@/components/Skeleton';
 
 interface AuditLogEntry {
     id: string;
@@ -125,10 +126,7 @@ export default function AdminAuditLogPage() {
             {/* Log List */}
             <div className="surface overflow-hidden divide-y divide-[var(--ui-divider)]">
                 {loading ? (
-                    <div className="p-12 flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
-                        <p className="text-sm text-[var(--ui-text-muted)]">Loading audit log...</p>
-                    </div>
+                    <TableSkeleton rows={6} cols={4} bare />
                 ) : filteredLogs.length === 0 ? (
                     <div className="p-16 text-center">
                         <ClipboardList className="h-12 w-12 text-[var(--ui-text-muted)] mx-auto mb-4" />

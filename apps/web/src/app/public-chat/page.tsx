@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 import { db } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, limit } from 'firebase/firestore';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import { ChatMessageListSkeleton } from '@/components/Skeleton';
 import { Message } from '@/lib/validation/schemas';
 
 export default function PublicChatPage() {
@@ -215,8 +215,8 @@ export default function PublicChatPage() {
                 </ChannelHeader>
 
                 {loading ? (
-                    <div className="flex-1 flex items-center justify-center">
-                        <LoadingSpinner />
+                    <div className="flex-1 overflow-y-auto px-4 py-4">
+                        <ChatMessageListSkeleton count={6} />
                     </div>
                 ) : (
                     <Virtuoso

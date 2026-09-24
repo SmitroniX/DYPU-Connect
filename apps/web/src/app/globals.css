@@ -96,39 +96,6 @@ html {
 }
 
 
-.dark {
-  color-scheme: dark;
-
-  /* Surfaces — Deep Premium Zinc */
-  --ui-bg-base:      #09090B;
-  --ui-bg-surface:   rgba(24, 24, 27, 0.65);
-  --ui-bg-elevated:  rgba(39, 39, 42, 0.75);
-  --ui-bg-input:     rgba(255, 255, 255, 0.05);
-  --ui-bg-hover:     rgba(255, 255, 255, 0.08);
-  --ui-bg-active:    rgba(255, 255, 255, 0.12);
-  --ui-bg-overlay:   rgba(0, 0, 0, 0.75);
-
-  /* Text — Crisp contrast */
-  --ui-text:           #FAFAFA;
-  --ui-text-secondary: #A1A1AA;
-  --ui-text-muted:     #71717A;
-  --ui-text-link:      #818CF8;
-
-  /* Accent — Vibrant Indigo */
-  --ui-accent:       #6366F1;
-  --ui-accent-hover: #818CF8;
-  --ui-accent-dim:   rgba(99, 102, 241, 0.15);
-  --ui-accent-text:  #FFFFFF;
-
-  /* Borders & Dividers */
-  --ui-border:  rgba(255, 255, 255, 0.08);
-  --ui-divider: rgba(255, 255, 255, 0.06);
-  
-  --ui-success: #10B981;
-  --ui-warning: #F59E0B;
-  --ui-danger:  #EF4444;
-  --ui-info:    #3B82F6;
-}
 
 
 @theme inline {
@@ -200,6 +167,21 @@ body {
 @keyframes typing-dot {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
   30% { transform: translateY(-4px); opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.08); }
+}
+
+@keyframes skeleton-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-skeleton-shimmer {
+  will-change: transform;
+  animation: skeleton-shimmer 1.5s linear infinite;
 }
 
 /* ── Scrollbar ──────────────────────────────────── */
@@ -279,7 +261,7 @@ body {
   filter: brightness(1.1);
 }
 .btn-primary:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.98);
   box-shadow: 0 2px 4px var(--ui-accent-dim);
 }
 .btn-primary:disabled {
@@ -309,7 +291,7 @@ body {
   border-color: rgba(255,255,255,0.15);
 }
 .btn-secondary:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.98);
 }
 
 /* Legacy Surface (mapping to glass) */
@@ -367,5 +349,33 @@ body {
   -webkit-user-select: none;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+/* ── Accessibility: Reduced Motion ──────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce,
+  [class*="animate-"] {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .btn-primary:hover,
+  .btn-primary:active,
+  .btn-secondary:hover,
+  .btn-secondary:active,
+  .glass-panel-interactive:hover {
+    transform: none !important;
+  }
 }
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, Mail, ArrowRight, Loader2, RefreshCcw } from 'lucide-react';
+import { ButtonSpinner } from '@/components/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { validateEmail, RESEND_COOLDOWN_SECONDS, getRemainingCooldown } from '@/lib/validation/authValidation';
 
@@ -132,10 +133,10 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={!!loading || !email}
-                                className="w-full flex items-center justify-center gap-2 py-3.5 px-4 text-sm font-bold rounded-xl bg-[var(--ui-accent)] text-white hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-[var(--ui-accent)]/20"
+                                className="relative w-full h-12 flex items-center justify-center gap-2 py-3 px-4 text-sm font-bold rounded-xl bg-[var(--ui-accent)] text-white hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-[var(--ui-accent)]/20"
                             >
                                 {loading === 'email' ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <ButtonSpinner tone="white" size="sm" />
                                 ) : (
                                     <>
                                         Continue with Email

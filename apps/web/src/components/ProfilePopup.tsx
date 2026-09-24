@@ -8,6 +8,7 @@ import type { UserProfile } from '@/types/profile';
 import { MessageSquare, X, Globe, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ButtonSpinner } from '@/components/LoadingSpinner';
 
 interface ProfilePopupProps {
     userId: string;
@@ -94,7 +95,7 @@ export default function ProfilePopup({ userId, anchorRect, onClose }: ProfilePop
                 >
                     {loading ? (
                         <div className="flex items-center justify-center py-12">
-                            <div className="h-6 w-6 rounded-full border-2 border-[var(--ui-accent)]/30 border-t-[var(--ui-accent)] animate-spin" />
+                            <ButtonSpinner tone="accent" size="sm" />
                         </div>
                     ) : !profile ? (
                         <div className="p-6 text-center text-sm text-[var(--ui-text-muted)]">Profile not found.</div>

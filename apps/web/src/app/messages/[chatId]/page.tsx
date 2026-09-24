@@ -18,7 +18,7 @@ import { sanitiseInput } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { createNotification } from '@/lib/notifications';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import { ChatMessageListSkeleton, Skeleton } from '@/components/Skeleton';
 import { useTypingStatus } from '@/hooks/useTypingStatus';
 import TypingIndicator from '@/components/TypingIndicator';
 import MessageItem from '@/components/MessageItem';
@@ -293,8 +293,19 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
     if (!chatInfo) {
         return (
             <DashboardLayout>
-                <div className="flex h-full items-center justify-center">
-                    <LoadingSpinner variant="full" message="Loading chat..." />
+                <div className="flex flex-col h-full bg-[var(--ui-bg-base)]">
+                    <div className="h-16 border-b border-[var(--ui-border)] px-4 sm:px-6 flex items-center justify-between shrink-0 bg-[var(--ui-bg-surface)]">
+                        <div className="flex items-center gap-3">
+                            <Skeleton variant="circle" className="w-10 h-10" />
+                            <div className="space-y-1.5">
+                                <Skeleton variant="text" className="h-4 w-32" />
+                                <Skeleton variant="text" className="h-3 w-20" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto px-4 py-4">
+                        <ChatMessageListSkeleton count={6} />
+                    </div>
                 </div>
             </DashboardLayout>
         );
@@ -356,8 +367,8 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
 
                     {/* Messages stream */}
                     {isLoading ? (
-                        <div className="flex-1 flex items-center justify-center">
-                            <LoadingSpinner />
+                        <div className="flex-1 overflow-y-auto px-4 py-4">
+                            <ChatMessageListSkeleton count={6} />
                         </div>
                     ) : (
                         <Virtuoso

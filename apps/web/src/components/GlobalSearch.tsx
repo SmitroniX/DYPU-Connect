@@ -10,6 +10,7 @@ import Image from 'next/image';
 import type { UserProfile } from '@/types/profile';
 import type { Group } from '@/types/groups';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ButtonSpinner } from '@/components/LoadingSpinner';
 
 export default function GlobalSearch() {
     const { searchModalOpen, setSearchModalOpen, currentUser } = useStore();
@@ -141,11 +142,7 @@ export default function GlobalSearch() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                             {isSearching && (
-                                <motion.div 
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="w-4 h-4 rounded-full border-2 border-zinc-500 border-t-transparent animate-spin mr-2 shrink-0" 
-                                />
+                                <ButtonSpinner tone="muted" size="xs" className="mr-2" />
                             )}
                             <button 
                                 onClick={() => setSearchModalOpen(false)}

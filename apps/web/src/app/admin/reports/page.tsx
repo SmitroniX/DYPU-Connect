@@ -11,6 +11,7 @@ import { useStore } from '@/store/useStore';
 import { AlertTriangle, CheckCircle, Clock, Flag, Inbox, Search, ShieldAlert, Trash2, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { TableSkeleton } from '@/components/Skeleton';
 
 type ReportStatus = 'pending' | 'resolved' | 'dismissed';
 type ContentType = 'confession' | 'public_chat' | 'anonymous_chat' | 'user' | 'auto-flagged';
@@ -187,10 +188,7 @@ export default function AdminReportsPage() {
             {/* Reports List */}
             <div className="surface overflow-hidden divide-y divide-[var(--ui-divider)]">
                 {loading ? (
-                    <div className="p-12 flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-2 border-red-500/30 border-t-red-400 animate-spin" />
-                        <p className="text-sm text-[var(--ui-text-muted)]">Loading reports...</p>
-                    </div>
+                    <TableSkeleton rows={5} cols={5} bare />
                 ) : filteredReports.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
                         <div className="relative mb-6">

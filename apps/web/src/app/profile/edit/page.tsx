@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
+import { ButtonSpinner } from '@/components/LoadingSpinner';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import toast from 'react-hot-toast';
@@ -131,7 +132,7 @@ export default function AccountsCenterPage() {
         return (
             <DashboardLayout>
                 <div className="flex h-screen items-center justify-center">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                    <ButtonSpinner tone="accent" size="md" />
                 </div>
             </DashboardLayout>
         );
