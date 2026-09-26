@@ -172,6 +172,11 @@ class MainActivity : AppCompatActivity() {
         swipeRefresh.isEnabled = false
         swipeRefresh.setColorSchemeResources(R.color.primary, R.color.accent)
 
+        // Prevent scroll conflicts between WebView and SwipeRefreshLayout
+        swipeRefresh.setOnChildScrollUpCallback { _, _ ->
+            webView.canScrollVertically(-1)
+        }
+
         setupWebView()
         setupGoogleSignIn()
 
@@ -208,9 +213,12 @@ class MainActivity : AppCompatActivity() {
         // Request notification permission gracefully on startup (Android 13+)
         promptNotificationPermissionIfNeeded()
 
-        // Initial Load
-        webView.loadUrl(BASE_URL)
-        handleIntent(intent)
+        // Initial Load with deep link or fallback to BASE_URL
+        val initialUrl = resolveTargetUrl(intent) ?: BASE_URL
+        webView.loadUrl(initialUrl)
+        if (initialUrl != BASE_URL) {
+            emitToWeb("deep_link", initialUrl)
+        }
     }
 
     private fun promptNotificationPermissionIfNeeded() {
@@ -231,6 +239,9 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
+        // Hardware acceleration for 60/120fps smooth animations and WebRTC video rendering
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+
         val settings = webView.settings
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
@@ -243,6 +254,10 @@ class MainActivity : AppCompatActivity() {
         settings.useWideViewPort = true
         settings.loadWithOverviewMode = true
         settings.setSupportZoom(false)
+        settings.displayZoomControls = false
+        settings.builtInZoomControls = false
+        settings.textZoom = 100
+        settings.databaseEnabled = true
         settings.displayZoomControls = false
         settings.builtInZoomControls = false
 
@@ -457,23 +472,51 @@ class MainActivity : AppCompatActivity() {
         handleIntent(intent)
     }
 
+    private fun resolveTargetUrl(intent: Intent?): String? {
+        val rawUrl = intent?.getStringExtra("target_url")
+            ?: intent?.getStringExtra("url")
+            ?: if (intent?.action == Intent.ACTION_VIEW) intent.dataString else null
+
+        if (rawUrl.isNullOrEmpty()) return null
+
+        val uri = try { Uri.parse(rawUrl) } catch (e: Exception) { null }
+        if (uri != null && uri.scheme.equals("dypuconnect", ignoreCase = true)) {
+            val host = uri.host.orEmpty()
+            val path = uri.path.orEmpty()
+            val route = when {
+                host.isNotEmpty() && path.isNotEmpty() -> "/$host$path"
+                host.isNotEmpty() -> "/$host"
+                path.isNotEmpty() -> if (path.startsWith("/")) path else "/$path"
+                else -> ""
+            }
+            val query = if (!uri.query.isNullOrEmpty()) "?${uri.query}" else ""
+            val fragment = if (!uri.fragment.isNullOrEmpty()) "#${uri.fragment}" else ""
+            return BASE_URL.trimEnd('/') + route + query + fragment
+        }
+
+        if (rawUrl.startsWith("/")) {
+            return BASE_URL.trimEnd('/') + rawUrl
+        }
+
+        return rawUrl
+    }
+
     private fun handleIntent(intent: Intent?) {
-        var url = intent?.getStringExtra("target_url")
-        if (url == null && intent?.action == Intent.ACTION_VIEW) {
-            url = intent.dataString
-        }
-        if (url == null) return
+        val targetUrl = resolveTargetUrl(intent) ?: return
+        Log.d(TAG, "Navigating to deep link / notification target: $targetUrl")
         
-        var finalUrl = url
-        if (finalUrl.startsWith("dypuconnect://")) {
-            val path = finalUrl.removePrefix("dypuconnect://")
-            finalUrl = BASE_URL + if (path.startsWith("/")) path else "/$path"
-        } else if (finalUrl.startsWith("/")) {
-            finalUrl = BASE_URL + finalUrl
+        val isAction = targetUrl.contains("action=")
+        if (isAction || webView.url?.trimEnd('/') != targetUrl.trimEnd('/')) {
+            webView.loadUrl(targetUrl)
         }
-        
-        if (webView.url != finalUrl) {
-            webView.loadUrl(finalUrl)
+        emitToWeb("deep_link", targetUrl)
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Ensure web safe areas and layout adjust smoothly without reloading webview
+        webView.post {
+            injectSafeAreaInsets()
         }
     }
 
@@ -667,10 +710,20 @@ class MainActivity : AppCompatActivity() {
                             action = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                             data = Uri.fromParts("package", packageName, null)
                         }
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     startActivity(intent)
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to open notification settings", e)
+                    try {
+                        val fallback = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", packageName, null)
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(fallback)
+                    } catch (ex: Exception) {
+                        Log.e(TAG, "Failed to open application details settings fallback", ex)
+                    }
                 }
             }
         }
@@ -679,7 +732,10 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun requestCallPermissions() {
             runOnUiThread {
-                val perms = mutableListOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA)
+                val perms = mutableListOf(
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.RECORD_AUDIO
+                )
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     perms.add(Manifest.permission.BLUETOOTH_CONNECT)
                 }

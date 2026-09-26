@@ -11,6 +11,7 @@ import {
   getAppVersion,
   requestAndroidNotificationPermission,
   hasAndroidNotificationPermission,
+  openAndroidNotificationSettings,
   requestAndroidCallPermissions,
   hasAndroidCallPermissions,
   setAndroidPullToRefresh,
@@ -255,6 +256,20 @@ describe('Android Bridge', () => {
 
     it('defaults to true if AndroidApp is missing', () => {
       expect(hasAndroidNotificationPermission()).toBe(true);
+    });
+  });
+
+  describe('openAndroidNotificationSettings', () => {
+    it('calls AndroidApp.openNotificationSettings if available', () => {
+      const spy = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      window.AndroidApp = { openNotificationSettings: spy } as any;
+      openAndroidNotificationSettings();
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('does nothing if AndroidApp is missing', () => {
+      expect(() => openAndroidNotificationSettings()).not.toThrow();
     });
   });
 

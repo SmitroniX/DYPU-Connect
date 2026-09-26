@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="error_card_margin_horizontal">20dp</dimen>
+    <dimen name="error_card_padding_horizontal">24dp</dimen>
+    <dimen name="error_card_padding_vertical">36dp</dimen>
+</resources>

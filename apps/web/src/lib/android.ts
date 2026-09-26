@@ -33,6 +33,7 @@ interface AndroidInterface {
   onWebReady(): void;
   requestNotificationPermission?(): void;
   hasNotificationPermission?(): boolean;
+  openNotificationSettings?(): void;
   requestCallPermissions?(): void;
   hasCallPermissions?(): boolean;
   setPullToRefreshEnabled?(enabled: boolean): void;
@@ -181,6 +182,15 @@ export const hasAndroidNotificationPermission = (): boolean => {
     return window.AndroidApp.hasNotificationPermission();
   }
   return true;
+};
+
+/**
+ * Opens native notification settings for the app
+ */
+export const openAndroidNotificationSettings = () => {
+  if (window.AndroidApp?.openNotificationSettings) {
+    window.AndroidApp.openNotificationSettings();
+  }
 };
 
 /**
