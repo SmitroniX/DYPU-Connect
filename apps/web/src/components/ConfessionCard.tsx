@@ -5,6 +5,7 @@ import { Confession, getMood, cardGradient } from '@/lib/confessions';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, deleteDoc, updateDoc, increment, serverTimestamp, collection, addDoc } from 'firebase/firestore';
 import { useAuth } from '@/components/AuthProvider';
+import { useStore } from '@/store/useStore';
 import {
     Heart, MessageCircle, Ghost, Clock, Quote,
     Share2, Camera, MoreVertical, Flag, Download, X, Check
@@ -27,6 +28,7 @@ export default function ConfessionCard({ confession, linkToDetail = true, onComm
     const router = useRouter();
     const cardRef = useRef<HTMLElement>(null);
     const { user } = useAuth();
+    const { userProfile } = useStore();
     
     // State
     const [optimisticDelta, setOptimisticDelta] = useState(0);
@@ -297,11 +299,18 @@ export default function ConfessionCard({ confession, linkToDetail = true, onComm
         }
         
         try {
+            const previewText = (confession as any).content ? (confession as any).content : (confession.text || '');
             await addDoc(collection(db, 'reports'), {
+                reportedContentId: confession.id,
                 targetId: confession.id,
+                contentType: 'confession',
                 targetType: 'confession',
+                contentPreview: previewText ? previewText.slice(0, 200) : '',
                 reason,
+                reporterId: user.uid,
                 reportedBy: user.uid,
+                reporterEmail: user.email || '',
+                reporterName: userProfile?.name || user.displayName || 'Student',
                 createdAt: serverTimestamp(),
                 status: 'pending'
             });

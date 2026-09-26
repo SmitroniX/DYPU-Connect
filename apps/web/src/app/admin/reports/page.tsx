@@ -62,7 +62,19 @@ export default function AdminReportsPage() {
                 async () => {
                     const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(200));
                     const snapshot = await getDocs(q);
-                    return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Report[];
+                    return snapshot.docs.map(d => {
+                        const data = d.data();
+                        return {
+                            id: d.id,
+                            ...data,
+                            reportedContentId: data.reportedContentId || data.targetId || '',
+                            contentType: data.contentType || data.targetType || 'confession',
+                            contentPreview: data.contentPreview || '',
+                            reporterId: data.reporterId || data.reportedBy || '',
+                            reporterEmail: data.reporterEmail || '',
+                            reporterName: data.reporterName || '',
+                        };
+                    }) as Report[];
                 },
                 { ttl: 30_000, swr: 120_000 }
             );

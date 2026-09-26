@@ -103,7 +103,7 @@ const MessageItem = memo(({
                         className={`
                             relative px-3.5 py-2 sm:px-4 sm:py-2.5 flex flex-col min-w-[75px] backdrop-blur-md transition-all active:scale-[0.99]
                             ${isMine 
-                                ? 'bg-gradient-to-br from-[var(--ui-accent)] to-[var(--ui-accent)]/95 text-white rounded-2xl rounded-tr-sm border border-[var(--ui-accent)]/30 shadow-md shadow-[var(--ui-accent)]/15' 
+                                ? 'bg-gradient-to-br from-[var(--ui-accent)] to-[var(--ui-accent)]/95 text-[var(--ui-accent-text)] rounded-2xl rounded-tr-sm border border-[var(--ui-accent)]/30 shadow-md shadow-[var(--ui-accent)]/15' 
                                 : 'bg-[var(--ui-bg-surface)]/90 backdrop-blur-xl text-[var(--ui-text)] rounded-2xl rounded-tl-sm border border-[var(--ui-border)] shadow-md shadow-black/5'}
                         `}
                     >
@@ -181,13 +181,13 @@ const MessageItem = memo(({
                                         if (e.key === 'Escape') onCancelEdit?.();
                                     }}
                                 />
-                                <div className={`text-[10px] mt-1.5 font-medium ${isMine ? 'text-white/80' : 'text-[var(--ui-text-muted)]'}`}>
+                                <div className={`text-[10px] mt-1.5 font-medium ${isMine ? 'text-[var(--ui-accent-text)]/80' : 'text-[var(--ui-text-muted)]'}`}>
                                     Esc to cancel • Enter to save
                                 </div>
                             </div>
                         ) : msg.text && (
                             <div className={`text-[14px] sm:text-[15px] leading-relaxed break-words whitespace-pre-wrap ${
-                                isMine ? 'text-white' : 'text-[var(--ui-text)]'
+                                isMine ? 'text-[var(--ui-accent-text)]' : 'text-[var(--ui-text)]'
                             } ${msg.isDeleted ? 'italic opacity-60' : ''}`}>
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
@@ -195,7 +195,7 @@ const MessageItem = memo(({
                                         p: (props) => <span {...props} />,
                                         a: (props) => (
                                             <a 
-                                                className={`${isMine ? 'text-white underline font-semibold' : 'text-[var(--ui-accent)] hover:underline font-medium'}`} 
+                                                className={`${isMine ? 'text-[var(--ui-accent-text)] underline font-semibold' : 'text-[var(--ui-accent)] hover:underline font-medium'}`} 
                                                 target="_blank" 
                                                 rel="noopener noreferrer" 
                                                 {...props} 
@@ -205,17 +205,17 @@ const MessageItem = memo(({
                                         em: (props) => <em className="italic" {...props} />,
                                         code: (props) => (
                                             <code className={`px-1.5 py-0.5 rounded text-[12px] sm:text-[13px] font-mono ${
-                                                isMine ? 'bg-white/20 text-white' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)]'
+                                                isMine ? 'bg-black/20 text-[var(--ui-accent-text)]' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-accent)]'
                                             }`} {...props} />
                                         ),
                                         pre: (props) => (
                                             <pre className={`p-2.5 sm:p-3 my-2 rounded-xl ${
-                                                isMine ? 'bg-black/30 text-white' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text)]'
+                                                isMine ? 'bg-black/30 text-[var(--ui-accent-text)]' : 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text)]'
                                             } overflow-x-auto text-[12px] sm:text-[13px] font-mono border border-[var(--ui-border)]`} {...props} />
                                         ),
                                         blockquote: (props) => (
                                             <blockquote className={`border-l-3 pl-3 my-2 italic ${
-                                                isMine ? 'border-white/50 bg-black/15 text-white/90' : 'border-[var(--ui-accent)]/50 bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)]'
+                                                isMine ? 'border-current/50 bg-black/15 text-[var(--ui-accent-text)]/90' : 'border-[var(--ui-accent)]/50 bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)]'
                                             } py-1 pr-2 rounded-r-lg`} {...props} />
                                         ),
                                         ul: (props) => <ul className="list-disc pl-4 my-1 space-y-0.5" {...props} />,
@@ -233,7 +233,7 @@ const MessageItem = memo(({
 
                         {/* Timestamp & Delivery Checkmark Indicator (sent/read) */}
                         <div className={`flex items-center gap-1 self-end ml-3 mt-1 text-[10px] font-medium tracking-tight select-none ${
-                            isMine ? 'text-white/80' : 'text-[var(--ui-text-muted)]'
+                            isMine ? 'text-[var(--ui-accent-text)]/80' : 'text-[var(--ui-text-muted)]'
                         }`}>
                             <span>{ts ? format(ts, 'HH:mm') : '...'}</span>
                             {isMine && (

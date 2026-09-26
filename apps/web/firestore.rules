@@ -16,6 +16,12 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'admin';
     }
 
+    function isActive() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('status', 'active') != 'banned';
+    }
+
     function participant(chatId) {
       return signedIn() &&
         request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.get('participants', []);
@@ -66,7 +72,7 @@ service cloud.firestore {
 
     match /public_chat/{docId} {
       allow read: if signedIn();
-      allow create: if signedIn() && request.resource.data.senderId == request.auth.uid;
+      allow create: if isActive() && request.resource.data.senderId == request.auth.uid;
       allow update: if signedIn() && (
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])) ||
         (resource.data.senderId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'isEdited', 'isDeleted']))
@@ -75,7 +81,8 @@ service cloud.firestore {
     }
 
     match /anonymous_public_chat/{docId} {
-      allow read, create: if signedIn();
+      allow read: if signedIn();
+      allow create: if isActive();
       allow update: if signedIn() && (
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])) ||
         (resource.data.senderId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'isEdited', 'isDeleted']))
@@ -84,7 +91,8 @@ service cloud.firestore {
     }
 
     match /confessions_public/{docId} {
-      allow read, create: if signedIn();
+      allow read: if signedIn();
+      allow create: if isActive();
       allow update: if signedIn() && (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions', 'likesCount', 'commentsCount'])
       );
@@ -97,7 +105,7 @@ service cloud.firestore {
       
       match /comments/{commentId} {
         allow read: if signedIn();
-        allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+        allow create: if isActive() && request.resource.data.userId == request.auth.uid;
         allow delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
       }
     }
@@ -128,7 +136,7 @@ service cloud.firestore {
 
       match /messages/{msgId} {
         allow read: if isGroupMember(groupId) || isAdmin();
-        allow create: if isGroupMember(groupId) && request.resource.data.senderId == request.auth.uid;
+        allow create: if isActive() && isGroupMember(groupId) && request.resource.data.senderId == request.auth.uid;
         allow update: if isGroupMember(groupId) && (
            (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])) ||
            (resource.data.senderId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'isEdited', 'isDeleted']))
@@ -140,24 +148,25 @@ service cloud.firestore {
     match /private_chats/{chatId} {
       allow create: if signedIn() && request.auth.uid in request.resource.data.participants;
       allow read: if (signedIn() && request.auth.uid in resource.data.get('participants', [])) || isAdmin();
-      allow update: if signedIn() && request.auth.uid in resource.data.get('participants', []);
+      allow update: if signedIn() && request.auth.uid in resource.data.get('participants', [])
+        && request.resource.data.participants == resource.data.participants;
       allow delete: if isAdmin();
     }
 
     match /private_chats/{chatId}/messages/{msgId} {
       allow read: if participant(chatId) || isAdmin();
-      allow create: if participant(chatId) && request.resource.data.senderId == request.auth.uid;
+      allow create: if isActive() && participant(chatId) && request.resource.data.senderId == request.auth.uid;
       allow update: if participant(chatId) && (
          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])) ||
          (resource.data.senderId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'isEdited', 'isDeleted']))
       );
-      allow delete: if isAdmin() || participant(chatId);
+      allow delete: if participant(chatId) && (isAdmin() || resource.data.senderId == request.auth.uid);
     }
 
     match /calls/{callId} {
       allow read: if signedIn() 
         && (resource.data.callerId == request.auth.uid || resource.data.calleeId == request.auth.uid);
-      allow create: if signedIn() && request.resource.data.callerId == request.auth.uid;
+      allow create: if isActive() && request.resource.data.callerId == request.auth.uid;
       allow update, delete: if signedIn()
         && (resource.data.callerId == request.auth.uid || resource.data.calleeId == request.auth.uid);
 

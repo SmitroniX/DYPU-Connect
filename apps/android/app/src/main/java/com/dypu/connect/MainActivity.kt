@@ -258,8 +258,6 @@ class MainActivity : AppCompatActivity() {
         settings.builtInZoomControls = false
         settings.textZoom = 100
         settings.databaseEnabled = true
-        settings.displayZoomControls = false
-        settings.builtInZoomControls = false
 
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
@@ -674,6 +672,14 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun getAppVersion(): String {
             return BuildConfig.VERSION_NAME
+        }
+
+        @JavascriptInterface
+        fun getDeviceId(): String {
+            return android.provider.Settings.Secure.getString(
+                contentResolver,
+                android.provider.Settings.Secure.ANDROID_ID
+            ) ?: ""
         }
 
         @JavascriptInterface

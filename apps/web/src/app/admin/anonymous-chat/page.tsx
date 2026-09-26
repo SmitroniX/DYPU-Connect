@@ -175,7 +175,7 @@ export default function AdminAnonChatPage() {
                                                             className="h-10 w-10 rounded-lg object-cover ring-1 ring-[var(--ui-border)]"
                                                         />
                                                         <div className="absolute -top-1 -right-1 h-4 w-4 rounded bg-[var(--ui-accent)] flex items-center justify-center">
-                                                            <ImageIcon className="h-2.5 w-2.5 text-[var(--ui-bg-elevated)]" />
+                                                            <ImageIcon className="h-2.5 w-2.5 text-[var(--ui-accent-text)]" />
                                                         </div>
                                                     </div>
                                                 )}

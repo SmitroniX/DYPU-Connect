@@ -200,11 +200,11 @@ export default function ConfessionsPage() {
                     <div className="flex-1 overflow-y-auto">
                         <div className="max-w-3xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5 sm:space-y-6">
 
-                            {/* E2EE Notice */}
+                            {/* Confession Guidelines Notice */}
                             <div className="flex justify-center mb-4">
                                 <div className="bg-[var(--ui-accent)]/10 text-[var(--ui-accent)] text-[11px] px-3.5 py-2 rounded-xl flex items-center gap-2 max-w-[360px] text-center shadow-sm ring-1 ring-[var(--ui-accent)]/20 animate-[fade-in-up_0.4s_ease-out]">
                                     <Lock className="w-3.5 h-3.5 shrink-0" />
-                                    <span className="leading-tight">Confessions are end-to-end encrypted. No one, not even DYPU Connect, can trace them back to you.</span>
+                                    <span className="leading-tight">Confessions are pseudonymous on campus feeds. Always adhere to DYPU student community guidelines.</span>
                                 </div>
                             </div>
 

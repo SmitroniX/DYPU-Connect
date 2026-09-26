@@ -28,6 +28,7 @@ interface AndroidInterface {
   shareImage?(base64Data: string, title: string): void;
   saveImage?(base64Data: string, fileName: string): void;
   getAppVersion(): string;
+  getDeviceId?(): string;
   getFCMToken(): void;
   signInWithGoogle(): void;
   onWebReady(): void;
@@ -141,6 +142,13 @@ export const requestFCMToken = () => {
  */
 export const getAppVersion = (): string | null => {
   return window.AndroidApp ? window.AndroidApp.getAppVersion() : null;
+};
+
+/**
+ * Gets the native Android unique device identifier
+ */
+export const getAndroidDeviceId = (): string | null => {
+  return window.AndroidApp?.getDeviceId ? window.AndroidApp.getDeviceId() : null;
 };
 
 /**

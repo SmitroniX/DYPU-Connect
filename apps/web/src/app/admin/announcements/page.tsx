@@ -170,7 +170,7 @@ export default function AdminAnnouncementsPage() {
                     </button>
                     <button
                         onClick={() => setShowCompose(!showCompose)}
-                        className="inline-flex items-center gap-2 rounded-lg bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] px-4 py-2.5 text-sm font-semibold text-[var(--ui-bg-elevated)] transition-colors"
+                        className="inline-flex items-center gap-2 rounded-lg bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] px-4 py-2.5 text-sm font-semibold text-[var(--ui-accent-text)] transition-colors"
                     >
                         {showCompose ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                         {showCompose ? 'Cancel' : 'New Announcement'}
@@ -223,7 +223,7 @@ export default function AdminAnnouncementsPage() {
                             <button
                                 onClick={handlePublish}
                                 disabled={sending || !title.trim() || !body.trim()}
-                                className="inline-flex items-center gap-2 rounded-lg bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] px-5 py-2.5 text-sm font-semibold text-[var(--ui-bg-elevated)] disabled:opacity-50 transition-colors"
+                                className="inline-flex items-center gap-2 rounded-lg bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] px-5 py-2.5 text-sm font-semibold text-[var(--ui-accent-text)] disabled:opacity-50 transition-colors"
                             >
                                 <Send className="h-4 w-4" />
                                 {sending ? 'Publishing...' : 'Publish'}

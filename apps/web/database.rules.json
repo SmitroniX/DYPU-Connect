@@ -7,10 +7,17 @@
       }
     },
     "typing": {
+      "groups": {
+        "$groupId": {
+          "$uid": {
+            ".read": "auth != null",
+            ".write": "auth != null && $uid === auth.uid"
+          }
+        }
+      },
       "$chatId": {
         ".read": "auth != null",
         "$uid": {
-          // Users can only update their own typing status
           ".write": "auth != null && $uid === auth.uid"
         }
       }

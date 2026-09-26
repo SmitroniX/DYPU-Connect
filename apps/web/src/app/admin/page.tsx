@@ -148,7 +148,7 @@ export default function AdminDashboard() {
         { name: 'Platform Analytics', description: 'Enrollment distribution, engagement stats, and trends.', href: '/admin/analytics', icon: BarChart3, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
         { name: 'Audit Log', description: 'Track all admin actions for accountability.', href: '/admin/audit-log', icon: ClipboardList, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
         { name: 'System Settings', description: 'Global configuration, maintenance mode, and feature toggles.', href: '/admin/settings', icon: Settings, color: 'text-[var(--ui-accent)] bg-[var(--ui-accent-dim)]' },
-        { name: 'Private Chat Oversight', description: 'Classified deep-inspection of encrypted user communications.', href: '/admin/private-chats', icon: EyeOff, color: 'text-red-400 bg-red-500/15' },
+        { name: 'Private Chat Oversight', description: 'Oversight and inspection of student direct messaging records.', href: '/admin/private-chats', icon: EyeOff, color: 'text-red-400 bg-red-500/15' },
     ];
 
     const visibleModules = adminModules.filter(item => {

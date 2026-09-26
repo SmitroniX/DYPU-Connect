@@ -3,7 +3,7 @@
 import { use, useCallback, useEffect, useRef, useState, useOptimistic, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { db } from '@/lib/firebase';
-import { collection, doc, updateDoc, getDoc, serverTimestamp, query, orderBy, onSnapshot, addDoc } from 'firebase/firestore';
+import { collection, doc, updateDoc, getDoc, serverTimestamp, query, orderBy, onSnapshot, addDoc, arrayRemove, arrayUnion } from 'firebase/firestore';
 import type { Group } from '@/types/groups';
 import { useAuth } from '@/components/AuthProvider';
 import { useStore } from '@/store/useStore';
@@ -15,6 +15,7 @@ import { ArrowLeft, Users, ShieldAlert, MoreVertical, Search, X } from 'lucide-r
 import { sanitiseInput } from '@/lib/security';
 import { shouldShowHeader } from '@/lib/utils';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { rtdb } from '@/lib/firebase';
@@ -49,7 +50,8 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
     const [editValue, setEditValue] = useState('');
     const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
     const [isAuth, setIsAuth] = useState<boolean | null>(null);
-
+    const router = useRouter();
+    const [joining, setJoining] = useState(false);
     const virtuosoRef = useRef<VirtuosoHandle>(null);
     const { user } = useAuth();
     const { userProfile } = useStore();
@@ -68,6 +70,24 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
             toast.success(isMuted ? 'Group unmuted' : 'Group muted');
         } catch {
             toast.error('Failed to update mute settings');
+        }
+    };
+
+    const handleJoinGroup = async () => {
+        if (!user) return;
+        setJoining(true);
+        try {
+            const groupRef = doc(db, 'groups', groupId);
+            await updateDoc(groupRef, {
+                memberIds: arrayUnion(user.uid)
+            });
+            setIsAuth(true);
+            setGroup((prev: any) => prev ? { ...prev, memberIds: [...(prev.memberIds || []), user.uid] } : prev);
+            toast.success('Joined group!');
+        } catch {
+            toast.error('Failed to join group');
+        } finally {
+            setJoining(false);
         }
     };
 
@@ -94,13 +114,10 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                     const groupData = { id: snap.id, ...snap.data() } as Group;
                     setGroup(groupData);
                     
-                    const { field, year, division } = userProfile;
-                    const matchesField = groupId === `field_${field.replace(/\s+/g, '_')}`;
-                    const matchesYear = groupId === `year_${field.replace(/\s+/g, '_')}_${year.replace(/\s+/g, '_')}`;
-                    const matchesDiv = groupId === `division_${field.replace(/\s+/g, '_')}_${year.replace(/\s+/g, '_')}_${division}`;
-                    const isCustomGroup = (groupData as any).memberIds?.includes(user.uid);
+                    const isGroupMember = groupData.memberIds?.includes(user.uid);
+                    const isAdmin = userProfile.role === 'admin';
                     
-                    if (matchesField || matchesYear || matchesDiv || isCustomGroup || userProfile.role === 'admin') {
+                    if (isGroupMember || isAdmin) {
                         setIsAuth(true);
                     } else {
                         setIsAuth(false);
@@ -354,7 +371,14 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                     <ShieldAlert className="h-16 w-16 text-[var(--ui-danger)]/50 mb-4" />
                     <h2 className="text-xl font-bold text-[var(--ui-text)]">Access Denied</h2>
                     <p className="text-sm text-[var(--ui-text-muted)]">You are not a member of this group.</p>
-                    <Link href="/groups" className="mt-4 text-[var(--ui-accent)] hover:text-[var(--ui-accent-hover)] font-medium transition-colors text-sm">
+                    <button
+                        onClick={handleJoinGroup}
+                        disabled={joining}
+                        className="mt-4 px-6 py-2.5 rounded-full bg-[var(--ui-accent)] text-white font-bold hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer shadow-md"
+                    >
+                        {joining ? 'Joining...' : 'Join Group'}
+                    </button>
+                    <Link href="/groups" className="mt-3 text-[var(--ui-accent)] hover:text-[var(--ui-accent-hover)] font-medium transition-colors text-sm">
                         Back to Groups
                     </Link>
                 </div>
@@ -556,16 +580,14 @@ export default function GroupChatDetail({ params }: { params: Promise<{ groupId:
                             onLeaveGroup={async () => {
                                 if (confirm('Are you sure you want to leave this group?')) {
                                     try {
+                                        if (!user) return;
                                         const groupRef = doc(db, 'groups', groupId);
-                                        const currentGroup = group as any;
-                                        const userIdx = user ? (currentGroup.memberIds || []).indexOf(user.uid) : -1;
-                                        if (userIdx > -1) {
-                                            const newMembers = [...(currentGroup.memberIds || [])];
-                                            newMembers.splice(userIdx, 1);
-                                            await updateDoc(groupRef, { memberIds: newMembers });
-                                            toast.success('Left group');
-                                            window.location.href = '/groups';
-                                        }
+                                        await updateDoc(groupRef, { 
+                                            memberIds: arrayRemove(user.uid),
+                                            adminIds: arrayRemove(user.uid)
+                                        });
+                                        toast.success('You have left the group');
+                                        router.push('/groups');
                                     } catch {
                                         toast.error('Failed to leave group');
                                     }

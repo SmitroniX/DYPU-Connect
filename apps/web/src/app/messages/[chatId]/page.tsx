@@ -440,7 +440,7 @@ export default function PrivateChatDetail({ params }: { params: Promise<{ chatId
                                             <div className="flex justify-center mb-6 mt-4">
                                                 <div className="flex items-center gap-1.5 text-[10px] text-[var(--ui-text-muted)] font-medium tracking-wide uppercase px-3 py-1 bg-[var(--ui-bg-surface)]/50 rounded-full border border-[var(--ui-border)]/30 backdrop-blur-sm">
                                                     <Lock className="w-3 h-3 shrink-0 opacity-70" />
-                                                    <span>End-to-end encrypted</span>
+                                                    <span>Direct Campus Chat • Secured with University Auth</span>
                                                 </div>
                                             </div>
                                             {/* Empty chat state with illustrated avatar & "Say hello" prompt chips */}

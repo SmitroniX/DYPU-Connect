@@ -124,9 +124,9 @@ export default function SingleConfessionPage({ params }: { params: Promise<{ id:
         return (
             <DashboardLayout>
                 <div className="flex flex-col items-center justify-center py-20">
-                    <h3 className="text-xl font-bold text-white mb-2">Confession not found</h3>
+                    <h3 className="text-xl font-bold text-[var(--ui-text)] mb-2">Confession not found</h3>
                     <p className="text-[var(--ui-text-muted)] mb-6">It may have been deleted or removed.</p>
-                    <button onClick={() => router.push('/confessions')} className="px-6 py-2 bg-[var(--ui-accent)] rounded-full text-white font-bold hover:opacity-90">
+                    <button onClick={() => router.push('/confessions')} className="px-6 py-2 bg-[var(--ui-accent)] rounded-full text-[var(--ui-accent-text)] font-bold hover:opacity-90">
                         Go Back
                     </button>
                 </div>

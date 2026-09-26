@@ -193,7 +193,7 @@ export default function PrivateChatOversightPage() {
                     Classified Clearance Required
                 </h1>
                 <p className="text-base text-[var(--ui-text-muted)] max-w-md mx-auto leading-relaxed">
-                    This module is strictly restricted to Level-5 Administrators due to privacy constraints. Your access level (`{userProfile.role}`) does not permit oversight of encrypted private communications.
+                    This module is strictly restricted to Level-5 Administrators due to privacy constraints. Your access level (`{userProfile.role}`) does not permit student communication oversight.
                 </p>
             </div>
         );
@@ -237,7 +237,7 @@ export default function PrivateChatOversightPage() {
                                 Private Chat Oversight
                             </h1>
                             <p className="text-xs text-[var(--ui-text-secondary)] mt-0.5">
-                                Classified deep-inspection of end-to-end encrypted user communications.
+                                Inspection and moderation oversight of student direct messaging records.
                             </p>
                         </div>
                     </div>
@@ -436,19 +436,19 @@ export default function PrivateChatOversightPage() {
                                 <div className="flex items-center gap-1 bg-[var(--ui-bg-base)] p-1 rounded-lg border border-[var(--ui-border)]">
                                     <button 
                                         onClick={() => setActiveTab('stream')}
-                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'stream' ? 'bg-[var(--ui-bg-elevated)] text-white shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text-secondary)]'}`}
+                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'stream' ? 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text)] font-semibold shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text-secondary)]'}`}
                                     >
                                         <Activity className="w-3.5 h-3.5" /> Stream
                                     </button>
                                     <button 
                                         onClick={() => setActiveTab('media')}
-                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'media' ? 'bg-[var(--ui-bg-elevated)] text-white shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text-secondary)]'}`}
+                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'media' ? 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text)] font-semibold shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text-secondary)]'}`}
                                     >
                                         <ImageIcon className="w-3.5 h-3.5" /> Media Gallery
                                     </button>
                                     <button 
                                         onClick={() => setActiveTab('log')}
-                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'log' ? 'bg-[var(--ui-bg-elevated)] text-white shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text-secondary)]'}`}
+                                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${activeTab === 'log' ? 'bg-[var(--ui-bg-elevated)] text-[var(--ui-text)] font-semibold shadow-sm' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text-secondary)]'}`}
                                     >
                                         <Info className="w-3.5 h-3.5" /> Action Log
                                     </button>
@@ -462,7 +462,7 @@ export default function PrivateChatOversightPage() {
                                             placeholder="Search messages..." 
                                             value={messageSearchQuery}
                                             onChange={(e) => setMessageSearchQuery(e.target.value)}
-                                            className="pl-8 pr-3 py-1.5 bg-[var(--ui-bg-base)] border border-[var(--ui-border)] rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 w-48 transition-all"
+                                            className="pl-8 pr-3 py-1.5 bg-[var(--ui-bg-base)] border border-[var(--ui-border)] rounded-lg text-xs text-[var(--ui-text)] placeholder-[var(--ui-text-muted)] focus:outline-none focus:border-blue-500/50 w-48 transition-all"
                                         />
                                     </div>
                                 )}

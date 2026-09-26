@@ -245,7 +245,7 @@ export default function DashboardPage() {
 
                   {/* Live preview quote snippet */}
                   <div className="mt-4 p-3 rounded-xl bg-[var(--ui-bg-elevated)]/75 border border-amber-500/20 text-xs text-[var(--ui-text-secondary)] italic leading-relaxed line-clamp-2">
-                    &ldquo;Spill campus secrets with total peace of mind • Zero trace &amp; end-to-end encrypted&rdquo;
+                    &ldquo;Spill campus thoughts with total peace of mind • Pseudonymous &amp; student-led&rdquo;
                   </div>
                 </div>
 

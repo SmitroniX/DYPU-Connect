@@ -167,7 +167,7 @@ export default function AdminContentPage() {
                             key={key}
                             onClick={() => setActiveTab(key)}
                             className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
-                                activeTab === key ? 'bg-[var(--ui-accent)] text-[var(--ui-bg-elevated)]' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)]'
+                                activeTab === key ? 'bg-[var(--ui-accent)] text-[var(--ui-accent-text)]' : 'text-[var(--ui-text-muted)] hover:text-[var(--ui-text)] hover:bg-[var(--ui-bg-hover)]'
                             }`}
                         >
                             <TabIcon className="h-4 w-4" />

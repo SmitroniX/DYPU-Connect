@@ -127,7 +127,7 @@ export default function InboxPage() {
                 <ChannelHeader name="messages" description="Your private campus conversations" type="dm">
                     <button
                         onClick={() => setShowNewChat(!showNewChat)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-[var(--ui-bg-elevated)] text-sm font-semibold rounded transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-[var(--ui-accent-text)] text-sm font-semibold rounded transition-colors"
                     >
                         {showNewChat ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
                         {showNewChat ? 'Cancel' : 'New Chat'}

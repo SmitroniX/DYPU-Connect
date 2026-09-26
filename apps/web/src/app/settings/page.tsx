@@ -641,7 +641,7 @@ function CookiePrivacySection() {
             <div className="mt-4 flex flex-wrap items-center gap-3">
                 <button
                     onClick={handleSave}
-                    className="rounded-md bg-[var(--ui-accent)] px-3 py-2 text-sm font-medium text-[var(--ui-bg-elevated)] hover:bg-[var(--ui-accent-hover)] transition-colors"
+                    className="rounded-md bg-[var(--ui-accent)] px-3 py-2 text-sm font-medium text-[var(--ui-accent-text)] hover:bg-[var(--ui-accent-hover)] transition-colors"
                 >
                     Save Preferences
                 </button>
@@ -1220,7 +1220,7 @@ export default function SettingsPage() {
                                         <button
                                             onClick={connectGoogleDrive}
                                             disabled={driveBusy}
-                                            className="rounded-md bg-[var(--ui-accent)] px-3 py-2 text-sm font-medium text-[var(--ui-bg-elevated)] hover:bg-[var(--ui-accent-hover)] disabled:opacity-50 transition-colors"
+                                            className="rounded-md bg-[var(--ui-accent)] px-3 py-2 text-sm font-medium text-[var(--ui-accent-text)] hover:bg-[var(--ui-accent-hover)] disabled:opacity-50 transition-colors"
                                         >
                                             Connect Google Drive
                                         </button>
