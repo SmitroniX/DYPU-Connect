@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ArrowLeft, MoreVertical, BadgeCheck, Phone, Video } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { requestAndroidCallPermissions } from '@/lib/android';
 
 interface ChatHeaderProps {
     chatId: string;
@@ -138,7 +139,10 @@ export default function ChatHeader({
                     <motion.button
                         whileHover={{ scale: 1.08 }}
                         whileTap={{ scale: 0.92 }}
-                        onClick={onAudioCall}
+                        onClick={() => {
+                            requestAndroidCallPermissions();
+                            onAudioCall();
+                        }}
                         className="p-2 sm:p-2.5 text-[var(--ui-text-muted)] hover:text-emerald-400 hover:bg-emerald-500/10 rounded-full transition-colors cursor-pointer"
                         title="Start Voice Call"
                         aria-label="Start Voice Call"
@@ -151,7 +155,10 @@ export default function ChatHeader({
                     <motion.button
                         whileHover={{ scale: 1.08 }}
                         whileTap={{ scale: 0.92 }}
-                        onClick={onVideoCall}
+                        onClick={() => {
+                            requestAndroidCallPermissions();
+                            onVideoCall();
+                        }}
                         className="p-2 sm:p-2.5 text-[var(--ui-text-muted)] hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors cursor-pointer"
                         title="Start Video Call"
                         aria-label="Start Video Call"

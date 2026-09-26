@@ -107,8 +107,12 @@ class MainActivity : AppCompatActivity() {
     private val callPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         val cameraGranted = permissions[Manifest.permission.CAMERA] ?: (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
         val audioGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)
+        val btGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            permissions[Manifest.permission.BLUETOOTH_CONNECT] ?: (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED)
+        } else true
         
-        Log.d(TAG, "Call permissions result: camera=$cameraGranted, audio=$audioGranted")
+        val isGranted = cameraGranted && audioGranted
+        Log.d(TAG, "Call permissions result: camera=$cameraGranted, audio=$audioGranted, bluetooth=$btGranted -> overall=$isGranted")
         
         pendingWebPermissionRequest?.let { request ->
             val granted = mutableListOf<String>()
@@ -127,7 +131,7 @@ class MainActivity : AppCompatActivity() {
             pendingWebPermissionRequest = null
         }
         
-        emitToWeb("call_permissions_result", (cameraGranted && audioGranted).toString())
+        emitToWeb("call_permissions_result", isGranted.toString())
     }
 
     private val googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -461,7 +465,10 @@ class MainActivity : AppCompatActivity() {
         if (url == null) return
         
         var finalUrl = url
-        if (finalUrl.startsWith("/")) {
+        if (finalUrl.startsWith("dypuconnect://")) {
+            val path = finalUrl.removePrefix("dypuconnect://")
+            finalUrl = BASE_URL + if (path.startsWith("/")) path else "/$path"
+        } else if (finalUrl.startsWith("/")) {
             finalUrl = BASE_URL + finalUrl
         }
         
@@ -645,6 +652,26 @@ class MainActivity : AppCompatActivity() {
                 ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
             } else {
                 true
+            }
+        }
+
+        @JavascriptInterface
+        fun openNotificationSettings() {
+            runOnUiThread {
+                try {
+                    val intent = Intent().apply {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            action = android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                            putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName)
+                        } else {
+                            action = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                            data = Uri.fromParts("package", packageName, null)
+                        }
+                    }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to open notification settings", e)
+                }
             }
         }
 

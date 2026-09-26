@@ -56,6 +56,22 @@ export default function SingleConfessionPage({ params }: { params: Promise<{ id:
         };
     }, [id]);
 
+    useEffect(() => {
+        if (loading) return;
+        if (typeof window !== 'undefined') {
+            const hash = window.location.hash;
+            if (hash === '#comments' || hash === '#comment-input') {
+                const timer = setTimeout(() => {
+                    const inputEl = document.getElementById('comment-input');
+                    const targetEl = document.getElementById(hash.slice(1)) || inputEl;
+                    targetEl?.scrollIntoView({ behavior: 'smooth' });
+                    inputEl?.focus();
+                }, 200);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [loading]);
+
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newComment.trim() || !user || submitting || !confession) return;
@@ -136,13 +152,14 @@ export default function SingleConfessionPage({ params }: { params: Promise<{ id:
 
                         {/* Comments Section */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-[var(--ui-text-muted)] uppercase tracking-wider px-2">
+                            <h3 id="comments" className="text-sm font-bold text-[var(--ui-text-muted)] uppercase tracking-wider px-2 scroll-mt-20">
                                 Comments ({comments.length})
                             </h3>
                             
                             {/* Comment Input */}
                             <form onSubmit={handleCommentSubmit} className="flex gap-2">
                                 <input
+                                    id="comment-input"
                                     type="text"
                                     value={newComment}
                                     onChange={e => setNewComment(e.target.value)}

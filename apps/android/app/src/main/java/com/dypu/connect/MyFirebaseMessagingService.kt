@@ -19,10 +19,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private val TAG = "DYPU_FCMService"
 
     companion object {
-        const val CHANNEL_MESSAGES = "dypu_connect_messages"
-        const val CHANNEL_CALLS = "dypu_connect_calls"
-        const val CHANNEL_CONFESSIONS = "dypu_connect_confessions"
-        const val CHANNEL_GENERAL = "dypu_connect_general"
+        const val CHANNEL_CALLS = "dypu_calls"
+        const val CHANNEL_MESSAGES = "dypu_messages"
+        const val CHANNEL_CONFESSIONS = "dypu_confessions"
+        const val CHANNEL_GENERAL = "dypu_general"
         const val NOTIFICATION_GROUP = "com.dypu.connect.NOTIFICATIONS"
     }
 
@@ -44,7 +44,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         if (remoteMessage.data.isNotEmpty()) {
             title = remoteMessage.data["title"] ?: title
             body = remoteMessage.data["body"] ?: body
-            url = remoteMessage.data["url"]
+            url = remoteMessage.data["target_url"] ?: remoteMessage.data["url"]
             type = remoteMessage.data["type"] ?: "general"
             senderId = remoteMessage.data["senderId"]
             chatId = remoteMessage.data["chatId"]
@@ -211,9 +211,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun sendGeneralNotification(title: String, messageBody: String, url: String?) {
+        val targetUrl = if (!url.isNullOrEmpty()) url else "/"
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            url?.takeIf { it.isNotEmpty() }?.let { putExtra("target_url", it) }
+            putExtra("target_url", targetUrl)
         }
 
         val notificationId = (System.currentTimeMillis() % 100000).toInt()
@@ -293,6 +294,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 description = getString(R.string.channel_confessions_desc)
                 enableLights(true)
                 lightColor = Color.parseColor("#F59E0B")
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0, 200, 100, 200)
+                setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), audioAttributesNotification)
             }
 
             // 4. General Announcements Channel (Default Importance)
@@ -302,6 +306,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = getString(R.string.channel_general_desc)
+                enableLights(true)
+                enableVibration(true)
+                setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), audioAttributesNotification)
             }
 
             notificationManager.createNotificationChannels(

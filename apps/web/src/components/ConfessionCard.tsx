@@ -14,14 +14,17 @@ import toast from 'react-hot-toast';
 import { filterProfanity } from '@/lib/security';
 import { shareToAndroid, isAndroidApp, shareImageToAndroid, saveImageToAndroid } from '@/lib/android';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ConfessionCardProps {
     confession: Confession;
     linkToDetail?: boolean;
+    onCommentClick?: () => void;
 }
 
-export default function ConfessionCard({ confession, linkToDetail = true }: ConfessionCardProps) {
+export default function ConfessionCard({ confession, linkToDetail = true, onCommentClick }: ConfessionCardProps) {
+    const router = useRouter();
     const cardRef = useRef<HTMLElement>(null);
     const { user } = useAuth();
     
@@ -95,6 +98,26 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
             toast.error('Failed to update like status');
         } finally {
             setLikeLoading(false);
+        }
+    };
+
+    const handleCommentClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onCommentClick) {
+            onCommentClick();
+            return;
+        }
+        if (linkToDetail) {
+            router.push(`/confessions/${confession.id}#comments`);
+        } else {
+            const input = document.getElementById('comment-input');
+            if (input) {
+                input.scrollIntoView({ behavior: 'smooth' });
+                input.focus();
+            } else {
+                router.push(`/confessions/${confession.id}#comments`);
+            }
         }
     };
 
@@ -360,11 +383,11 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
                 <div className="mt-5 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                         <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-[var(--ui-accent)]/20 to-[var(--ui-accent)]/5 border border-[var(--ui-accent)]/30 flex items-center justify-center text-[var(--ui-accent)] text-xs font-black shadow-sm">
-                            {confession.anonymousName.charAt(0)}
+                            {(confession.anonymousName || 'Anonymous').charAt(0)}
                         </div>
                         <div className="flex flex-col">
                             <span className="text-xs font-bold text-[var(--ui-text)]">
-                                {confession.anonymousName}
+                                {confession.anonymousName || 'Anonymous'}
                             </span>
                             <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--ui-text-muted)]">
                                 DYPU Connect • Encrypted
@@ -399,10 +422,17 @@ export default function ConfessionCard({ confession, linkToDetail = true }: Conf
                         </motion.button>
                         
                         {/* Comments button */}
-                        <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-[var(--ui-text-muted)] hover:text-blue-400 hover:bg-blue-500/10 transition-all active:scale-95 cursor-pointer">
+                        <motion.button
+                            type="button"
+                            onClick={handleCommentClick}
+                            whileTap={{ scale: 0.92 }}
+                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-[var(--ui-text-muted)] hover:text-blue-400 hover:bg-blue-500/10 transition-all cursor-pointer"
+                            title="Comments"
+                            aria-label="Comments"
+                        >
                             <MessageCircle className="h-4 w-4" />
                             <span>{commentsCount}</span>
-                        </div>
+                        </motion.button>
                     </div>
                     
                     <div className="flex items-center gap-1 sm:gap-1.5">

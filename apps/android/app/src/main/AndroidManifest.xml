@@ -64,6 +64,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- ── Custom Scheme Deep Link: dypuconnect:// ─── -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="dypuconnect" />
+            </intent-filter>
+
             <!-- ── Deep Link: Firebase Email Link Auth ──────── -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -106,6 +114,14 @@
                 <data android:scheme="https" />
                 <data android:host="dypu-connect.firebaseapp.com" />
                 <data android:host="dypu-connect.web.app" />
+            </intent-filter>
+
+            <!-- ── Custom Scheme Deep Link: dypuconnect:// ── -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="dypuconnect" />
             </intent-filter>
 
             <meta-data android:name="android.app.shortcuts"

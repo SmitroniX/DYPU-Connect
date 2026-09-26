@@ -28,6 +28,7 @@ import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { requestAndroidCallPermissions } from '@/lib/android';
 
 interface VideoCallProps {
     chatId: string;
@@ -137,6 +138,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
 
     const startCall = async (type: 'audio' | 'video') => {
         try {
+            requestAndroidCallPermissions();
             setCallType(type);
             setCallState('calling');
             const sess = await createCall(chatId, myUid, otherUserId, type);
@@ -150,6 +152,7 @@ export default function VideoCall({ chatId, myUid, otherUserId, otherUserName }:
     const acceptIncomingCall = async () => {
         if (!incomingCall) return;
         try {
+            requestAndroidCallPermissions();
             setCallType(incomingCall.data.type);
             setCallState('active');
             const sess = await answerCall(incomingCall.callId, incomingCall.data.type);
@@ -456,7 +459,10 @@ function CallButtons({ onStartCall, disabled }: { onStartCall: (type: 'audio' | 
     return (
         <div className="flex items-center gap-1.5 bg-[var(--ui-bg-hover)] p-1 rounded-xl border border-[var(--ui-border)]">
             <button
-                onClick={() => onStartCall('audio')}
+                onClick={() => {
+                    requestAndroidCallPermissions();
+                    onStartCall('audio');
+                }}
                 disabled={disabled}
                 className="p-2 rounded-lg text-[var(--ui-text-muted)] hover:text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-30 transition-all duration-300"
                 title="Voice Call"
@@ -464,7 +470,10 @@ function CallButtons({ onStartCall, disabled }: { onStartCall: (type: 'audio' | 
                 <Phone className="h-4.5 w-4.5" />
             </button>
             <button
-                onClick={() => onStartCall('video')}
+                onClick={() => {
+                    requestAndroidCallPermissions();
+                    onStartCall('video');
+                }}
                 disabled={disabled}
                 className="p-2 rounded-lg text-[var(--ui-text-muted)] hover:text-blue-400 hover:bg-blue-500/10 disabled:opacity-30 transition-all duration-300"
                 title="Video Call"
